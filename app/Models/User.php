@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -12,7 +13,7 @@ class User extends Authenticatable
     const ROLE_ADMIN = 2;
     const ROLE_PROVIDER = 3;
 
-    protected $fillable = ['name', 'email', 'password', 'role'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'profile_photo_path'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -28,5 +29,18 @@ class User extends Authenticatable
             self::ROLE_PROVIDER => 'provider',
             default => 'user',
         };
+    }
+
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        if (!$this->profile_photo_path) {
+            return null;
+        }
+
+        if (!Storage::disk('public')->exists($this->profile_photo_path)) {
+            return null;
+        }
+
+        return route('profile.photo.show', ['user' => $this->id]);
     }
 }

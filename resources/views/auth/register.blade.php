@@ -36,4 +36,6 @@
             </button>
         </form>
     </div>
+
+    @include('components.flash-toasts')
 </body>

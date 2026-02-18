@@ -17,12 +17,6 @@
             <p class="text-zinc-500 mt-2">Enter your credentials to access SkillSoft</p>
         </div>
 
-        @if ($errors->any())
-            <div class="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
-                {{ $errors->first() }}
-            </div>
-        @endif
-
         <form action="/login" method="POST" class="space-y-5">
             @csrf
 
@@ -62,5 +56,7 @@
             </p>
         </div>
     </div>
+
+    @include('components.flash-toasts')
 </body>
 </html>

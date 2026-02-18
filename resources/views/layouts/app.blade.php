@@ -23,5 +23,8 @@
         </main>
     </div>
 
+    @include('components.flash-toasts')
+
+    @stack('scripts')
 </body>
 </html>

@@ -9,3 +9,69 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+@layer components {
+    .sidebar-shell {
+        @apply transition-all duration-300 ease-out shadow-2xl shadow-black/40;
+    }
+
+    .sidebar-link {
+        @apply flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 mb-1 text-sm font-medium text-zinc-300 transition hover:bg-white/5 hover:text-white;
+    }
+
+    .sidebar-link-active {
+        @apply bg-cyan-500/15 border-cyan-400/30 text-cyan-100 shadow-lg shadow-cyan-900/20;
+    }
+
+    .sidebar-icon {
+        @apply h-5 w-5 shrink-0 text-zinc-400 group-hover:text-cyan-300 transition;
+    }
+
+    #appSidebar[data-collapsed='1'] .sidebar-label,
+    #appSidebar[data-collapsed='1'] .sidebar-brand-text,
+    #appSidebar[data-collapsed='1'] .sidebar-brand-sub,
+    #appSidebar[data-collapsed='1'] .sidebar-section-title {
+        display: none;
+    }
+
+    #appSidebar[data-collapsed='1'] .sidebar-brand-wrap {
+        justify-content: center;
+    }
+
+    #appSidebar[data-collapsed='1'] .sidebar-link {
+        justify-content: center;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        width: 3rem;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .dashboard-panel {
+        @apply rounded-3xl border border-white/10 bg-zinc-900/70 p-5 lg:p-6 shadow-xl shadow-black/30 backdrop-blur-sm;
+    }
+
+    .dashboard-card {
+        @apply rounded-2xl border border-white/10 bg-zinc-900/70 p-5 shadow-lg shadow-black/20 transition hover:border-cyan-400/40;
+    }
+
+    .dashboard-label {
+        @apply text-xs uppercase tracking-[0.14em] text-zinc-400 font-semibold;
+    }
+
+    .dashboard-value {
+        @apply mt-3 text-3xl font-black text-white;
+    }
+
+    .toast-pop {
+        @apply pointer-events-auto rounded-xl px-4 py-3 text-sm font-medium border;
+        transform: translateY(14px);
+        opacity: 0;
+        transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    .toast-pop-show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

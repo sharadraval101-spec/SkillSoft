@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminDashboardController;
 use App\Models\User;
 use App\Http\Controllers\ProfileController;
 
@@ -15,23 +16,22 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // Admin -> resources/views/admin/index.blade.php
-    Route::get('/admin/dashboard', fn() => view('admin.index'))
-        ->middleware('role:'.User::ROLE_ADMIN);
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
+        ->middleware('role:'.User::ROLE_ADMIN)
+        ->name('admin.dashboard');
 
-    // Provider -> resources/views/provider/index.blade.php
     Route::get('/provider/dashboard', fn() => view('provider.index'))
-        ->middleware('role:'.User::ROLE_PROVIDER);
+        ->middleware('role:'.User::ROLE_PROVIDER)
+        ->name('provider.dashboard');
 
-    // User -> resources/views/user/index.blade.php
     Route::get('/user/dashboard', fn() => view('user.index'))
-        ->middleware('role:'.User::ROLE_USER);
+        ->middleware('role:'.User::ROLE_USER)
+        ->name('user.dashboard');
 });
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/photo/{user}', [ProfileController::class, 'showPhoto'])->name('profile.photo.show');
+    Route::post('/profile/password/send-code', [ProfileController::class, 'sendPasswordResetCode'])->name('profile.password.send_code');
+    Route::post('/profile/password/reset-by-code', [ProfileController::class, 'resetPasswordWithCode'])->name('profile.password.reset_by_code');
 });
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
