@@ -3,7 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'SkillSoft Dashboard' }}</title>
+    @stack('styles')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#050505] text-zinc-300 h-full flex overflow-hidden">
@@ -25,6 +27,7 @@
 
     @include('components.flash-toasts')
 
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
     @stack('scripts')
 </body>
 </html>

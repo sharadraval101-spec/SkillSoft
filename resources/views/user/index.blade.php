@@ -12,6 +12,12 @@
         </div>
 
         <div class="flex gap-4">
+            <a href="{{ route('customer.bookings.create') }}" class="bg-cyan-500 hover:bg-cyan-400 text-zinc-950 px-6 py-3 rounded-2xl font-semibold transition-all flex items-center gap-2">
+                Create Booking
+            </a>
+            <a href="{{ route('customer.payments.index') }}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-semibold transition-all flex items-center gap-2">
+                Payment History
+            </a>
             <a href="{{ route('profile.index') }}" class="bg-zinc-900 hover:bg-zinc-800 text-white px-6 py-3 rounded-2xl font-semibold border border-white/5 transition-all flex items-center gap-2">
                 View Profile
             </a>

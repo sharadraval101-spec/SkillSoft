@@ -49,7 +49,7 @@
                 const hideAfterMs = 1000 + (index * 80);
                 setTimeout(() => {
                     toast.classList.remove('toast-pop-show');
-                    setTimeout(() => toast.remove(), 240);
+                    setTimeout(() => toast.remove(), 260);
                 }, hideAfterMs);
             });
         })();

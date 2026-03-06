@@ -1,32 +1,57 @@
 <?php
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-// use Log;
+use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-   public function handle(Request $request, Closure $next, $role)
-{
-    // 1. Ensure the user is logged in
-    if (!auth()->check()) {
-        return redirect()->route('login');
-    }
+    public function handle(Request $request, Closure $next, string $role): Response
+    {
+        /** @var \App\Models\User|null $user */
+        $user = $request->user();
 
-    $userRole = (int)auth()->user()->role;
+        if (!$user) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
 
-    // 2. If the user's role does NOT match the required role for this URL
-    if ($userRole !== (int)$role) {
-        // Redirect them to their own correct dashboard instead of showing 403
-        return match($userRole) {
-            \App\Models\User::ROLE_ADMIN    => redirect('/admin/dashboard'),
-            \App\Models\User::ROLE_PROVIDER => redirect('/provider/dashboard'),
-            default                         => redirect('/user/dashboard'),
+            return redirect()->route('login');
+        }
+
+        $requiredRole = $this->normalizeRequiredRole($role);
+        if ($requiredRole === null) {
+            abort(403, 'Invalid role middleware configuration.');
+        }
+
+        if ((int) $user->role === $requiredRole) {
+            return $next($request);
+        }
+
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        return match ((int) $user->role) {
+            User::ROLE_ADMIN => redirect('/admin/dashboard'),
+            User::ROLE_PROVIDER => redirect('/provider/dashboard'),
+            default => redirect('/user/dashboard'),
         };
     }
 
-    return $next($request);
-}
+    private function normalizeRequiredRole(string $role): ?int
+    {
+        if (is_numeric($role)) {
+            return (int) $role;
+        }
+
+        return match ($role) {
+            'admin' => User::ROLE_ADMIN,
+            'provider' => User::ROLE_PROVIDER,
+            'customer', 'user' => User::ROLE_CUSTOMER,
+            default => null,
+        };
+    }
 }

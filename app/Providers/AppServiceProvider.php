@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Events\UserNotificationTriggered;
+use App\Listeners\SendFallbackNotificationListener;
+use App\Listeners\StoreNotificationListener;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Event::listen(UserNotificationTriggered::class, StoreNotificationListener::class);
+        Event::listen(UserNotificationTriggered::class, SendFallbackNotificationListener::class);
     }
 }

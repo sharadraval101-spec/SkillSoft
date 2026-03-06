@@ -39,7 +39,7 @@
 
             <div class="flex items-center px-1">
                 <label class="flex items-center cursor-pointer group">
-                    <input type="checkbox" name="remember" class="w-4 h-4 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-0 focus:ring-offset-0 transition-colors">
+                    <input type="checkbox" name="remember" value="1" class="w-4 h-4 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-0 focus:ring-offset-0 transition-colors">
                     <span class="ml-3 text-sm text-zinc-500 group-hover:text-zinc-300 transition-colors">Stay logged in</span>
                 </label>
             </div>
@@ -52,7 +52,7 @@
 
         <div class="mt-10 pt-6 border-t border-white/5 text-center">
             <p class="text-zinc-500 text-sm">
-                New to the platform? <a href="/register" class="text-indigo-400 hover:text-indigo-300 font-semibold ml-1">Create account</a>
+                New to the platform? <a href="{{ route('register') }}" class="text-indigo-400 hover:text-indigo-300 font-semibold ml-1">Create account</a>
             </p>
         </div>
     </div>
