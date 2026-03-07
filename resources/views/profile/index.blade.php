@@ -105,11 +105,15 @@
                         <div>
                             <label class="block text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 ml-1">New Password</label>
                             <input type="password" name="password" required minlength="8"
+                                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                                title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
                                 class="w-full bg-black/40 border border-white/10 py-3 px-4 rounded-xl text-white focus:ring-1 focus:ring-cyan-500 outline-none transition">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2 ml-1">Confirm Password</label>
                             <input type="password" name="password_confirmation" required minlength="8"
+                                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                                title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
                                 class="w-full bg-black/40 border border-white/10 py-3 px-4 rounded-xl text-white focus:ring-1 focus:ring-cyan-500 outline-none transition">
                         </div>
                     </div>
@@ -167,6 +171,7 @@
             const photoInput = document.getElementById('profilePhotoInput');
             const photoPreview = document.getElementById('profilePhotoPreview');
             const photoInitial = document.getElementById('profilePhotoInitial');
+            const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
             if (photoInput && photoPreview && photoInitial) {
                 photoInput.addEventListener('change', () => {
@@ -224,9 +229,9 @@
                         return;
                     }
 
-                    if (password.length < 8) {
+                    if (!strongPasswordPattern.test(password)) {
                         event.preventDefault();
-                        showToast('Password must be at least 8 characters.');
+                        showToast('Password must be 8+ chars with uppercase, lowercase, number, and special character.');
                         return;
                     }
 

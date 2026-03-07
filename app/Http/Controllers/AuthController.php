@@ -1,12 +1,15 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Mail\PasswordResetCodeMail;
 use App\Models\ActivityLog;
+use App\Models\PasswordResetCode;
 use App\Models\ProviderProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -21,7 +24,7 @@ class AuthController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
             'role' => 'required|in:'.User::ROLE_CUSTOMER.','.User::ROLE_PROVIDER,
             'business_name' => 'required_if:role,'.User::ROLE_PROVIDER.'|nullable|string|max:255',
         ]);
@@ -100,6 +103,144 @@ class AuthController extends Controller
 
         throw ValidationException::withMessages([
             'email' => 'Credentials do not match our records.',
+        ]);
+    }
+
+    public function sendForgotPasswordOtp(Request $request)
+    {
+        $data = $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::query()
+            ->where('email', $data['email'])
+            ->first();
+
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => 'No account found for this email address.',
+            ]);
+        }
+
+        $latestCode = PasswordResetCode::query()
+            ->where('user_id', $user->id)
+            ->latest('created_at')
+            ->first();
+
+        if ($latestCode && $latestCode->created_at->gt(now()->subMinute())) {
+            throw ValidationException::withMessages([
+                'email' => 'Please wait a minute before requesting another OTP.',
+            ]);
+        }
+
+        $otp = (string) random_int(1000, 9999);
+        $expiresAt = now()->addMinutes(10);
+
+        PasswordResetCode::query()->create([
+            'user_id' => $user->id,
+            'code_hash' => Hash::make($otp),
+            'expires_at' => $expiresAt,
+        ]);
+
+        Mail::to($user->email)->send(new PasswordResetCodeMail(
+            $user,
+            $otp,
+            $expiresAt->format('M d, Y h:i A')
+        ));
+
+        $this->recordActivity($request, 'auth.forgot_password.otp_sent', 'Forgot password OTP sent', $user);
+
+        return response()->json([
+            'message' => '4-digit OTP sent to your email.',
+        ]);
+    }
+
+    public function verifyForgotPasswordOtp(Request $request)
+    {
+        $data = $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|digits:4',
+        ]);
+
+        $user = User::query()
+            ->where('email', $data['email'])
+            ->first();
+
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'otp' => 'Invalid OTP.',
+            ]);
+        }
+
+        $resetCode = PasswordResetCode::query()
+            ->where('user_id', $user->id)
+            ->whereNull('used_at')
+            ->where('expires_at', '>', now())
+            ->latest('created_at')
+            ->first();
+
+        if (!$resetCode || !Hash::check($data['otp'], $resetCode->code_hash)) {
+            throw ValidationException::withMessages([
+                'otp' => 'Invalid OTP.',
+            ]);
+        }
+
+        $this->recordActivity($request, 'auth.forgot_password.otp_verified', 'Forgot password OTP verified', $user);
+
+        return response()->json([
+            'verified' => true,
+            'message' => 'OTP verified. Enter your new password.',
+        ]);
+    }
+
+    public function resetForgotPassword(Request $request)
+    {
+        $data = $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|digits:4',
+            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
+        ]);
+
+        $user = User::query()
+            ->where('email', $data['email'])
+            ->first();
+
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => 'No account found for this email address.',
+            ]);
+        }
+
+        $resetCode = PasswordResetCode::query()
+            ->where('user_id', $user->id)
+            ->whereNull('used_at')
+            ->where('expires_at', '>', now())
+            ->latest('created_at')
+            ->first();
+
+        if (!$resetCode || !Hash::check($data['otp'], $resetCode->code_hash)) {
+            throw ValidationException::withMessages([
+                'otp' => 'Invalid OTP.',
+            ]);
+        }
+
+        $user->password = Hash::make($data['password']);
+        $user->save();
+
+        $resetCode->used_at = now();
+        $resetCode->save();
+
+        PasswordResetCode::query()
+            ->where('user_id', $user->id)
+            ->whereNull('used_at')
+            ->where('id', '!=', $resetCode->id)
+            ->update(['used_at' => now()]);
+
+        $this->recordActivity($request, 'auth.forgot_password.password_reset', 'Forgot password reset completed', $user);
+
+        return response()->json([
+            'message' => 'Password reset successful. Please login with your new password.',
+            'redirect' => route('login'),
         ]);
     }
 

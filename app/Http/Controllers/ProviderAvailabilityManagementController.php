@@ -38,7 +38,7 @@ class ProviderAvailabilityManagementController extends Controller
             ->get();
 
         return response()->json([
-            'data' => $slots->map(fn (Slot $slot): array => $this->toDataRow($slot)),
+            'data' => $slots->map(fn(Slot $slot): array => $this->toDataRow($slot)),
         ]);
     }
 
@@ -192,8 +192,8 @@ class ProviderAvailabilityManagementController extends Controller
 
     private function buildDateTimes(string $date, string $startTime, string $endTime): array
     {
-        $startAt = Carbon::parse($date.' '.$startTime);
-        $endAt = Carbon::parse($date.' '.$endTime);
+        $startAt = Carbon::parse($date . ' ' . $startTime);
+        $endAt = Carbon::parse($date . ' ' . $endTime);
 
         if ($endAt->lessThanOrEqualTo($startAt)) {
             throw ValidationException::withMessages([
@@ -214,7 +214,7 @@ class ProviderAvailabilityManagementController extends Controller
             ->where('provider_id', $providerId)
             ->where('start_at', $startAt)
             ->where('end_at', $endAt)
-            ->when($ignoreSlotId, fn ($query) => $query->where('id', '!=', $ignoreSlotId))
+            ->when($ignoreSlotId, fn($query) => $query->where('id', '!=', $ignoreSlotId))
             ->exists();
 
         if ($exists) {

@@ -18,8 +18,15 @@
             <input type="text" name="name" value="{{ old('name') }}" placeholder="Full Name" required class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
             <input type="text" name="business_name" value="{{ old('business_name') }}" placeholder="Business Name" required class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
             <input type="email" name="email" value="{{ old('email') }}" placeholder="Email" required class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
-            <input type="password" name="password" placeholder="Password" required class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
-            <input type="password" name="password_confirmation" placeholder="Confirm Password" required class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
+            <input type="password" name="password" placeholder="Password" required minlength="8"
+                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+                class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
+            <input type="password" name="password_confirmation" placeholder="Confirm Password" required minlength="8"
+                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+                class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
+            <p class="text-xs text-zinc-500">Use 8+ characters with uppercase, lowercase, number, and special character.</p>
 
             <button class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-cyan-500/20 transition-transform active:scale-95">
                 Submit Provider Registration
@@ -35,4 +42,3 @@
     @include('components.flash-toasts')
 </body>
 </html>
-

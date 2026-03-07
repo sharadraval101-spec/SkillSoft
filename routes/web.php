@@ -26,6 +26,9 @@ Route::get('/services/{slug}', [CustomerWebsiteController::class, 'serviceDetail
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'auth.login')->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
+    Route::post('/forgot-password/send-otp', [AuthController::class, 'sendForgotPasswordOtp'])->name('password.forgot.send_otp');
+    Route::post('/forgot-password/verify-otp', [AuthController::class, 'verifyForgotPasswordOtp'])->name('password.forgot.verify_otp');
+    Route::post('/forgot-password/reset', [AuthController::class, 'resetForgotPassword'])->name('password.forgot.reset');
 
     Route::view('/register', 'auth.register')->name('register');
     Route::view('/register/customer', 'auth.register-customer')->name('register.customer');

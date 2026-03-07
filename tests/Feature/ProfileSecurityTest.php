@@ -125,8 +125,8 @@ class ProfileSecurityTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('profile.password.reset_by_code'), [
             'code' => '123456',
-            'password' => 'newpassword123',
-            'password_confirmation' => 'newpassword123',
+            'password' => 'Newpassword@123',
+            'password_confirmation' => 'Newpassword@123',
         ]);
 
         $response->assertRedirect();
@@ -135,7 +135,7 @@ class ProfileSecurityTest extends TestCase
         $user->refresh();
         $resetCode->refresh();
 
-        $this->assertTrue(Hash::check('newpassword123', $user->password));
+        $this->assertTrue(Hash::check('Newpassword@123', $user->password));
         $this->assertNotNull($resetCode->used_at);
     }
 
@@ -156,8 +156,8 @@ class ProfileSecurityTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('profile.password.reset_by_code'), [
             'code' => '000000',
-            'password' => 'newpassword123',
-            'password_confirmation' => 'newpassword123',
+            'password' => 'Newpassword@123',
+            'password_confirmation' => 'Newpassword@123',
         ]);
 
         $response->assertSessionHasErrors('code');

@@ -39,12 +39,12 @@ class AuthActivityLoggingTest extends TestCase
         $response = $this->post('/register', [
             'name' => 'Student One',
             'email' => 'student@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Password@123',
+            'password_confirmation' => 'Password@123',
             'role' => User::ROLE_USER,
         ]);
 
-        $response->assertRedirect('/user/dashboard');
+        $response->assertRedirect('/customer/dashboard');
 
         $user = User::query()->where('email', 'student@example.com')->firstOrFail();
 

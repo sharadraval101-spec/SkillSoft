@@ -141,12 +141,18 @@
 
             <div>
                 <label for="addUserPassword" class="{{ $labelClass }}">Password</label>
-                <input id="addUserPassword" name="password" type="password" required class="{{ $inputClass }}">
+                <input id="addUserPassword" name="password" type="password" required minlength="8"
+                    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                    title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+                    class="{{ $inputClass }}">
             </div>
 
             <div>
                 <label for="addUserPasswordConfirmation" class="{{ $labelClass }}">Confirm Password</label>
-                <input id="addUserPasswordConfirmation" name="password_confirmation" type="password" required class="{{ $inputClass }}">
+                <input id="addUserPasswordConfirmation" name="password_confirmation" type="password" required minlength="8"
+                    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                    title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+                    class="{{ $inputClass }}">
             </div>
 
             <div>
@@ -195,12 +201,18 @@
 
             <div>
                 <label for="editUserPassword" class="{{ $labelClass }}">New Password (Optional)</label>
-                <input id="editUserPassword" name="password" type="password" class="{{ $inputClass }}">
+                <input id="editUserPassword" name="password" type="password" minlength="8"
+                    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                    title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+                    class="{{ $inputClass }}">
             </div>
 
             <div>
                 <label for="editUserPasswordConfirmation" class="{{ $labelClass }}">Confirm New Password</label>
-                <input id="editUserPasswordConfirmation" name="password_confirmation" type="password" class="{{ $inputClass }}">
+                <input id="editUserPasswordConfirmation" name="password_confirmation" type="password" minlength="8"
+                    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                    title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+                    class="{{ $inputClass }}">
             </div>
 
             <div>
