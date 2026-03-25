@@ -22,12 +22,18 @@ class BookingService
     public function createBooking(User $customer, array $payload): Booking
     {
         return DB::transaction(function () use ($customer, $payload): Booking {
+            $customer = User::query()->lockForUpdate()->findOrFail($customer->id);
+            $this->ensureCustomerCanBook($customer);
+
             $provider = $this->resolveProvider((int) $payload['provider_id']);
             $service = $this->resolveService((string) $payload['service_id'], $provider);
             $variant = $this->resolveVariant($payload['service_variant_id'] ?? null, $service);
             $slot = Slot::query()->lockForUpdate()->findOrFail($payload['slot_id']);
 
             $this->validateSlotForBooking($slot, $provider, $service, null);
+            $this->ensureActiveUpcomingBookingLimit($customer);
+            $this->ensureNoDuplicateBooking($customer, $provider, $service, $slot);
+            $this->ensureNoOverlappingBooking($customer, $slot);
 
             $booking = Booking::query()->create([
                 'booking_number' => $this->generateBookingNumber(),
@@ -106,6 +112,8 @@ class BookingService
             $service = $this->resolveService((string) $booking->service_id, $provider);
 
             $this->validateSlotForBooking($newSlot, $provider, $service, $booking->id);
+            $this->ensureNoDuplicateBooking($customer, $provider, $service, $newSlot, $booking->id);
+            $this->ensureNoOverlappingBooking($customer, $newSlot, $booking->id);
 
             $booking->update([
                 'slot_id' => $newSlot->id,
@@ -257,6 +265,12 @@ class BookingService
             ]);
         }
 
+        if ($slot->start_at->lt(now())) {
+            throw ValidationException::withMessages([
+                'slot_id' => 'You cannot book a past slot.',
+            ]);
+        }
+
         $minHours = max(0, (int) config('booking.window.min_hours_before', 2));
         $maxDays = max(1, (int) config('booking.window.max_days_ahead', 45));
 
@@ -274,7 +288,7 @@ class BookingService
 
         $hasActiveBooking = Booking::query()
             ->where('slot_id', $slot->id)
-            ->whereIn('status', Booking::activeStatuses())
+            ->whereIn('status', Booking::slotBlockingStatuses())
             ->when($ignoreBookingId, fn ($query) => $query->whereKeyNot($ignoreBookingId))
             ->exists();
 
@@ -339,6 +353,7 @@ class BookingService
         $provider = User::query()
             ->whereKey($providerId)
             ->where('role', User::ROLE_PROVIDER)
+            ->where('is_active', true)
             ->whereHas('providerProfile', fn ($query) => $query->where('status', 'active'))
             ->first();
 
@@ -405,7 +420,7 @@ class BookingService
     {
         $isBooked = Booking::query()
             ->where('slot_id', $slot->id)
-            ->whereIn('status', Booking::activeStatuses())
+            ->whereIn('status', Booking::slotBlockingStatuses())
             ->exists();
 
         $isBlocked = ScheduleBlock::query()
@@ -444,5 +459,87 @@ class BookingService
 
         $prefix = '[Cancelled] '.$reason;
         return $existingNotes ? $existingNotes.PHP_EOL.$prefix : $prefix;
+    }
+
+    private function ensureCustomerCanBook(User $customer): void
+    {
+        if (array_key_exists('is_active', $customer->getAttributes()) && !$customer->is_active) {
+            throw ValidationException::withMessages([
+                'user' => 'Your account is not eligible for booking at this time.',
+            ]);
+        }
+
+        $hasVerificationColumn = array_key_exists('email_verified_at', $customer->getAttributes());
+        if ($hasVerificationColumn && empty($customer->email_verified_at)) {
+            throw ValidationException::withMessages([
+                'user' => 'Please verify your account before creating a booking.',
+            ]);
+        }
+
+        if (array_key_exists('is_verified', $customer->getAttributes()) && !$customer->getAttribute('is_verified')) {
+            throw ValidationException::withMessages([
+                'user' => 'Please verify your account before creating a booking.',
+            ]);
+        }
+    }
+
+    private function ensureActiveUpcomingBookingLimit(User $customer): void
+    {
+        $limit = max(1, (int) config('booking.rules.max_active_upcoming', 3));
+
+        $activeUpcomingCount = Booking::query()
+            ->where('customer_id', $customer->id)
+            ->where('scheduled_at', '>', now())
+            ->whereIn('status', Booking::upcomingLimitStatuses())
+            ->count();
+
+        if ($activeUpcomingCount >= $limit) {
+            throw ValidationException::withMessages([
+                'booking' => 'You already have the maximum allowed active upcoming bookings.',
+            ]);
+        }
+    }
+
+    private function ensureNoDuplicateBooking(
+        User $customer,
+        User $provider,
+        Service $service,
+        Slot $slot,
+        ?string $ignoreBookingId = null
+    ): void {
+        $hasDuplicateBooking = Booking::query()
+            ->where('customer_id', $customer->id)
+            ->where('provider_id', $provider->id)
+            ->where('service_id', $service->id)
+            ->where('slot_id', $slot->id)
+            ->whereDate('scheduled_at', $slot->start_at->toDateString())
+            ->whereIn('status', Booking::upcomingLimitStatuses())
+            ->when($ignoreBookingId, fn ($query) => $query->whereKeyNot($ignoreBookingId))
+            ->exists();
+
+        if ($hasDuplicateBooking) {
+            throw ValidationException::withMessages([
+                'slot_id' => 'You already have a booking for this slot.',
+            ]);
+        }
+    }
+
+    private function ensureNoOverlappingBooking(User $customer, Slot $slot, ?string $ignoreBookingId = null): void
+    {
+        $hasOverlap = Booking::query()
+            ->join('slots as booked_slots', 'booked_slots.id', '=', 'bookings.slot_id')
+            ->where('bookings.customer_id', $customer->id)
+            ->whereDate('bookings.scheduled_at', $slot->start_at->toDateString())
+            ->whereIn('bookings.status', Booking::upcomingLimitStatuses())
+            ->where('booked_slots.start_at', '<', $slot->end_at)
+            ->where('booked_slots.end_at', '>', $slot->start_at)
+            ->when($ignoreBookingId, fn ($query) => $query->where('bookings.id', '!=', $ignoreBookingId))
+            ->exists();
+
+        if ($hasOverlap) {
+            throw ValidationException::withMessages([
+                'slot_id' => 'This slot overlaps with another active booking.',
+            ]);
+        }
     }
 }

@@ -9,7 +9,7 @@
         <p class="text-xs font-semibold tracking-[0.2em] uppercase text-cyan-300">System Overview</p>
         <h1 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight text-white">Admin Dashboard</h1>
         <p class="mt-3 text-zinc-400 max-w-3xl">
-            Monitor users, registrations, and login activity across SkillSoft in one view.
+            Monitor users, registrations, and login activity across SkillSlot in one view.
         </p>
     </section>
 

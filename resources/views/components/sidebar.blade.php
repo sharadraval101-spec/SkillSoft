@@ -17,6 +17,8 @@
     $isProfileActive = request()->routeIs('profile.index');
     $isProviderServicesActive = request()->routeIs('provider.services.*');
     $isProviderScheduleActive = request()->routeIs('provider.schedule.*');
+    $isProviderAvailabilityActive = request()->routeIs('provider.availability.*') || $isProviderScheduleActive;
+    $isProviderBookingsActive = request()->routeIs('provider.bookings.*');
     $isProviderCategoriesActive = request()->routeIs('provider.categories.*');
     $isProviderPayoutsActive = request()->routeIs('provider.payouts.*');
     $isCustomerBookingsActive = request()->routeIs('customer.bookings.*');
@@ -68,11 +70,11 @@
                 <span class="sidebar-label">System Logs</span>
             </a>
         @elseif($role == \App\Models\User::ROLE_PROVIDER)
-            <a href="{{ route('provider.services.index') }}" title="Service Management" class="sidebar-link group {{ $isProviderServicesActive ? 'sidebar-link-active' : '' }}">
+            <a href="{{ route('provider.services.index') }}" title="Services" class="sidebar-link group {{ $isProviderServicesActive ? 'sidebar-link-active' : '' }}">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16M7 3h10l2 4v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7l2-4z"/>
                 </svg>
-                <span class="sidebar-label">Service Management</span>
+                <span class="sidebar-label">Services</span>
             </a>
             <a href="{{ route('provider.categories.index') }}" title="Category Management" class="sidebar-link group {{ $isProviderCategoriesActive ? 'sidebar-link-active' : '' }}">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,17 +82,17 @@
                 </svg>
                 <span class="sidebar-label">Category Management</span>
             </a>
-            <a href="{{ route('provider.schedule.index') }}" title="Availability" class="sidebar-link group {{ $isProviderScheduleActive ? 'sidebar-link-active' : '' }}">
+            <a href="{{ route('provider.availability.index') }}" title="Availability" class="sidebar-link group {{ $isProviderAvailabilityActive ? 'sidebar-link-active' : '' }}">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10m-12 9h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z"/>
                 </svg>
                 <span class="sidebar-label">Availability</span>
             </a>
-            <a href="#" title="Booking Requests" class="sidebar-link group">
+            <a href="{{ route('provider.bookings.index') }}" title="Bookings" class="sidebar-link group {{ $isProviderBookingsActive ? 'sidebar-link-active' : '' }}">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10m-12 9h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z"/>
                 </svg>
-                <span class="sidebar-label">Booking Requests</span>
+                <span class="sidebar-label">Bookings</span>
             </a>
             <a href="{{ route('provider.payouts.index') }}" title="Payouts" class="sidebar-link group {{ $isProviderPayoutsActive ? 'sidebar-link-active' : '' }}">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

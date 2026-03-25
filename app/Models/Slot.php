@@ -59,7 +59,7 @@ class Slot extends Model
             ->where('is_available', true)
             ->where('start_at', '>=', now())
             ->whereDoesntHave('booking', function (Builder $bookingQuery) {
-                $bookingQuery->whereIn('status', Booking::activeStatuses());
+                $bookingQuery->whereIn('status', Booking::slotBlockingStatuses());
             });
     }
 }

@@ -12,5 +12,7 @@ return [
         'reschedule_cutoff_hours' => (int) env('BOOKING_RESCHEDULE_CUTOFF_HOURS', 12),
         // Cancel is blocked if slot starts within N hours.
         'cancel_cutoff_hours' => (int) env('BOOKING_CANCEL_CUTOFF_HOURS', 2),
+        // Maximum number of active upcoming bookings allowed per customer.
+        'max_active_upcoming' => (int) env('BOOKING_MAX_ACTIVE_UPCOMING', 3),
     ],
 ];

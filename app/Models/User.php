@@ -122,6 +122,16 @@ class User extends Authenticatable
         return $this->hasMany(ScheduleBlock::class, 'provider_id');
     }
 
+    public function providerAvailabilities(): HasMany
+    {
+        return $this->hasMany(ProviderAvailability::class, 'provider_id');
+    }
+
+    public function providerUnavailableDates(): HasMany
+    {
+        return $this->hasMany(ProviderUnavailableDate::class, 'provider_id');
+    }
+
     public function notificationsList(): HasMany
     {
         return $this->hasMany(Notification::class);

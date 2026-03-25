@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'SkillSoft' }}</title>
+    <title>{{ $title ?? 'SkillSlot' }}</title>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
@@ -19,7 +19,7 @@
             <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                 <a href="{{ route('site.home') }}" class="inline-flex items-center gap-2">
                     <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500 text-sm font-black text-white">SS</span>
-                    <span class="text-lg font-bold tracking-tight text-sky-900">SkillSoft</span>
+                    <span class="text-lg font-bold tracking-tight text-sky-900">SkillSlot</span>
                 </a>
 
                 <div class="hidden items-center gap-1 md:flex">
@@ -84,7 +84,7 @@
         <footer class="mt-16 border-t border-sky-100 bg-sky-50/75">
             <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-3 lg:px-8">
                 <div>
-                    <h3 class="text-base font-bold text-sky-900">SkillSoft</h3>
+                    <h3 class="text-base font-bold text-sky-900">SkillSlot</h3>
                     <p class="mt-3 max-w-sm text-sm text-sky-700">
                         Discover skilled professionals, book trusted services, and manage everything from one simple customer space.
                     </p>
@@ -104,7 +104,7 @@
                 <div>
                     <h4 class="text-sm font-semibold uppercase tracking-wider text-sky-800">Contact</h4>
                     <ul class="mt-3 space-y-2 text-sm text-sky-700">
-                        <li>support@skillsoft.local</li>
+                        <li>support@skillslot.local</li>
                         <li>+91 00000 00000</li>
                         <li>Mon - Sat, 9:00 AM - 7:00 PM</li>
                     </ul>

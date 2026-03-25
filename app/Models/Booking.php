@@ -15,6 +15,8 @@ class Booking extends Model
 
     public const STATUS_PENDING = 'pending';
     public const STATUS_ACCEPTED = 'accepted';
+    public const STATUS_CONFIRMED = 'confirmed';
+    public const STATUS_IN_PROGRESS = 'in_progress';
     public const STATUS_REJECTED = 'rejected';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
@@ -48,6 +50,21 @@ class Booking extends Model
             self::STATUS_PENDING,
             self::STATUS_ACCEPTED,
         ];
+    }
+
+    public static function slotBlockingStatuses(): array
+    {
+        return [
+            self::STATUS_PENDING,
+            self::STATUS_ACCEPTED,
+            self::STATUS_CONFIRMED,
+            self::STATUS_IN_PROGRESS,
+        ];
+    }
+
+    public static function upcomingLimitStatuses(): array
+    {
+        return self::slotBlockingStatuses();
     }
 
     public function customer(): BelongsTo

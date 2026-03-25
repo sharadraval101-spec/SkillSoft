@@ -8,7 +8,7 @@
                 Student Portal
             </span>
             <h1 class="text-4xl font-bold text-white mt-4">Welcome back, {{ auth()->user()->name }}!</h1>
-            <p class="text-zinc-500 mt-2">Ready to continue your learning journey on SkillSoft?</p>
+            <p class="text-zinc-500 mt-2">Ready to continue your learning journey on SkillSlot?</p>
         </div>
 
         <div class="flex gap-4">

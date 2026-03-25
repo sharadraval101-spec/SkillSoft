@@ -19,7 +19,7 @@
                 <a href="{{ route('provider.services.index') }}" class="smooth-action-btn inline-flex items-center rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-200 hover:bg-cyan-500/20">
                     Manage Services
                 </a>
-                <a href="{{ route('provider.schedule.index') }}" class="smooth-action-btn inline-flex items-center rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/20">
+                <a href="{{ route('provider.availability.index') }}" class="smooth-action-btn inline-flex items-center rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/20">
                     Manage Availability
                 </a>
             </div>

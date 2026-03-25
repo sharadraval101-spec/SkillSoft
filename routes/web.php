@@ -10,6 +10,8 @@ use App\Http\Controllers\CustomerPaymentController;
 use App\Http\Controllers\CustomerWebsiteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProviderAvailabilityManagementController;
+use App\Http\Controllers\ProviderAvailabilityController;
+use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderCategoryManagementController;
 use App\Http\Controllers\ProviderDashboardController;
 use App\Http\Controllers\ProviderPayoutController;
@@ -109,6 +111,30 @@ Route::middleware('auth')->group(function () {
             'provider.approved',
         ])
         ->name('provider.dashboard');
+
+    Route::prefix('/provider/availability')
+        ->middleware([
+            'role:'.User::ROLE_PROVIDER,
+            'spatie.role:provider',
+            'provider.approved',
+        ])
+        ->group(function (): void {
+            Route::get('/', [ProviderAvailabilityController::class, 'index'])->name('provider.availability.index');
+            Route::get('/weekly/data', [ProviderAvailabilityController::class, 'weeklyData'])->name('provider.availability.weekly.data');
+            Route::put('/weekly', [ProviderAvailabilityController::class, 'saveWeekly'])->name('provider.availability.weekly.save');
+            Route::post('/blocks', [ProviderAvailabilityController::class, 'storeBlockedDate'])->name('provider.availability.blocks.store');
+            Route::delete('/blocks/{providerUnavailableDate}', [ProviderAvailabilityController::class, 'destroyBlockedDate'])
+                ->whereUuid('providerUnavailableDate')
+                ->name('provider.availability.blocks.destroy');
+        });
+
+    Route::get('/provider/bookings', [ProviderBookingController::class, 'index'])
+        ->middleware([
+            'role:'.User::ROLE_PROVIDER,
+            'spatie.role:provider',
+            'provider.approved',
+        ])
+        ->name('provider.bookings.index');
 
     Route::prefix('/provider/schedule')
         ->middleware([

@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Commission;
 use App\Models\Payment;
 use App\Models\ProviderPayout;
+use App\Models\Slot;
 use App\Models\User;
 use App\Services\Payments\OnlineGatewayService;
 use Illuminate\Support\Facades\DB;
@@ -30,14 +31,27 @@ class PaymentService
             $amount = $this->bookingAmount($booking);
             $currency = (string) config('payment.currency', 'INR');
 
-            $gatewayResult = $this->gatewayService->createOrder($gateway, $amount, $currency, [
-                'booking_id' => $booking->id,
-                'booking_number' => $booking->booking_number,
-                'customer_id' => $customer->id,
-            ]);
+            try {
+                $gatewayResult = $this->gatewayService->createOrder($gateway, $amount, $currency, [
+                    'booking_id' => $booking->id,
+                    'booking_number' => $booking->booking_number,
+                    'customer_id' => $customer->id,
+                ]);
+            } catch (ValidationException $exception) {
+                if ($paymentMode === Payment::MODE_PREPAID) {
+                    $this->cancelBookingForFailedPrepaidPayment($booking);
+                }
 
+                throw $exception;
+            }
+
+            $gatewayStatus = strtolower((string) ($gatewayResult['status'] ?? Payment::STATUS_PENDING));
+            $isGatewayFailure = in_array($gatewayStatus, [Payment::STATUS_FAILED, 'cancelled', 'canceled'], true);
             $markPaidImmediately = (bool) config('payment.online.mark_paid_immediately', true);
             $isPaid = $markPaidImmediately || (bool) ($gatewayResult['simulated'] ?? false);
+            $paymentStatus = $isPaid
+                ? Payment::STATUS_PAID
+                : ($isGatewayFailure ? Payment::STATUS_FAILED : Payment::STATUS_PENDING);
 
             $payment = Payment::query()->create([
                 'booking_id' => $booking->id,
@@ -50,7 +64,7 @@ class PaymentService
                 'amount' => $amount,
                 'refunded_amount' => 0,
                 'currency' => strtoupper($currency),
-                'status' => $isPaid ? Payment::STATUS_PAID : Payment::STATUS_PENDING,
+                'status' => $paymentStatus,
                 'paid_at' => $isPaid ? now() : null,
                 'meta' => [
                     'gateway_payload' => $gatewayResult['payload'] ?? [],
@@ -59,12 +73,22 @@ class PaymentService
             ]);
 
             if ($isPaid) {
+                $this->markBookingConfirmedAfterSuccessfulPayment($booking);
                 $this->syncCommissionAndPayout($booking, $payment, $amount, 0);
+            } elseif ($isGatewayFailure && $paymentMode === Payment::MODE_PREPAID) {
+                $this->cancelBookingForFailedPrepaidPayment($booking);
             }
 
             $freshPayment = $payment->fresh(['booking.service', 'booking.serviceVariant']);
 
-            $this->notifyPaymentUpdate($customer, $booking, $freshPayment, 'payment.online.initiated', 'Online Payment Initiated');
+            $eventType = $isPaid
+                ? 'payment.online.paid'
+                : ($paymentStatus === Payment::STATUS_FAILED ? 'payment.online.failed' : 'payment.online.initiated');
+            $eventTitle = $isPaid
+                ? 'Online Payment Successful'
+                : ($paymentStatus === Payment::STATUS_FAILED ? 'Online Payment Failed' : 'Online Payment Initiated');
+
+            $this->notifyPaymentUpdate($customer, $booking, $freshPayment, $eventType, $eventTitle);
 
             return $freshPayment;
         });
@@ -98,6 +122,7 @@ class PaymentService
             ]);
 
             if ($isPaid) {
+                $this->markBookingConfirmedAfterSuccessfulPayment($booking);
                 $this->syncCommissionAndPayout($booking, $payment, $amount, 0);
             }
 
@@ -367,5 +392,52 @@ class PaymentService
                 sendWhatsapp: true
             );
         }
+    }
+
+    private function markBookingConfirmedAfterSuccessfulPayment(Booking $booking): void
+    {
+        if (in_array($booking->status, [Booking::STATUS_PENDING, Booking::STATUS_ACCEPTED], true)) {
+            $booking->update([
+                'status' => Booking::STATUS_ACCEPTED,
+                'cancelled_at' => null,
+            ]);
+        }
+    }
+
+    private function cancelBookingForFailedPrepaidPayment(Booking $booking): void
+    {
+        if ($booking->status !== Booking::STATUS_PENDING) {
+            return;
+        }
+
+        $booking->update([
+            'status' => Booking::STATUS_CANCELLED,
+            'cancelled_at' => now(),
+            'notes' => $this->appendSystemNote(
+                $booking->notes,
+                '[System] Booking auto-cancelled due to failed payment.'
+            ),
+        ]);
+
+        /** @var Slot|null $slot */
+        $slot = Slot::query()->lockForUpdate()->find($booking->slot_id);
+        if (!$slot) {
+            return;
+        }
+
+        $hasActiveBooking = Booking::query()
+            ->where('slot_id', $slot->id)
+            ->whereIn('status', Booking::slotBlockingStatuses())
+            ->exists();
+
+        $slot->update([
+            'is_available' => !$hasActiveBooking && $slot->start_at->gte(now()),
+        ]);
+    }
+
+    private function appendSystemNote(?string $existing, string $line): string
+    {
+        $existing = (string) $existing;
+        return $existing === '' ? $line : $existing.PHP_EOL.$line;
     }
 }

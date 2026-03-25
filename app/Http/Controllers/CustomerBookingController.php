@@ -62,11 +62,12 @@ class CustomerBookingController extends Controller
             'provider_id' => 'nullable|integer|exists:users,id',
             'service_id' => 'nullable|uuid',
             'branch_id' => 'nullable|uuid|exists:branches,id',
-            'date' => 'nullable|date',
+            'date' => 'nullable|date|after_or_equal:today',
         ]);
 
         $providers = User::query()
             ->where('role', User::ROLE_PROVIDER)
+            ->where('is_active', true)
             ->whereHas('providerProfile', fn ($query) => $query->where('status', 'active'))
             ->orderBy('name')
             ->get(['id', 'name']);
@@ -78,7 +79,11 @@ class CustomerBookingController extends Controller
         $services = Service::query()
             ->with(['providerProfile:id,user_id,status', 'variants' => fn ($query) => $query->where('is_active', true)])
             ->where('is_active', true)
-            ->whereHas('providerProfile', fn ($query) => $query->where('status', 'active'))
+            ->whereHas('providerProfile', function ($query) {
+                $query
+                    ->where('status', 'active')
+                    ->whereHas('user', fn ($userQuery) => $userQuery->where('is_active', true));
+            })
             ->when($selectedProvider, function ($query) use ($selectedProvider) {
                 $query->whereHas('providerProfile', fn ($innerQuery) => $innerQuery->where('user_id', $selectedProvider->id));
             })

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | SkillSoft</title>
+    <title>Login | SkillSlot</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-[#050505] text-zinc-200 min-h-screen flex items-center justify-center p-6">
@@ -14,7 +14,7 @@
     <div class="w-full max-w-md bg-[#0f0f11] border border-white/5 p-10 rounded-3xl shadow-2xl relative">
         <div class="mb-10 text-center">
             <h2 class="text-3xl font-bold text-white tracking-tight">Welcome Back</h2>
-            <p class="text-zinc-500 mt-2">Enter your credentials to access SkillSoft</p>
+            <p class="text-zinc-500 mt-2">Enter your credentials to access SkillSlot</p>
         </div>
 
         <form action="/login" method="POST" class="space-y-5">
@@ -467,7 +467,7 @@
                 }
 
                 if (!strongPasswordPattern.test(password)) {
-                    showToast('Password must be 8+ chars with uppercase, lowercase, number, and special character.');
+                    showToast('Password must be Strong ');
                     forgotNewPassword.focus();
                     return;
                 }

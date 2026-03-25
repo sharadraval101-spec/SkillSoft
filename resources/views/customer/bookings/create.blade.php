@@ -43,7 +43,7 @@
             </div>
             <div>
                 <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Date</label>
-                <input type="date" name="date" value="{{ $selectedDate->toDateString() }}" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
+                <input type="date" name="date" min="{{ now()->toDateString() }}" value="{{ $selectedDate->toDateString() }}" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
             </div>
             <div class="flex items-end">
                 <button type="submit" class="w-full rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400">

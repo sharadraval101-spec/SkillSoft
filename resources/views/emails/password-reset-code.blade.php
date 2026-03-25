@@ -10,7 +10,7 @@
         <h1 style="margin: 0 0 16px; color: #ffffff; font-size: 22px;">Password Reset Verification</h1>
         <p style="margin: 0 0 16px;">Hi {{ $user->name }},</p>
         <p style="margin: 0 0 20px;">
-            Use this code to reset your SkillSoft password:
+            Use this code to reset your SkillSlot password:
         </p>
 
         <div style="display: inline-block; font-size: 28px; letter-spacing: 6px; font-weight: 700; color: #22d3ee; background: #0b1120; border: 1px solid #1e293b; border-radius: 10px; padding: 10px 16px; margin-bottom: 20px;">
@@ -18,7 +18,6 @@
         </div>
 
         <p style="margin: 0 0 8px;">This code expires at <strong>{{ $expiresAtText }}</strong>.</p>
-        <p style="margin: 0;">If you did not request this, you can ignore this email.</p>
     </div>
 </body>
 </html>

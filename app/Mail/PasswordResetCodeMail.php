@@ -24,7 +24,7 @@ class PasswordResetCodeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your SkillSoft Password Reset Verification Code'
+            subject: 'Your SkillSlot Password Reset Verification Code'
         );
     }
 
