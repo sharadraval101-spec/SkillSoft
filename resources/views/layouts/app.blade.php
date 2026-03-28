@@ -1,14 +1,27 @@
+@php
+    $dashboardRole = auth()->check() ? (string) auth()->user()->role : 'guest';
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full" data-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'SkillSlot Dashboard' }}</title>
+    <script>
+        (() => {
+            const storageKey = 'skillslot-theme';
+            const storedTheme = window.localStorage.getItem(storageKey);
+            const preferredTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            const activeTheme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : preferredTheme;
+
+            document.documentElement.dataset.theme = activeTheme;
+        })();
+    </script>
     @stack('styles')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-[#050505] text-zinc-300 h-full flex overflow-hidden">
+<body class="dashboard-shell h-full flex overflow-hidden" data-dashboard-role="{{ $dashboardRole }}">
 
     @include('components.sidebar')
 
@@ -17,7 +30,7 @@
         @include('components.topbar')
 
         <main class="flex-1 relative overflow-y-auto focus:outline-none p-6 lg:p-10">
-            <div class="absolute top-0 right-0 -z-10 w-96 h-96 bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none"></div>
+            <div class="app-shell-glow absolute top-0 right-0 -z-10 h-96 w-96 rounded-full pointer-events-none blur-[120px]"></div>
 
             <div class="max-w-7xl mx-auto">
                 @yield('content')

@@ -136,6 +136,15 @@ Route::middleware('auth')->group(function () {
         ])
         ->name('provider.bookings.index');
 
+    Route::put('/provider/bookings/{booking}/reschedule', [ProviderBookingController::class, 'reschedule'])
+        ->middleware([
+            'role:'.User::ROLE_PROVIDER,
+            'spatie.role:provider',
+            'provider.approved',
+        ])
+        ->whereUuid('booking')
+        ->name('provider.bookings.reschedule');
+
     Route::prefix('/provider/schedule')
         ->middleware([
             'role:'.User::ROLE_PROVIDER,

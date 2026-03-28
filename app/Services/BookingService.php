@@ -3,11 +3,15 @@
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Models\ProviderAvailability;
+use App\Models\ProviderUnavailableDate;
+use App\Models\Schedule;
 use App\Models\ScheduleBlock;
 use App\Models\Service;
 use App\Models\ServiceVariant;
 use App\Models\Slot;
 use App\Models\User;
+use Carbon\Carbon;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -164,6 +168,129 @@ class BookingService
 
             return $freshBooking;
         });
+    }
+
+    public function rescheduleProviderBookingsForUnavailableDate(
+        User $provider,
+        ProviderUnavailableDate $blockedDate,
+        string $targetDate,
+        ?string $reason = null
+    ): int {
+        $sourceDate = Carbon::parse($blockedDate->block_date)->startOfDay();
+        $targetDay = Carbon::parse($targetDate)->startOfDay();
+
+        if (!$targetDay->gt($sourceDate)) {
+            throw ValidationException::withMessages([
+                'reschedule_to_date' => 'Reschedule date must be later than the blocked date.',
+            ]);
+        }
+
+        $bookings = Booking::query()
+            ->with([
+                'customer:id,name,email',
+                'service:id,name,branch_id,duration_minutes',
+                'slot:id,schedule_id,provider_id,branch_id,start_at,end_at,is_available,reason',
+            ])
+            ->where('provider_id', $provider->id)
+            ->where('scheduled_at', '>=', now())
+            ->whereDate('scheduled_at', $sourceDate->toDateString())
+            ->whereIn('status', Booking::slotBlockingStatuses())
+            ->lockForUpdate()
+            ->get()
+            ->filter(fn (Booking $booking): bool => $this->bookingFallsWithinUnavailableWindow($booking, $blockedDate))
+            ->sortBy(fn (Booking $booking): int => (int) ($booking->scheduled_at?->timestamp ?? 0))
+            ->values();
+
+        if ($bookings->isEmpty()) {
+            return 0;
+        }
+
+        $targetSlots = [];
+        $claimedTargetSlots = [];
+
+        foreach ($bookings as $booking) {
+            if (!$booking->slot || !$booking->slot->start_at || !$booking->slot->end_at) {
+                throw ValidationException::withMessages([
+                    'reschedule_to_date' => 'One or more appointments cannot be moved because the original slot is missing.',
+                ]);
+            }
+
+            $targetStart = Carbon::parse($targetDay->toDateString().' '.$booking->slot->start_at->format('H:i:s'));
+            $targetEnd = Carbon::parse($targetDay->toDateString().' '.$booking->slot->end_at->format('H:i:s'));
+            $targetSlot = $this->resolveProviderRescheduleTargetSlot($provider, $booking, $targetStart, $targetEnd);
+            $slotKey = (string) $targetSlot->id;
+
+            if (isset($claimedTargetSlots[$slotKey])) {
+                throw ValidationException::withMessages([
+                    'reschedule_to_date' => 'Multiple appointments map to the same target slot. Please choose another date.',
+                ]);
+            }
+
+            $claimedTargetSlots[$slotKey] = $booking->id;
+            $targetSlots[$booking->id] = $targetSlot;
+        }
+
+        $rescheduledCount = 0;
+
+        foreach ($bookings as $booking) {
+            $oldSlot = Slot::query()->lockForUpdate()->findOrFail($booking->slot_id);
+            $targetSlot = Slot::query()->lockForUpdate()->findOrFail($targetSlots[$booking->id]->id);
+
+            $hasExistingBookingRecord = Booking::query()
+                ->where('slot_id', $targetSlot->id)
+                ->whereKeyNot($booking->id)
+                ->exists();
+
+            if ($hasExistingBookingRecord) {
+                throw ValidationException::withMessages([
+                    'reschedule_to_date' => 'One or more target slots already contain another booking record.',
+                ]);
+            }
+
+            $originalScheduledAt = $booking->scheduled_at?->copy();
+
+            $booking->update([
+                'slot_id' => $targetSlot->id,
+                'branch_id' => $targetSlot->branch_id ?: $booking->branch_id,
+                'scheduled_at' => $targetSlot->start_at,
+                'notes' => $this->appendProviderRescheduleNote($booking->notes, $originalScheduledAt, $targetSlot->start_at, $reason),
+                'cancelled_at' => null,
+            ]);
+
+            $targetSlot->update([
+                'is_available' => false,
+                'reason' => null,
+            ]);
+
+            $this->refreshSlotAvailability($oldSlot);
+
+            $freshBooking = $booking->fresh([
+                'customer:id,name,email',
+                'service:id,name',
+                'slot:id,start_at,end_at',
+            ]);
+
+            $this->notificationService->notifyUser(
+                $freshBooking->customer_id,
+                'booking.rescheduled.by_provider',
+                'Booking Rescheduled by Provider',
+                $this->buildProviderRescheduleMessage($freshBooking, $reason),
+                [
+                    'booking_id' => $freshBooking->id,
+                    'booking_number' => $freshBooking->booking_number,
+                    'old_scheduled_at' => $originalScheduledAt?->toIso8601String(),
+                    'new_scheduled_at' => $freshBooking->scheduled_at?->toIso8601String(),
+                    'reason' => $reason,
+                ],
+                sendEmailFallback: true,
+                sendSms: true,
+                sendWhatsapp: true
+            );
+
+            $rescheduledCount++;
+        }
+
+        return $rescheduledCount;
     }
 
     public function cancelBooking(User $customer, Booking $booking, ?string $reason = null): Booking
@@ -450,6 +577,310 @@ class BookingService
         return $number;
     }
 
+    private function bookingFallsWithinUnavailableWindow(Booking $booking, ProviderUnavailableDate $blockedDate): bool
+    {
+        if (!$booking->slot || !$booking->slot->start_at || !$booking->slot->end_at) {
+            return false;
+        }
+
+        if ($blockedDate->isFullDay()) {
+            return true;
+        }
+
+        $date = Carbon::parse($blockedDate->block_date)->toDateString();
+        $blockedStart = Carbon::parse($date.' '.$blockedDate->start_time);
+        $blockedEnd = Carbon::parse($date.' '.$blockedDate->end_time);
+
+        return $this->isRangeOverlapping($blockedStart, $blockedEnd, $booking->slot->start_at, $booking->slot->end_at);
+    }
+
+    private function resolveProviderRescheduleTargetSlot(
+        User $provider,
+        Booking $booking,
+        Carbon $targetStart,
+        Carbon $targetEnd
+    ): Slot {
+        $currentSlot = $booking->slot;
+        $service = $booking->service ?: Service::query()->findOrFail($booking->service_id);
+        $customer = $booking->customer ?: User::query()->findOrFail($booking->customer_id);
+        $branchId = $currentSlot?->branch_id ?: $booking->branch_id ?: $service->branch_id;
+        $slotDuration = max(1, $targetStart->diffInMinutes($targetEnd));
+
+        $schedule = $this->resolveProviderScheduleForReschedule($provider, $branchId, $targetStart, $targetEnd, $slotDuration);
+        $this->ensureProviderTargetWindowIsAvailable($provider, $branchId, $targetStart, $targetEnd);
+
+        $slotQuery = Slot::query()
+            ->where('provider_id', $provider->id)
+            ->where('start_at', $targetStart)
+            ->where('end_at', $targetEnd);
+
+        if ($branchId) {
+            $slotQuery->where('branch_id', $branchId);
+        } else {
+            $slotQuery->whereNull('branch_id');
+        }
+
+        $slot = $slotQuery->lockForUpdate()->first();
+
+        if (!$slot) {
+            $slot = Slot::query()->create([
+                'schedule_id' => $schedule->id,
+                'provider_id' => $provider->id,
+                'branch_id' => $branchId,
+                'start_at' => $targetStart,
+                'end_at' => $targetEnd,
+                'is_available' => true,
+                'reason' => null,
+            ]);
+        } else {
+            if (!$slot->is_available) {
+                throw ValidationException::withMessages([
+                    'reschedule_to_date' => 'One or more target slots are unavailable for the selected date.',
+                ]);
+            }
+
+            if ((string) $slot->schedule_id !== (string) $schedule->id || (string) ($slot->branch_id ?? '') !== (string) ($branchId ?? '')) {
+                $slot->schedule_id = $schedule->id;
+                $slot->branch_id = $branchId;
+                $slot->save();
+            }
+        }
+
+        $hasExistingBookingRecord = Booking::query()
+            ->where('slot_id', $slot->id)
+            ->whereKeyNot($booking->id)
+            ->exists();
+
+        if ($hasExistingBookingRecord) {
+            throw ValidationException::withMessages([
+                'reschedule_to_date' => 'One or more target slots already belong to another booking.',
+            ]);
+        }
+
+        if ($slot->start_at->lt(now())) {
+            throw ValidationException::withMessages([
+                'reschedule_to_date' => 'One or more target slots are already in the past.',
+            ]);
+        }
+
+        if ($service->branch_id && $slot->branch_id && $service->branch_id !== $slot->branch_id) {
+            throw ValidationException::withMessages([
+                'reschedule_to_date' => 'One or more target slots do not match the booking branch.',
+            ]);
+        }
+
+        $this->ensureNoDuplicateBooking($customer, $provider, $service, $slot, $booking->id);
+        $this->ensureNoOverlappingBooking($customer, $slot, $booking->id);
+
+        return $slot;
+    }
+
+    private function resolveProviderScheduleForReschedule(
+        User $provider,
+        ?string $branchId,
+        Carbon $targetStart,
+        Carbon $targetEnd,
+        int $slotDuration
+    ): Schedule {
+        $dayOfWeek = (int) $targetStart->dayOfWeek;
+        $date = $targetStart->toDateString();
+
+        $providerAvailabilities = ProviderAvailability::query()
+            ->where('provider_id', $provider->id)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('is_active', true)
+            ->orderBy('start_time')
+            ->get();
+
+        if ($providerAvailabilities->isNotEmpty()) {
+            foreach ($providerAvailabilities as $availability) {
+                if (!$availability->start_time || !$availability->end_time) {
+                    continue;
+                }
+
+                $windowStart = Carbon::parse($date.' '.$availability->start_time);
+                $windowEnd = Carbon::parse($date.' '.$availability->end_time);
+
+                if ($targetStart->lt($windowStart) || $targetEnd->gt($windowEnd)) {
+                    continue;
+                }
+
+                if ((int) $availability->slot_duration !== $slotDuration) {
+                    continue;
+                }
+
+                $offset = $windowStart->diffInMinutes($targetStart, false);
+                if ($offset < 0 || $offset % max(1, (int) $availability->slot_duration) !== 0) {
+                    continue;
+                }
+
+                if ($availability->break_start_time && $availability->break_end_time) {
+                    $breakStart = Carbon::parse($date.' '.$availability->break_start_time);
+                    $breakEnd = Carbon::parse($date.' '.$availability->break_end_time);
+
+                    if ($this->isRangeOverlapping($breakStart, $breakEnd, $targetStart, $targetEnd)) {
+                        continue;
+                    }
+                }
+
+                return $this->findOrCreateScheduleForReschedule(
+                    $provider,
+                    $branchId,
+                    $dayOfWeek,
+                    (string) $availability->start_time,
+                    (string) $availability->end_time,
+                    (int) $availability->slot_duration,
+                    0
+                );
+            }
+
+            throw ValidationException::withMessages([
+                'reschedule_to_date' => 'The new date does not have a matching working slot for one or more appointments.',
+            ]);
+        }
+
+        $schedules = Schedule::query()
+            ->where('provider_id', $provider->id)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('is_active', true)
+            ->when(
+                $branchId,
+                function ($query) use ($branchId) {
+                    $query->where(function ($innerQuery) use ($branchId) {
+                        $innerQuery->where('branch_id', $branchId)->orWhereNull('branch_id');
+                    });
+                },
+                fn ($query) => $query->whereNull('branch_id')
+            )
+            ->orderBy('start_time')
+            ->get();
+
+        foreach ($schedules as $schedule) {
+            $windowStart = Carbon::parse($date.' '.$schedule->start_time);
+            $windowEnd = Carbon::parse($date.' '.$schedule->end_time);
+
+            if ($targetStart->lt($windowStart) || $targetEnd->gt($windowEnd)) {
+                continue;
+            }
+
+            $step = max(1, $slotDuration + (int) $schedule->buffer_minutes);
+            $offset = $windowStart->diffInMinutes($targetStart, false);
+
+            if ($offset < 0 || $offset % $step !== 0) {
+                continue;
+            }
+
+            return $schedule;
+        }
+
+        throw ValidationException::withMessages([
+            'reschedule_to_date' => 'The new date does not have a matching working slot for one or more appointments.',
+        ]);
+    }
+
+    private function findOrCreateScheduleForReschedule(
+        User $provider,
+        ?string $branchId,
+        int $dayOfWeek,
+        string $startTime,
+        string $endTime,
+        int $slotDuration,
+        int $bufferMinutes
+    ): Schedule {
+        $normalizedStart = substr($startTime, 0, 5);
+        $normalizedEnd = substr($endTime, 0, 5);
+
+        $schedule = Schedule::query()
+            ->where('provider_id', $provider->id)
+            ->where('day_of_week', $dayOfWeek)
+            ->where('start_time', '<=', $normalizedStart)
+            ->where('end_time', '>=', $normalizedEnd)
+            ->when(
+                $branchId,
+                function ($query) use ($branchId) {
+                    $query->where(function ($innerQuery) use ($branchId) {
+                        $innerQuery->where('branch_id', $branchId)->orWhereNull('branch_id');
+                    });
+                },
+                fn ($query) => $query->whereNull('branch_id')
+            )
+            ->orderBy('start_time')
+            ->first();
+
+        if ($schedule) {
+            return $schedule;
+        }
+
+        return Schedule::query()->create([
+            'provider_id' => $provider->id,
+            'branch_id' => $branchId,
+            'day_of_week' => $dayOfWeek,
+            'start_time' => $normalizedStart,
+            'end_time' => $normalizedEnd,
+            'slot_duration_minutes' => max(5, $slotDuration),
+            'buffer_minutes' => max(0, $bufferMinutes),
+            'is_active' => true,
+        ]);
+    }
+
+    private function ensureProviderTargetWindowIsAvailable(
+        User $provider,
+        ?string $branchId,
+        Carbon $targetStart,
+        Carbon $targetEnd
+    ): void {
+        $blockedDates = ProviderUnavailableDate::query()
+            ->where('provider_id', $provider->id)
+            ->whereDate('block_date', $targetStart->toDateString())
+            ->get();
+
+        $hasUnavailableDateConflict = $blockedDates->contains(function (ProviderUnavailableDate $blockedDate) use ($targetStart, $targetEnd) {
+            if ($blockedDate->isFullDay()) {
+                return true;
+            }
+
+            $date = $targetStart->toDateString();
+            $blockedStart = Carbon::parse($date.' '.$blockedDate->start_time);
+            $blockedEnd = Carbon::parse($date.' '.$blockedDate->end_time);
+
+            return $this->isRangeOverlapping($blockedStart, $blockedEnd, $targetStart, $targetEnd);
+        });
+
+        if ($hasUnavailableDateConflict) {
+            throw ValidationException::withMessages([
+                'reschedule_to_date' => 'The selected reschedule date is blocked in provider availability.',
+            ]);
+        }
+
+        $hasScheduleBlockConflict = ScheduleBlock::query()
+            ->where('provider_id', $provider->id)
+            ->where('is_active', true)
+            ->where('starts_at', '<', $targetEnd)
+            ->where('ends_at', '>', $targetStart)
+            ->where(function ($query) use ($branchId) {
+                $query->whereNull('branch_id');
+                if ($branchId) {
+                    $query->orWhere('branch_id', $branchId);
+                }
+            })
+            ->exists();
+
+        if ($hasScheduleBlockConflict) {
+            throw ValidationException::withMessages([
+                'reschedule_to_date' => 'The selected reschedule date is blocked for the provider schedule.',
+            ]);
+        }
+    }
+
+    private function isRangeOverlapping(
+        Carbon $firstStart,
+        Carbon $firstEnd,
+        Carbon $secondStart,
+        Carbon $secondEnd
+    ): bool {
+        return $firstStart->lt($secondEnd) && $firstEnd->gt($secondStart);
+    }
+
     private function appendCancelReason(?string $existingNotes, ?string $reason): ?string
     {
         $reason = is_string($reason) ? trim($reason) : '';
@@ -459,6 +890,40 @@ class BookingService
 
         $prefix = '[Cancelled] '.$reason;
         return $existingNotes ? $existingNotes.PHP_EOL.$prefix : $prefix;
+    }
+
+    private function appendProviderRescheduleNote(
+        ?string $existingNotes,
+        ?Carbon $originalScheduledAt,
+        ?Carbon $newScheduledAt,
+        ?string $reason
+    ): ?string {
+        if (!$originalScheduledAt || !$newScheduledAt) {
+            return $existingNotes;
+        }
+
+        $note = '[Provider Rescheduled] From '.$originalScheduledAt->format('d M Y, h:i A')
+            .' to '.$newScheduledAt->format('d M Y, h:i A');
+
+        $reason = is_string($reason) ? trim($reason) : '';
+        if ($reason !== '') {
+            $note .= ' | Reason: '.$reason;
+        }
+
+        return $existingNotes ? $existingNotes.PHP_EOL.$note : $note;
+    }
+
+    private function buildProviderRescheduleMessage(Booking $booking, ?string $reason): string
+    {
+        $message = 'Your booking '.$booking->booking_number.' has been moved to '
+            .($booking->scheduled_at?->format('d M Y, h:i A') ?? 'a new time').'.';
+
+        $reason = is_string($reason) ? trim($reason) : '';
+        if ($reason !== '') {
+            $message .= ' Reason: '.$reason.'.';
+        }
+
+        return $message;
     }
 
     private function ensureCustomerCanBook(User $customer): void

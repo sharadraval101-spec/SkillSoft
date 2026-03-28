@@ -3,6 +3,43 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
     <style>
+        #provider-weekly-availability-page {
+            --provider-input-icon-calendar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M16 3v4M8 3v4M3 9h18'/%3E%3C/svg%3E");
+            --provider-input-icon-time: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8'/%3E%3Cpath d='M12 8v5l3 2'/%3E%3C/svg%3E");
+            --provider-input-icon-text: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 7h14M5 12h14M5 17h9'/%3E%3C/svg%3E");
+            --provider-input-icon-select: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 7h10M7 12h10M7 17h10M4 7h.01M4 12h.01M4 17h.01'/%3E%3C/svg%3E");
+        }
+
+        #provider-weekly-availability-page input[type="date"],
+        #provider-weekly-availability-page input[type="time"],
+        #provider-weekly-availability-page input[type="text"],
+        #provider-weekly-availability-page select,
+        #provider-weekly-availability-page textarea {
+            background-repeat: no-repeat;
+            background-position: 0.85rem center;
+            background-size: 1rem 1rem;
+            padding-left: 2.5rem !important;
+        }
+
+        #provider-weekly-availability-page input[type="date"] {
+            background-image: var(--provider-input-icon-calendar);
+            padding-right: 2.75rem;
+        }
+
+        #provider-weekly-availability-page input[type="time"] {
+            background-image: var(--provider-input-icon-time);
+            padding-right: 2.75rem;
+        }
+
+        #provider-weekly-availability-page input[type="text"],
+        #provider-weekly-availability-page textarea {
+            background-image: var(--provider-input-icon-text);
+        }
+
+        #provider-weekly-availability-page select {
+            background-image: var(--provider-input-icon-select);
+            padding-right: 2.75rem;
+        }
         #provider-weekly-availability-page .dataTables_wrapper .dataTables_length label,
         #provider-weekly-availability-page .dataTables_wrapper .dataTables_filter label,
         #provider-weekly-availability-page .dataTables_wrapper .dataTables_info,
@@ -226,27 +263,47 @@
         <div class="mb-4">
             <h2 class="text-lg font-bold text-white">Block Dates / Time</h2>
             <p class="text-sm text-zinc-400 mt-1">Block dates for holidays, vacations, or emergencies.</p>
+            <p class="mt-1 text-sm text-zinc-500">Choose the current appointment date and time window, then choose the new date to move those appointments in one action.</p>
         </div>
 
-        <form method="POST" action="{{ route('provider.availability.blocks.store') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <form method="POST" action="{{ route('provider.availability.blocks.store') }}" class="grid grid-cols-1 gap-4 md:grid-cols-6">
             @csrf
             <div>
-                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Date</label>
-                <input type="date" name="block_date" min="{{ now()->toDateString() }}" required class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
+                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Current Appointment Date</label>
+                <input
+                    type="date"
+                    name="block_date"
+                    value="{{ old('block_date') }}"
+                    min="{{ now()->toDateString() }}"
+                    required
+                    data-block-date-input
+                    class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100"
+                >
             </div>
             <div>
-                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Start Time (Optional)</label>
-                <input type="time" name="start_time" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
+                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">From Time (Optional)</label>
+                <input type="time" name="start_time" value="{{ old('start_time') }}" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
             </div>
             <div>
-                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">End Time (Optional)</label>
-                <input type="time" name="end_time" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
+                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">To Time (Optional)</label>
+                <input type="time" name="end_time" value="{{ old('end_time') }}" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
             </div>
-            <div class="md:col-span-2">
+            <div class="md:col-span-3">
                 <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Reason</label>
-                <input type="text" name="reason" placeholder="Holiday / Vacation / Personal Leave / Emergency" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
+                <input type="text" name="reason" value="{{ old('reason') }}" placeholder="Holiday / Vacation / Personal Leave / Emergency" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
             </div>
-            <div class="md:col-span-5">
+            <div class="md:col-span-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Move Appointments To Date</label>
+                <input
+                    type="date"
+                    name="reschedule_to_date"
+                    value="{{ old('reschedule_to_date') }}"
+                    data-reschedule-date-input
+                    class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100"
+                >
+                <p class="mt-2 text-xs text-zinc-500">Leave this empty if you only want to block the date. Add a new date if you want matching appointments moved there.</p>
+            </div>
+            <div class="md:col-span-6">
                 <button type="submit" class="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400">
                     Add Block
                 </button>
@@ -328,6 +385,38 @@
             updateRowState(day);
             checkbox.addEventListener('change', () => updateRowState(day));
         });
+    })();
+
+    (() => {
+        const blockDateInput = document.querySelector('[data-block-date-input]');
+        const targetInput = document.querySelector('[data-reschedule-date-input]');
+
+        if (!blockDateInput || !targetInput) {
+            return;
+        }
+
+        const syncRescheduleState = () => {
+            if (!blockDateInput.value) {
+                targetInput.removeAttribute('min');
+                return;
+            }
+
+            const nextDay = new Date(`${blockDateInput.value}T00:00:00`);
+            if (Number.isNaN(nextDay.getTime())) {
+                targetInput.removeAttribute('min');
+                return;
+            }
+
+            nextDay.setDate(nextDay.getDate() + 1);
+            targetInput.min = nextDay.toISOString().split('T')[0];
+
+            if (targetInput.value && targetInput.value <= blockDateInput.value) {
+                targetInput.value = '';
+            }
+        };
+
+        blockDateInput.addEventListener('change', syncRescheduleState);
+        syncRescheduleState();
     })();
 
     ((root) => {
@@ -422,3 +511,8 @@
     })(window);
 </script>
 @endpush
+
+
+
+
+

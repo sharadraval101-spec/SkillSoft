@@ -28,6 +28,8 @@ class StoreProviderUnavailableDateRequest extends FormRequest
             'start_time' => ['nullable', 'date_format:H:i', 'required_with:end_time'],
             'end_time' => ['nullable', 'date_format:H:i', 'required_with:start_time'],
             'reason' => ['nullable', 'string', 'max:255'],
+            'reschedule_bookings' => ['nullable', 'boolean'],
+            'reschedule_to_date' => ['nullable', 'date', 'after:block_date'],
         ];
     }
 
@@ -37,14 +39,15 @@ class StoreProviderUnavailableDateRequest extends FormRequest
             $startTime = (string) $this->input('start_time', '');
             $endTime = (string) $this->input('end_time', '');
 
-            if ($startTime === '' && $endTime === '') {
-                return;
+            if ($startTime !== '' || $endTime !== '') {
+                if (strtotime($endTime) <= strtotime($startTime)) {
+                    $validator->errors()->add('end_time', 'Block end time must be greater than block start time.');
+                }
             }
 
-            if (strtotime($endTime) <= strtotime($startTime)) {
-                $validator->errors()->add('end_time', 'Block end time must be greater than block start time.');
+            if ($this->boolean('reschedule_bookings') && !$this->filled('reschedule_to_date')) {
+                $validator->errors()->add('reschedule_to_date', 'Please choose the new date for rescheduled appointments.');
             }
         });
     }
 }
-

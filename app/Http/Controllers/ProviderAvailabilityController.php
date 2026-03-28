@@ -9,6 +9,7 @@ use App\Models\ProviderAvailability;
 use App\Models\ProviderUnavailableDate;
 use App\Models\Slot;
 use App\Models\User;
+use App\Services\BookingService;
 use App\Services\ScheduleAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -19,8 +20,10 @@ use Illuminate\View\View;
 
 class ProviderAvailabilityController extends Controller
 {
-    public function __construct(private readonly ScheduleAvailabilityService $availabilityService)
-    {
+    public function __construct(
+        private readonly ScheduleAvailabilityService $availabilityService,
+        private readonly BookingService $bookingService
+    ) {
     }
 
     public function index(Request $request): View
@@ -165,18 +168,39 @@ class ProviderAvailabilityController extends Controller
         /** @var User $provider */
         $provider = $request->user();
         $data = $request->validated();
+        $rescheduledCount = 0;
+        $shouldReschedule = $request->filled('reschedule_to_date') || $request->boolean('reschedule_bookings');
 
-        $blockedDate = ProviderUnavailableDate::query()->create([
-            'provider_id' => $provider->id,
-            'block_date' => $data['block_date'],
-            'start_time' => $data['start_time'] ?? null,
-            'end_time' => $data['end_time'] ?? null,
-            'reason' => $data['reason'] ?? null,
-        ]);
+        DB::transaction(function () use ($provider, $data, $shouldReschedule, &$rescheduledCount): void {
+            $blockedDate = ProviderUnavailableDate::query()->create([
+                'provider_id' => $provider->id,
+                'block_date' => $data['block_date'],
+                'start_time' => $data['start_time'] ?? null,
+                'end_time' => $data['end_time'] ?? null,
+                'reason' => $data['reason'] ?? null,
+            ]);
 
-        $this->applyUnavailableBlockToSlots($provider, $blockedDate);
+            if ($shouldReschedule) {
+                $rescheduledCount = $this->bookingService->rescheduleProviderBookingsForUnavailableDate(
+                    $provider,
+                    $blockedDate,
+                    (string) $data['reschedule_to_date'],
+                    $data['reason'] ?? null
+                );
+            }
 
-        return back()->with('success', 'Blocked date/time added successfully.');
+            $this->applyUnavailableBlockToSlots($provider, $blockedDate);
+        });
+
+        $message = 'Blocked date/time added successfully.';
+
+        if ($shouldReschedule) {
+            $message = $rescheduledCount > 0
+                ? 'Blocked date/time added and '.$rescheduledCount.' appointment'.($rescheduledCount === 1 ? ' was' : 's were').' rescheduled successfully.'
+                : 'Blocked date/time added. No active appointments needed rescheduling.';
+        }
+
+        return back()->with('success', $message);
     }
 
     public function destroyBlockedDate(Request $request, ProviderUnavailableDate $providerUnavailableDate): RedirectResponse
