@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\PasswordResetCodeMail;
 use App\Models\PasswordResetCode;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -18,11 +19,19 @@ class ProfileController extends Controller
 {
     public function index()
     {
-        return view('profile.index', ['user' => Auth::user()]);
+        /** @var User $user */
+        $user = Auth::user();
+
+        if ((int) $user->role === User::ROLE_CUSTOMER) {
+            return redirect()->to(route('customer.dashboard').'#profile-center');
+        }
+
+        return view('profile.index', ['user' => $user]);
     }
 
     public function update(Request $request)
     {
+        /** @var User $user */
         $user = Auth::user();
 
         $request->validate([
@@ -52,11 +61,12 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return back()->with('success', 'Profile updated successfully.');
+        return $this->profileResponse($user, 'success', 'Profile updated successfully.');
     }
 
     public function sendPasswordResetCode(Request $request)
     {
+        /** @var User $user */
         $user = Auth::user();
 
         $latestCode = PasswordResetCode::query()
@@ -85,11 +95,12 @@ class ProfileController extends Controller
             $expiresAt->format('M d, Y h:i A')
         ));
 
-        return back()->with('code_sent', 'Verification code sent to your registered email.');
+        return $this->profileResponse($user, 'code_sent', 'Verification code sent to your registered email.');
     }
 
     public function resetPasswordWithCode(Request $request)
     {
+        /** @var User $user */
         $user = Auth::user();
 
         $request->validate([
@@ -122,7 +133,7 @@ class ProfileController extends Controller
             ->where('id', '!=', $resetCode->id)
             ->update(['used_at' => now()]);
 
-        return back()->with('password_reset_success', 'Password reset completed successfully.');
+        return $this->profileResponse($user, 'password_reset_success', 'Password reset completed successfully.');
     }
 
     public function showPhoto(User $user): StreamedResponse
@@ -131,5 +142,14 @@ class ProfileController extends Controller
         abort_unless(Storage::disk('public')->exists($user->profile_photo_path), 404);
 
         return Storage::disk('public')->response($user->profile_photo_path);
+    }
+
+    private function profileResponse(User $user, string $key, string $message): RedirectResponse
+    {
+        if ((int) $user->role === User::ROLE_CUSTOMER) {
+            return redirect()->to(route('customer.dashboard').'#profile-center')->with($key, $message);
+        }
+
+        return back()->with($key, $message);
     }
 }
