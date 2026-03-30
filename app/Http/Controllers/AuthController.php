@@ -25,7 +25,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
-            'role' => 'required|in:'.User::ROLE_CUSTOMER.','.User::ROLE_PROVIDER,
+            'role' => 'required|in:'.User::ROLE_PROVIDER,
             'business_name' => 'required_if:role,'.User::ROLE_PROVIDER.'|nullable|string|max:255',
         ]);
 
@@ -37,29 +37,20 @@ class AuthController extends Controller
         ]);
         $user->syncRoleFromLegacyValue();
 
-        if ((int) $user->role === User::ROLE_PROVIDER) {
-            ProviderProfile::updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'business_name' => $data['business_name'] ?? $user->name.' Services',
-                    'status' => 'pending',
-                ]
-            );
+        ProviderProfile::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'business_name' => $data['business_name'] ?? $user->name.' Services',
+                'status' => 'pending',
+            ]
+        );
 
-            $this->recordActivity($request, 'auth.register.provider_pending', 'Provider registration submitted', $user, [
-                'role' => (int) $user->role,
-            ]);
-
-            return redirect()->route('login')
-                ->with('status', 'Provider registration submitted. Wait for admin approval.');
-        }
-
-        Auth::login($user);
-        $this->recordActivity($request, 'auth.register', 'New account registered', $user, [
+        $this->recordActivity($request, 'auth.register.provider_pending', 'Provider registration submitted', $user, [
             'role' => (int) $user->role,
         ]);
 
-        return $this->redirectUser($user);
+        return redirect()->route('login')
+            ->with('status', 'Provider registration submitted. Wait for admin approval.');
     }
 
     // Handle Login
@@ -80,6 +71,18 @@ class AuthController extends Controller
 
             /** @var \App\Models\User $user */
             $user = Auth::user();
+
+            if ((int) $user->role === User::ROLE_CUSTOMER) {
+                $this->recordActivity($request, 'auth.login.blocked', 'Customer login blocked (user side removed)', $user);
+
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                throw ValidationException::withMessages([
+                    'email' => 'User side has been removed. Please use an admin or provider account.',
+                ]);
+            }
 
             if (!$this->isApprovedProvider($user)) {
                 $this->recordActivity($request, 'auth.login.blocked', 'Provider login blocked (pending approval)', $user);
@@ -254,7 +257,7 @@ class AuthController extends Controller
             User::ROLE_PROVIDER => $this->isApprovedProvider($user)
                 ? redirect('/provider/dashboard')
                 : redirect()->route('login')->with('error', 'Provider account is pending admin approval.'),
-            User::ROLE_USER => redirect('/customer/dashboard'),
+            default => redirect()->route('site.home'),
         };
     }
 

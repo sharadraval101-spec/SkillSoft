@@ -34,8 +34,8 @@
         </form>
 
         <div class="mt-6 text-center text-sm text-zinc-400">
-            Want customer access only?
-            <a href="{{ route('register.customer') }}" class="text-indigo-400 hover:text-indigo-300 font-semibold">Customer Sign Up</a>
+            Already have an account?
+            <a href="{{ route('login') }}" class="text-cyan-400 hover:text-cyan-300 font-semibold">Sign In</a>
         </div>
     </div>
 

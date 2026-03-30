@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'provider.approved' => \App\Http\Middleware\EnsureProviderApproved::class,
+            'customer.side.disabled' => \App\Http\Middleware\EnsureCustomerSideDisabled::class,
             'spatie.role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'spatie.permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'spatie.role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,

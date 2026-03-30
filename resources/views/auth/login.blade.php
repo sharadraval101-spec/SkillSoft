@@ -61,7 +61,7 @@
 
         <div class="mt-10 pt-6 border-t border-white/5 text-center">
             <p class="text-zinc-500 text-sm">
-                New to the platform? <a href="{{ route('register') }}" class="text-indigo-400 hover:text-indigo-300 font-semibold ml-1">Create account</a>
+                Need provider access? <a href="{{ route('register') }}" class="text-indigo-400 hover:text-indigo-300 font-semibold ml-1">Create account</a>
             </p>
         </div>
     </div>

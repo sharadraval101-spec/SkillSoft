@@ -1,194 +1,167 @@
 @extends('layouts.customer')
 
+@php
+    $topCategories = $categories->take(4)->values();
+    $highlightedServices = $featuredServices->take(4)->values();
+    $categoryImages = [
+        'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80',
+    ];
+    $categoryFallbackDescriptions = [
+        'Haircuts, spa treatments, makeup artists, skincare, and professional beauty services near you.',
+        'Find personal trainers, yoga instructors, gym sessions, and wellness coaching to help you stay fit and healthy.',
+        'Connect with doctors, therapists, and healthcare experts for trusted medical advice and wellness support.',
+        'Find trusted pet grooming, veterinary care, boarding, walking, and training services for your pets.',
+    ];
+@endphp
+
 @section('content')
-<section class="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
-    <div class="relative overflow-hidden rounded-3xl border border-sky-100">
-        <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1800&q=80" alt="Modern interior" class="h-[28rem] w-full object-cover sm:h-[34rem]">
-        <div class="absolute inset-0 bg-gradient-to-r from-sky-950/75 via-sky-900/45 to-sky-950/25"></div>
+<section class="mx-auto flex min-h-[calc(100vh-7rem)] max-w-[1280px] items-center px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-24">
+    <div class="grid w-full items-center gap-12 lg:grid-cols-[minmax(0,36rem)_minmax(0,1fr)]">
+        <div class="max-w-[38rem] pt-6 lg:pt-0">
+            <h1 class="max-w-[12ch] text-[2.45rem] font-semibold leading-[1.18] tracking-[-0.05em] text-zinc-900 sm:text-[3.35rem] lg:text-[4.15rem]">
+                Find and book trusted services near you anytime anywhere
+            </h1>
 
-        <div class="absolute inset-x-0 top-1/2 mx-auto w-full max-w-4xl -translate-y-1/2 px-4">
-            <div class="text-center">
-                <p class="inline-flex rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-sky-100">
-                    Premium Service Marketplace
-                </p>
-                <h1 class="mt-4 text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
-                    Search Modern Services Near You
-                </h1>
-                <p class="mx-auto mt-4 max-w-2xl text-sm leading-7 text-sky-100 sm:text-base">
-                    Thousands of verified professionals are ready for home service, in-shop appointments, and same-day slots.
-                </p>
+            <p class="mt-6 max-w-[35rem] text-[15px] leading-8 text-zinc-500">
+                Explore professional services across beauty, fitness, healthcare, legal consultation, pet care, and many more categories. Find verified service providers, check availability in real time, select a convenient time slot, and book your appointment instantly with safe and secure payment options.
+            </p>
+
+            <div class="mt-10 flex flex-wrap items-center gap-4">
+                <a href="{{ route('site.services.index') }}" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] bg-zinc-950 px-7 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
+                    Explore Services
+                </a>
+                <a href="#how-it-works" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] border border-zinc-300 px-7 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950">
+                    How It Works
+                </a>
             </div>
+        </div>
 
-            <form method="GET" action="{{ route('site.services.index') }}" class="mt-7 rounded-2xl border border-white/25 bg-white/95 p-3 shadow-2xl shadow-sky-900/20 backdrop-blur-sm">
-                <div class="grid gap-2 md:grid-cols-[11rem,1fr,12rem,9rem]">
-                    <div>
-                        <label for="home-service-type" class="sr-only">Service Type</label>
-                        <select id="home-service-type" name="type" class="h-11 w-full rounded-xl border border-sky-200 px-3 text-sm font-semibold text-sky-800 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
-                            <option value="">For All</option>
-                            <option value="home">At Home</option>
-                            <option value="branch">At Branch</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="home-q" class="sr-only">Search</label>
-                        <input id="home-q" type="text" name="q" placeholder="Service name, provider, or skill"
-                            class="h-11 w-full rounded-xl border border-sky-200 px-3 text-sm text-sky-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
-                    </div>
-                    <div>
-                        <label for="home-location" class="sr-only">Location</label>
-                        <input id="home-location" type="text" name="location" placeholder="Location"
-                            class="h-11 w-full rounded-xl border border-sky-200 px-3 text-sm text-sky-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
-                    </div>
-                    <button type="submit" class="h-11 rounded-xl bg-sky-600 px-4 text-sm font-semibold text-white transition hover:bg-sky-500">
-                        Search
-                    </button>
-                </div>
-            </form>
+        <div class="relative flex justify-center lg:justify-end">
+            <div class="relative w-full max-w-[39rem]">
+                <div class="absolute right-[10%] top-[12%] h-56 w-56 rounded-full bg-orange-100/75 blur-3xl"></div>
+                <div class="absolute inset-x-[14%] bottom-4 h-20 rounded-full bg-black/15 blur-3xl"></div>
+                <div class="absolute inset-x-[18%] bottom-0 h-28 bg-gradient-to-t from-white via-white/85 to-transparent"></div>
 
-            <div class="mt-5 flex flex-wrap justify-center gap-2">
-                @foreach($categories->take(4) as $category)
-                    <a href="{{ route('site.services.index', ['category' => $category->slug]) }}" class="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white hover:bg-white/20">
-                        {{ $category->name }}
-                    </a>
-                @endforeach
+                <img
+                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1400&q=80"
+                    alt="Happy customer exploring services on a phone"
+                    class="relative z-10 ml-auto h-[24rem] w-auto max-w-none object-contain sm:h-[31rem] lg:h-[39rem] [mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)]"
+                >
             </div>
         </div>
     </div>
 </section>
 
-<section class="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="text-center">
-        <p class="text-xs font-bold uppercase tracking-[0.14em] text-sky-600">Try Searching For</p>
-        <h2 class="mt-3 text-3xl font-black tracking-tight text-sky-950 sm:text-4xl">Popular Categories</h2>
-        <p class="mx-auto mt-3 max-w-2xl text-sm text-sky-700">Start with the most booked service groups and compare top providers.</p>
+<section id="categories" class="mx-auto max-w-[1280px] scroll-mt-24 px-4 pb-24 pt-10 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-[2.4rem] font-semibold tracking-[-0.04em] text-zinc-900 sm:text-[2.8rem]">
+            Explore Services by Category
+        </h2>
+        <p class="mt-4 text-[15px] leading-7 text-zinc-500">
+            Find the perfect service tailored to your needs. Browse by category and book instantly.
+        </p>
     </div>
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-        @forelse($categories as $category)
-            <a href="{{ route('site.services.index', ['category' => $category->slug]) }}" class="group rounded-2xl border border-sky-100 bg-white p-5 text-center shadow-sm shadow-sky-100/70 transition hover:-translate-y-1 hover:shadow-lg hover:shadow-sky-200/60">
-                <span class="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16M4 12h12M4 17h8"/>
-                    </svg>
-                </span>
-                <h3 class="mt-4 text-sm font-bold text-sky-900 group-hover:text-sky-700">{{ $category->name }}</h3>
-                <p class="mt-1 text-xs text-sky-600">{{ (int) ($category->services_count ?? 0) }} services</p>
-            </a>
-        @empty
-            <p class="col-span-full rounded-2xl border border-dashed border-sky-200 py-8 text-center text-sm text-sky-700">No categories available right now.</p>
-        @endforelse
-    </div>
-</section>
+    <div class="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        @forelse($topCategories as $index => $category)
+            @php
+                $categoryImage = $categoryImages[$index % count($categoryImages)];
+                $categoryDescription = $category->description
+                    ? \Illuminate\Support\Str::limit($category->description, 110)
+                    : $categoryFallbackDescriptions[$index % count($categoryFallbackDescriptions)];
+            @endphp
 
-<section class="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="text-center">
-        <p class="text-xs font-bold uppercase tracking-[0.14em] text-sky-600">Today Listings</p>
-        <h2 class="mt-3 text-3xl font-black tracking-tight text-sky-950 sm:text-4xl">Today's Luxury Listings</h2>
-        <p class="mx-auto mt-3 max-w-2xl text-sm text-sky-700">Premium providers selected by rating, reliability, and booking demand.</p>
-    </div>
+            <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_16px_40px_rgba(0,0,0,0.07)] ring-1 ring-black/5">
+                <img src="{{ $categoryImage }}" alt="{{ $category->name }}" class="h-52 w-full object-cover">
 
-    <div class="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        @forelse($featuredServices as $service)
-            <article class="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm shadow-sky-100/70 transition hover:-translate-y-1 hover:shadow-lg hover:shadow-sky-200/60">
-                <div class="relative">
-                    <img src="{{ $service->ui_image ?? 'https://picsum.photos/seed/'.urlencode((string) $service->id).'/900/620' }}" alt="{{ $service->name }}" class="h-48 w-full object-cover">
-                    <div class="absolute left-3 top-3 flex gap-2">
-                        <span class="rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-bold text-white">Featured</span>
-                        <span class="rounded-full bg-sky-900/75 px-2.5 py-1 text-[11px] font-semibold text-white">Top Rated</span>
+                <div class="space-y-4 px-6 py-5">
+                    <div>
+                        <h3 class="text-[1.7rem] font-medium tracking-[-0.03em] text-zinc-900">{{ $category->name }}</h3>
+                        <p class="mt-3 text-[15px] leading-7 text-zinc-500">{{ $categoryDescription }}</p>
                     </div>
-                </div>
-                <div class="p-5">
-                    <h3 class="text-lg font-bold text-sky-950">{{ $service->name }}</h3>
-                    <p class="mt-1 text-sm text-sky-700">{{ $service->branch?->city ? $service->branch->city.', '.$service->branch->state : 'Multiple locations' }}</p>
-                    <div class="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-sky-50 p-3 text-xs text-sky-700">
-                        <div>
-                            <p class="font-bold text-sky-900">{{ (int) $service->duration_minutes }}m</p>
-                            <p>Duration</p>
-                        </div>
-                        <div>
-                            <p class="font-bold text-sky-900">{{ number_format((float) ($service->avg_rating ?? 0), 1) }}</p>
-                            <p>Rating</p>
-                        </div>
-                        <div>
-                            <p class="font-bold text-sky-900">{{ (int) ($service->reviews_count ?? 0) }}</p>
-                            <p>Reviews</p>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center justify-between">
-                        <p class="text-lg font-black text-sky-900">INR {{ number_format((float) $service->base_price, 2) }}</p>
-                        <a href="{{ route('site.services.show', $service->slug) }}" class="rounded-lg border border-sky-200 px-3 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-50">
-                            Details
-                        </a>
-                    </div>
+
+                    <a href="{{ route('site.services.index', ['category' => $category->slug]) }}" class="inline-flex w-full items-center justify-center rounded-[10px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
+                        View Services
+                    </a>
                 </div>
             </article>
         @empty
-            <p class="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-sky-200 py-10 text-center text-sm text-sky-700">
-                No featured services found.
+            <p class="rounded-[28px] border border-dashed border-zinc-300 px-6 py-10 text-center text-sm text-zinc-500 md:col-span-2 xl:col-span-4">
+                No categories available right now.
             </p>
         @endforelse
     </div>
 </section>
 
-<section class="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="rounded-3xl border border-sky-100 bg-gradient-to-b from-sky-50 to-white p-6 sm:p-8">
-        <div class="text-center">
-            <p class="text-xs font-bold uppercase tracking-[0.14em] text-sky-600">Support Hub</p>
-            <h2 class="mt-3 text-3xl font-black tracking-tight text-sky-950 sm:text-4xl">Discover How We Can Help</h2>
-            <p class="mx-auto mt-3 max-w-2xl text-sm text-sky-700">Find the right package, plan your monthly budget, and get help for urgent bookings.</p>
-            <div class="mt-5 inline-flex rounded-full border border-sky-200 bg-white p-1">
-                <span class="rounded-full bg-sky-600 px-4 py-1 text-xs font-semibold text-white">Booking</span>
-                <span class="px-4 py-1 text-xs font-semibold text-sky-700">Pricing</span>
-                <span class="px-4 py-1 text-xs font-semibold text-sky-700">Support</span>
-            </div>
-        </div>
+<div id="how-it-works" class="scroll-mt-24"></div>
 
-        <div class="mt-8 grid gap-4 md:grid-cols-3">
-            <div class="rounded-2xl border border-sky-100 bg-white p-5 text-center">
-                <h3 class="text-lg font-bold text-sky-900">Find Service Cost</h3>
-                <p class="mt-2 text-sm text-sky-700">Get price ranges from verified providers before you book.</p>
-            </div>
-            <div class="rounded-2xl border border-sky-100 bg-white p-5 text-center">
-                <h3 class="text-lg font-bold text-sky-900">Plan Monthly Slots</h3>
-                <p class="mt-2 text-sm text-sky-700">Schedule recurring appointments and avoid last-minute rush.</p>
-            </div>
-            <div class="rounded-2xl border border-sky-100 bg-white p-5 text-center">
-                <h3 class="text-lg font-bold text-sky-900">Quick Assistance</h3>
-                <p class="mt-2 text-sm text-sky-700">Get direct help for booking changes, refunds, and support cases.</p>
-            </div>
-        </div>
+<section class="mx-auto max-w-[1280px] px-4 pb-20 pt-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl">
+        <h2 class="text-[2.35rem] font-semibold tracking-[-0.04em] text-zinc-900 sm:text-[2.8rem]">
+            Popular Services Near You
+        </h2>
+        <p class="mt-4 text-[15px] leading-7 text-zinc-500">
+            Discover highly rated services trusted by customers in your area. Book top professionals quickly and easily.
+        </p>
     </div>
-</section>
 
-<section class="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="text-center">
-        <p class="text-xs font-bold uppercase tracking-[0.14em] text-sky-600">Explore Areas</p>
-        <h2 class="mt-3 text-3xl font-black tracking-tight text-sky-950 sm:text-4xl">Explore The Neighborhoods</h2>
-    </div>
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        @foreach($locations->take(8) as $location)
-            <a href="{{ route('site.services.index', ['location' => $location]) }}" class="group relative overflow-hidden rounded-2xl border border-sky-100">
-                <img src="https://picsum.photos/seed/{{ urlencode($location) }}/720/480" alt="{{ $location }}" class="h-36 w-full object-cover transition duration-500 group-hover:scale-105">
-                <div class="absolute inset-0 bg-gradient-to-t from-sky-950/70 via-sky-900/20 to-transparent"></div>
-                <div class="absolute bottom-3 left-3 right-3 rounded-lg bg-white/85 px-3 py-2 text-sm font-semibold text-sky-900 backdrop-blur-sm">
-                    {{ $location }}
+    <div class="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        @forelse($highlightedServices as $service)
+            @php
+                $providerName = $service->providerProfile?->user?->name ?? 'Service Provider';
+                $serviceRating = round((float) ($service->avg_rating ?? 0), 1);
+                $servicePrice = number_format((float) $service->base_price, 0);
+                $bookingQuery = array_filter([
+                    'provider_id' => $service->providerProfile?->user_id,
+                    'service_id' => $service->id,
+                    'branch_id' => $service->branch_id,
+                ]);
+            @endphp
+
+            <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_16px_40px_rgba(0,0,0,0.07)] ring-1 ring-black/5">
+                <img
+                    src="{{ $service->ui_image ?? 'https://picsum.photos/seed/'.urlencode((string) $service->id).'/900/620' }}"
+                    alt="{{ $service->name }}"
+                    class="h-52 w-full object-cover"
+                >
+
+                <div class="space-y-5 px-6 py-5">
+                    <div>
+                        <h3 class="text-[1.55rem] font-medium tracking-[-0.03em] text-zinc-900">
+                            {{ \Illuminate\Support\Str::limit($service->name, 24) }}
+                        </h3>
+                        <p class="mt-1 text-[15px] text-zinc-500">{{ $providerName }}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-[14px] bg-zinc-50 px-4 py-3 text-center">
+                            <p class="text-xs font-medium uppercase tracking-[0.16em] text-zinc-400">Rating</p>
+                            <p class="mt-2 text-[1.55rem] font-semibold text-zinc-900">{{ $serviceRating > 0 ? number_format($serviceRating, 1) : 'New' }}</p>
+                        </div>
+                        <div class="rounded-[14px] bg-zinc-50 px-4 py-3 text-center">
+                            <p class="text-xs font-medium uppercase tracking-[0.16em] text-zinc-400">Starting</p>
+                            <p class="mt-2 text-[1.55rem] font-semibold text-zinc-900">&#8377;{{ $servicePrice }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <a href="{{ route('site.booking', $bookingQuery) }}" class="inline-flex flex-1 items-center justify-center rounded-[10px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
+                            Book Now
+                        </a>
+                        <button type="button" class="inline-flex h-12 w-12 items-center justify-center rounded-[10px] border border-zinc-200 text-rose-400 transition hover:border-rose-300 hover:bg-rose-50" aria-label="Save {{ $service->name }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.01 2 11.93 2 8.15 2 5.07 4.42 2.7 7.5 2.7c1.74 0 3.41.81 4.5 2.09A6 6 0 0 1 16.5 2.7C19.58 2.7 22 5.07 22 8.15c0 3.78-3.4 6.86-8.55 11.54L12 21Z"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-            </a>
-        @endforeach
-    </div>
-</section>
-
-<section class="mx-auto mt-16 max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
-    <div class="text-center">
-        <p class="text-xs font-bold uppercase tracking-[0.14em] text-sky-600">Testimonials</p>
-        <h2 class="mt-3 text-3xl font-black tracking-tight text-sky-950 sm:text-4xl">Client Testimonials</h2>
-    </div>
-    <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        @forelse($testimonials as $review)
-            <x-review-card :review="$review" />
+            </article>
         @empty
-            <p class="xl:col-span-3 rounded-2xl border border-dashed border-sky-200 py-10 text-center text-sm text-sky-700">
-                Testimonials will appear once reviews are submitted.
+            <p class="rounded-[28px] border border-dashed border-zinc-300 px-6 py-10 text-center text-sm text-zinc-500 md:col-span-2 xl:col-span-4">
+                No popular services available right now.
             </p>
         @endforelse
     </div>

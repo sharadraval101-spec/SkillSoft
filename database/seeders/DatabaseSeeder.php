@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,13 +18,15 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RoleSeeder::class);
         $this->call(RolePermissionSeeder::class);
+        $this->call(DemoBookingFlowSeeder::class);
 
-        // User::factory(10)->create();
-
-        $user = User::factory()->create([
-            'name' => 'Test User',
+        $user = User::query()->updateOrCreate([
             'email' => 'test@example.com',
+        ], [
+            'name' => 'Test User',
+            'password' => Hash::make('password'),
             'role' => User::ROLE_CUSTOMER,
+            'is_active' => true,
         ]);
 
         $user->syncRoleFromLegacyValue();
