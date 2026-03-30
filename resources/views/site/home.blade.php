@@ -151,11 +151,7 @@
                         <a href="{{ route('site.booking', $bookingQuery) }}" class="inline-flex flex-1 items-center justify-center rounded-[10px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
                             Book Now
                         </a>
-                        <button type="button" class="inline-flex h-12 w-12 items-center justify-center rounded-[10px] border border-zinc-200 text-rose-400 transition hover:border-rose-300 hover:bg-rose-50" aria-label="Save {{ $service->name }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.01 2 11.93 2 8.15 2 5.07 4.42 2.7 7.5 2.7c1.74 0 3.41.81 4.5 2.09A6 6 0 0 1 16.5 2.7C19.58 2.7 22 5.07 22 8.15c0 3.78-3.4 6.86-8.55 11.54L12 21Z"/>
-                            </svg>
-                        </button>
+                        <x-favorite-button :service="$service" />
                     </div>
                 </div>
             </article>

@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'customer.side.disabled'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/me', function (Request $request) {
         /** @var \App\Models\User $user */
         $user = $request->user();

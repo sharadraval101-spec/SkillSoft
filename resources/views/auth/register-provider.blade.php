@@ -1,44 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Provider Registration | SkillSlot</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="bg-[#050505] text-zinc-200 min-h-screen flex items-center justify-center p-6">
-    <div class="w-full max-w-md bg-[#0f0f11] border border-white/5 p-8 rounded-3xl shadow-2xl">
-        <h2 class="text-3xl font-bold text-white mb-2">Provider Sign Up</h2>
-        <p class="text-zinc-500 mb-8 text-sm">Provider accounts require admin approval before dashboard access.</p>
+@extends('layouts.auth-user', ['title' => 'Provider Registration | ServiceBook'])
 
-        <form action="{{ route('register.store') }}" method="POST" class="space-y-4">
-            @csrf
-            <input type="hidden" name="role" value="{{ \App\Models\User::ROLE_PROVIDER }}">
+@section('content')
+<section class="mx-auto max-w-[1120px]">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(28rem,0.95fr)] lg:items-center">
+        <div class="max-w-2xl">
+            <a href="{{ route('site.home') }}" class="inline-flex items-center gap-3 text-zinc-950">
+                <span class="flex h-12 w-12 items-center justify-center">
+                    <svg viewBox="0 0 56 52" class="h-11 w-11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M8 42V10l16 8 16-8v32l-16-8-16 8Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M24 16c0-3.866 3.134-7 7-7s7 3.134 7 7c0 5.044-7 11-7 11s-7-5.956-7-11Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="31" cy="16" r="2.5" fill="currentColor"/>
+                    </svg>
+                </span>
+                <span class="text-lg font-semibold tracking-[-0.03em]">ServiceBook</span>
+            </a>
 
-            <input type="text" name="name" value="{{ old('name') }}" placeholder="Full Name" required class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
-            <input type="text" name="business_name" value="{{ old('business_name') }}" placeholder="Business Name" required class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
-            <input type="email" name="email" value="{{ old('email') }}" placeholder="Email" required class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
-            <input type="password" name="password" placeholder="Password" required minlength="8"
-                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
-                title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
-                class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
-            <input type="password" name="password_confirmation" placeholder="Confirm Password" required minlength="8"
-                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
-                title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
-                class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
-            <p class="text-xs text-zinc-500">Use 8+ characters with uppercase, lowercase, number, and special character.</p>
+            <p class="mt-8 text-sm font-medium uppercase tracking-[0.22em] text-zinc-400">Provider Sign Up</p>
+            <h1 class="mt-4 text-[2.8rem] font-semibold leading-[1.08] tracking-[-0.05em] text-zinc-950 sm:text-[3.5rem]">
+                Join as a provider and list services with the same clean system styling
+            </h1>
+            <p class="mt-5 max-w-xl text-[15px] leading-8 text-zinc-500">
+                Create your provider account, submit your business details, and continue into the approval flow without changing the current provider system rules.
+            </p>
+        </div>
 
-            <button class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-cyan-500/20 transition-transform active:scale-95">
-                Submit Provider Registration
-            </button>
-        </form>
+        <div class="rounded-[32px] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] ring-1 ring-black/5 sm:p-8">
+            @if($errors->any())
+                <div class="mb-6 rounded-[18px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {{ $errors->first() }}
+                </div>
+            @endif
 
-        <div class="mt-6 text-center text-sm text-zinc-400">
-            Already have an account?
-            <a href="{{ route('login') }}" class="text-cyan-400 hover:text-cyan-300 font-semibold">Sign In</a>
+            <form action="{{ route('register.store') }}" method="POST" class="space-y-4">
+                @csrf
+                <input type="hidden" name="role" value="{{ \App\Models\User::ROLE_PROVIDER }}">
+
+                <div>
+                    <label for="provider-name" class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Full Name</label>
+                    <input id="provider-name" type="text" name="name" value="{{ old('name') }}" placeholder="Enter your full name" required class="mt-2 h-12 w-full rounded-[14px] border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-950 focus:bg-white">
+                </div>
+
+                <div>
+                    <label for="provider-business-name" class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Business Name</label>
+                    <input id="provider-business-name" type="text" name="business_name" value="{{ old('business_name') }}" placeholder="Enter your business name" required class="mt-2 h-12 w-full rounded-[14px] border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-950 focus:bg-white">
+                </div>
+
+                <div>
+                    <label for="provider-email" class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Email</label>
+                    <input id="provider-email" type="email" name="email" value="{{ old('email') }}" placeholder="name@example.com" required class="mt-2 h-12 w-full rounded-[14px] border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-950 focus:bg-white">
+                </div>
+
+                <div>
+                    <label for="provider-password" class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Password</label>
+                    <input id="provider-password" type="password" name="password" placeholder="Create a strong password" required minlength="8"
+                        pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                        title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+                        class="mt-2 h-12 w-full rounded-[14px] border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-950 focus:bg-white">
+                </div>
+
+                <div>
+                    <label for="provider-password-confirmation" class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Confirm Password</label>
+                    <input id="provider-password-confirmation" type="password" name="password_confirmation" placeholder="Confirm your password" required minlength="8"
+                        pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                        title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+                        class="mt-2 h-12 w-full rounded-[14px] border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-950 focus:bg-white">
+                </div>
+
+                <p class="text-xs leading-6 text-zinc-500">Provider accounts still require admin approval before dashboard access.</p>
+
+                <button class="inline-flex h-12 w-full items-center justify-center rounded-[14px] bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                    Submit Provider Registration
+                </button>
+            </form>
+
+            <div class="mt-6 border-t border-black/5 pt-6 text-sm text-zinc-500">
+                Already have an account?
+                <a href="{{ route('login') }}" class="ml-1 font-semibold text-zinc-950 transition hover:text-zinc-700">Sign In</a>
+            </div>
         </div>
     </div>
-
-    @include('components.flash-toasts')
-</body>
-</html>
+</section>
+@endsection

@@ -14,7 +14,9 @@
         $usesMinimalCustomerChrome = request()->routeIs('site.home')
             || request()->routeIs('site.booking')
             || request()->routeIs('customer.bookings.*');
-        $usesNeutralCustomerChrome = request()->routeIs('site.services.index');
+        $usesNeutralCustomerChrome = request()->routeIs('site.services.index')
+            || request()->routeIs('site.categories.index')
+            || request()->routeIs('site.favorites.index');
     @endphp
 
     <div class="relative overflow-x-clip">

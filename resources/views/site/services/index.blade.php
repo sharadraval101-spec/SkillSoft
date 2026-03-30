@@ -206,6 +206,7 @@
                         <a href="{{ route('site.booking', $bookingQuery) }}" class="inline-flex min-w-[140px] flex-1 items-center justify-center rounded-[12px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
                             Book Now
                         </a>
+                        <x-favorite-button :service="$service" size="small" />
                     </div>
                 </div>
             </article>

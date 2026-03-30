@@ -78,6 +78,85 @@ class CustomerWebsiteController extends Controller
         ]);
     }
 
+    public function categories(Request $request): View
+    {
+        $validated = $this->validateCategoryFilters($request);
+        $serviceScope = $validated['service_scope'] ?? 'any';
+        $sort = $validated['sort'] ?? 'featured';
+
+        $categoriesQuery = ServiceCategory::query()
+            ->withCount(['services as active_services_count' => fn (Builder $query) => $query->where('is_active', true)])
+            ->where('is_active', true)
+            ->when(!empty($validated['q']), function (Builder $query) use ($validated): void {
+                $search = trim((string) $validated['q']);
+
+                $query->where(function (Builder $subQuery) use ($search): void {
+                    $subQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->when($serviceScope === 'with-services', function (Builder $query): void {
+                $query->whereHas('services', fn (Builder $serviceQuery) => $serviceQuery->where('is_active', true));
+            })
+            ->when($serviceScope === 'three-plus', function (Builder $query): void {
+                $query->whereHas('services', fn (Builder $serviceQuery) => $serviceQuery->where('is_active', true), '>=', 3);
+            });
+
+        match ($sort) {
+            'name' => $categoriesQuery->orderBy('name'),
+            'services' => $categoriesQuery->orderByDesc('active_services_count')->orderBy('name'),
+            default => $categoriesQuery->orderBy('display_order')->orderBy('name'),
+        };
+
+        $categories = $categoriesQuery
+            ->get(['id', 'name', 'slug', 'description', 'image_path', 'display_order'])
+            ->map(function (ServiceCategory $category): ServiceCategory {
+                $previewServices = Service::query()
+                    ->with([
+                        'category:id,name,slug',
+                        'branch:id,name,city,state',
+                        'providerProfile.user:id,name',
+                    ])
+                    ->withAvg('reviews as avg_rating', 'rating')
+                    ->withCount('reviews')
+                    ->where('is_active', true)
+                    ->where('service_category_id', $category->id)
+                    ->latest()
+                    ->limit(3)
+                    ->get();
+
+                $category->setAttribute('preview_services', $this->decorateServicesForUi($previewServices));
+
+                return $category;
+            });
+
+        return view('site.categories.index', [
+            'categories' => $categories,
+            'filters' => [
+                'q' => $validated['q'] ?? '',
+                'service_scope' => $serviceScope,
+                'sort' => $sort,
+            ],
+            'serviceScopeOptions' => $this->categoryServiceScopeOptions(),
+            'sortOptions' => $this->categorySortOptions(),
+            'heroStats' => [
+                [
+                    'label' => 'Active Categories',
+                    'value' => number_format(ServiceCategory::query()->where('is_active', true)->count()),
+                ],
+                [
+                    'label' => 'Listed Services',
+                    'value' => number_format(Service::query()->where('is_active', true)->count()),
+                ],
+                [
+                    'label' => 'Visible Results',
+                    'value' => number_format($categories->count()),
+                ],
+            ],
+        ]);
+    }
+
     public function services(Request $request): View
     {
         $validated = $this->validateServicesFilters($request);
@@ -364,6 +443,33 @@ class CustomerWebsiteController extends Controller
             'availability' => 'nullable|date',
             'sort' => 'nullable|in:recommended,price_low,price_high,rating,newest',
         ]);
+    }
+
+    private function validateCategoryFilters(Request $request): array
+    {
+        return $request->validate([
+            'q' => 'nullable|string|max:80',
+            'service_scope' => 'nullable|in:any,with-services,three-plus',
+            'sort' => 'nullable|in:featured,name,services',
+        ]);
+    }
+
+    private function categoryServiceScopeOptions(): array
+    {
+        return [
+            'any' => 'Any category',
+            'with-services' => 'With services only',
+            'three-plus' => '3+ services',
+        ];
+    }
+
+    private function categorySortOptions(): array
+    {
+        return [
+            'featured' => 'Featured first',
+            'name' => 'Name A-Z',
+            'services' => 'Most services',
+        ];
     }
 
     private function serviceTypeOptions(): array

@@ -6,91 +6,179 @@
     <title>Login | SkillSlot</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-[#050505] text-zinc-200 min-h-screen flex items-center justify-center p-6">
-    <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-        <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full"></div>
+<body class="min-h-screen bg-white px-4 py-8 text-zinc-950 antialiased sm:px-6 lg:px-8">
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-zinc-50 via-white to-white"></div>
+        <div class="absolute -left-24 top-20 h-64 w-64 rounded-full bg-zinc-100 blur-3xl"></div>
+        <div class="absolute right-0 top-10 h-56 w-56 rounded-full bg-stone-100 blur-3xl"></div>
     </div>
 
-    <div class="w-full max-w-md bg-[#0f0f11] border border-white/5 p-10 rounded-3xl shadow-2xl relative">
-        <div class="mb-10 text-center">
-            <h2 class="text-3xl font-bold text-white tracking-tight">Welcome Back</h2>
-            <p class="text-zinc-500 mt-2">Enter your credentials to access SkillSlot</p>
-        </div>
+    <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[1180px] items-center justify-center">
+        <div class="grid w-full gap-8 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.9fr)]">
+            <section class="hidden overflow-hidden rounded-[2rem] border border-zinc-200 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 px-10 py-12 text-white shadow-[0_28px_80px_-36px_rgba(15,23,42,0.45)] lg:block">
+                <a href="{{ route('site.home') }}" class="inline-flex items-center gap-3 text-sm font-medium text-white/90 transition hover:text-white">
+                    <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/5">
+                        <svg viewBox="0 0 56 52" class="h-9 w-9" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M8 42V10l16 8 16-8v32l-16-8-16 8Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M24 16c0-3.866 3.134-7 7-7s7 3.134 7 7c0 5.044-7 11-7 11s-7-5.956-7-11Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="31" cy="16" r="2.5" fill="currentColor"/>
+                        </svg>
+                    </span>
+                    <span class="text-base font-semibold tracking-[-0.03em]">SkillSlot</span>
+                </a>
 
-        <form action="/login" method="POST" class="space-y-5">
-            @csrf
-
-            <div>
-                <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
-                <input type="email" name="email" value="{{ old('email') }}" required autofocus
-                    class="w-full bg-white/5 border border-white/10 py-3.5 px-4 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-700"
-                    placeholder="name@example.com">
-            </div>
-
-            <div>
-                <div class="flex justify-between mb-2 ml-1">
-                    <label class="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Password</label>
+                <div class="mt-12 max-w-xl">
+                    <p class="text-sm font-semibold uppercase tracking-[0.24em] text-white/60">User-side auth</p>
+                    <h1 class="mt-5 text-5xl font-semibold tracking-[-0.05em] text-white">Clean login and registration in the same marketplace style.</h1>
+                    <p class="mt-6 text-base leading-8 text-zinc-300">
+                        The auth pages now use the same neutral colors, typography, and premium spacing as your user-side homepage,
+                        while the underlying login, forgot-password, and provider approval logic remain unchanged.
+                    </p>
                 </div>
-                <input type="password" name="password" required
-                class="w-full bg-white/5 border border-white/10 py-3.5 px-4 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-700"
-                placeholder="********">
+
+                <div class="mt-10 grid gap-4 sm:grid-cols-2">
+                    <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+                        <p class="text-sm font-semibold text-white">Matching colors</p>
+                        <p class="mt-2 text-sm leading-6 text-zinc-300">White backgrounds, zinc text, soft shadows, and the same button treatment as the user pages.</p>
+                    </div>
+                    <div class="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+                        <p class="text-sm font-semibold text-white">System safe</p>
+                        <p class="mt-2 text-sm leading-6 text-zinc-300">Existing form actions, IDs, and JavaScript behavior are preserved to avoid breaking auth.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="w-full rounded-[2rem] border border-zinc-200 bg-white p-8 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-10">
+                <div class="mb-8 flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-zinc-500">Welcome back</p>
+                        <h2 class="mt-2 text-3xl font-semibold tracking-[-0.04em] text-zinc-950">Login to your account</h2>
+                        <p class="mt-2 text-sm leading-6 text-zinc-500">Use your existing credentials to continue.</p>
+                    </div>
+                    <a href="{{ route('site.home') }}" class="inline-flex rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-950 lg:hidden">
+                        Home
+                    </a>
+                </div>
+
+                @if ($errors->any())
+                    <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                        {{ $errors->first() }}
+                    </div>
+                @endif
+
+                @if (session('status'))
+                    <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                <form action="{{ route('login.attempt') }}" method="POST" class="space-y-6">
+                    @csrf
+
+                    <div class="space-y-2">
+                        <label for="email" class="block text-sm font-medium text-zinc-700">Email address</label>
+                        <input
+                            id="email"
+                            type="email"
+                            name="email"
+                            value="{{ old('email') }}"
+                            required
+                            autofocus
+                            autocomplete="email"
+                            class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
+                            placeholder="name@example.com"
+                        >
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between gap-4">
+                            <label for="password" class="block text-sm font-medium text-zinc-700">Password</label>
+                            <button
+                                type="button"
+                                id="forgotPasswordLink"
+                                class="text-sm font-medium text-zinc-500 transition hover:text-zinc-950"
+                            >
+                                Forgot password?
+                            </button>
+                        </div>
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            required
+                            autocomplete="current-password"
+                            class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
+                            placeholder="Enter your password"
+                        >
+                    </div>
+
+                    <label class="inline-flex items-center gap-3 text-sm text-zinc-600">
+                        <input
+                            type="checkbox"
+                            name="remember"
+                            value="1"
+                            class="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-300"
+                        >
+                        <span>Keep me signed in</span>
+                    </label>
+
+                    <button
+                        type="submit"
+                        class="inline-flex w-full items-center justify-center rounded-2xl bg-zinc-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                    >
+                        Sign in
+                    </button>
+                </form>
+
+                <div class="mt-8 rounded-[1.75rem] border border-zinc-200 bg-zinc-50 px-5 py-5">
+                    <p class="text-sm font-medium text-zinc-700">Need an account?</p>
+                    <p class="mt-1 text-sm leading-6 text-zinc-500">
+                        Create a customer or provider account using the same user-side color, font, and spacing system.
+                    </p>
+                    <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+                        <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                            Sign up
+                        </a>
+                        <a href="{{ route('register.provider') }}" class="inline-flex items-center justify-center rounded-2xl border border-zinc-200 px-5 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-white">
+                            Become a provider
+                        </a>
+                    </div>
+                </div>
             </div>
-
-            <div class="flex items-center px-1">
-                <label class="flex items-center cursor-pointer group">
-                    <input type="checkbox" name="remember" value="1" class="w-4 h-4 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-0 focus:ring-offset-0 transition-colors">
-                    <span class="ml-3 text-sm text-zinc-500 group-hover:text-zinc-300 transition-colors">Stay logged in</span>
-                </label>
-            </div>
-
-            <button type="submit"
-                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-500/20 transition-transform active:scale-95">
-                Sign In
-            </button>
-
-            <div class="text-center">
-                <button
-                    type="button"
-                    id="forgotPasswordLink"
-                    class="text-xs font-semibold uppercase tracking-wider text-indigo-400 hover:text-indigo-300 transition"
-                >
-                    Forgot Password?
-                </button>
-            </div>
-        </form>
-
-        <div class="mt-10 pt-6 border-t border-white/5 text-center">
-            <p class="text-zinc-500 text-sm">
-                Need provider access? <a href="{{ route('register') }}" class="text-indigo-400 hover:text-indigo-300 font-semibold ml-1">Create account</a>
-            </p>
         </div>
     </div>
 
     <div id="forgotEmailModal" class="fixed inset-0 z-[90] hidden">
-        <button type="button" class="absolute inset-0 bg-black/70" data-forgot-close></button>
+        <button type="button" class="absolute inset-0 bg-zinc-950/45 backdrop-blur-sm" data-forgot-close></button>
         <div class="relative z-10 mx-auto flex min-h-screen w-full items-center justify-center p-4">
-            <div class="w-full max-w-sm rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl shadow-black/40 p-6">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-bold text-white">Forgot Password</h3>
-                    <button type="button" class="text-xs font-semibold text-zinc-400 hover:text-zinc-200" data-forgot-close>Close</button>
+            <div class="w-full max-w-sm rounded-[1.75rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.2)]">
+                <div class="flex items-center justify-between gap-4">
+                    <h3 class="text-xl font-semibold tracking-[-0.04em] text-zinc-950">Forgot Password</h3>
+                    <button type="button" class="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-600 transition hover:text-zinc-950" data-forgot-close>Close</button>
                 </div>
-                <p class="mt-2 text-sm text-zinc-400">Enter your email and click verify to receive OTP.</p>
+                <p class="mt-2 text-sm leading-6 text-zinc-500">Enter your email and click verify to receive OTP.</p>
 
                 <div class="mt-5 space-y-3">
-                    <label for="forgotPasswordEmail" class="block text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                    <label for="forgotPasswordEmail" class="block text-sm font-medium text-zinc-700">
                         Enter Your Email
                     </label>
                     <input
                         id="forgotPasswordEmail"
                         type="email"
                         autocomplete="email"
-                        class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-700"
+                        class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
                         placeholder="name@example.com"
                     >
                     <button
                         type="button"
                         id="sendOtpButton"
-                        class="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold py-3 rounded-xl transition active:scale-[0.98]"
+                        class="inline-flex w-full items-center justify-center rounded-2xl bg-zinc-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98]"
                     >
                         Verify
                     </button>
@@ -100,29 +188,29 @@
     </div>
 
     <div id="forgotOtpModal" class="fixed inset-0 z-[90] hidden">
-        <button type="button" class="absolute inset-0 bg-black/70" data-otp-close></button>
+        <button type="button" class="absolute inset-0 bg-zinc-950/45 backdrop-blur-sm" data-otp-close></button>
         <div class="relative z-10 mx-auto flex min-h-screen w-full items-center justify-center p-4">
-            <div class="w-full max-w-sm rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl shadow-black/40 p-6">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-bold text-white">Verify OTP</h3>
-                    <button type="button" class="text-xs font-semibold text-zinc-400 hover:text-zinc-200" data-otp-close>Close</button>
+            <div class="w-full max-w-sm rounded-[1.75rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.2)]">
+                <div class="flex items-center justify-between gap-4">
+                    <h3 class="text-xl font-semibold tracking-[-0.04em] text-zinc-950">Verify OTP</h3>
+                    <button type="button" class="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-600 transition hover:text-zinc-950" data-otp-close>Close</button>
                 </div>
-                <p class="mt-2 text-sm text-zinc-400">Enter the 4-digit OTP sent to your email.</p>
+                <p class="mt-2 text-sm leading-6 text-zinc-500">Enter the 4-digit OTP sent to your email.</p>
 
-                <div class="mt-5 flex items-center justify-center gap-2">
-                    <input data-otp-input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" class="w-12 h-12 text-center rounded-lg bg-black/30 border border-white/10 text-white text-lg font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                    <input data-otp-input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" class="w-12 h-12 text-center rounded-lg bg-black/30 border border-white/10 text-white text-lg font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                    <input data-otp-input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" class="w-12 h-12 text-center rounded-lg bg-black/30 border border-white/10 text-white text-lg font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                    <input data-otp-input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" class="w-12 h-12 text-center rounded-lg bg-black/30 border border-white/10 text-white text-lg font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <div class="mt-5 flex items-center justify-center gap-3">
+                    <input data-otp-input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" class="h-12 w-12 rounded-2xl border border-zinc-200 bg-white text-center text-lg font-semibold text-zinc-950 outline-none transition focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100">
+                    <input data-otp-input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" class="h-12 w-12 rounded-2xl border border-zinc-200 bg-white text-center text-lg font-semibold text-zinc-950 outline-none transition focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100">
+                    <input data-otp-input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" class="h-12 w-12 rounded-2xl border border-zinc-200 bg-white text-center text-lg font-semibold text-zinc-950 outline-none transition focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100">
+                    <input data-otp-input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" class="h-12 w-12 rounded-2xl border border-zinc-200 bg-white text-center text-lg font-semibold text-zinc-950 outline-none transition focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100">
                 </div>
 
-                <button type="button" id="verifyOtpButton" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition active:scale-95">
+                <button type="button" id="verifyOtpButton" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-zinc-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-800">
                     Verify OTP
                 </button>
 
-                <div id="resetPasswordSection" class="hidden mt-4 space-y-3">
+                <div id="resetPasswordSection" class="hidden mt-5 space-y-4 border-t border-zinc-200 pt-5">
                     <div>
-                        <label for="forgotNewPassword" class="block text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">New Password</label>
+                        <label for="forgotNewPassword" class="mb-2 block text-sm font-medium text-zinc-700">New Password</label>
                         <input
                             id="forgotNewPassword"
                             type="password"
@@ -130,12 +218,12 @@
                             minlength="8"
                             pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
                             title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
-                            class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-700"
+                            class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
                             placeholder="Min 8, upper/lower/number/symbol"
                         >
                     </div>
                     <div>
-                        <label for="forgotConfirmPassword" class="block text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">Confirm Password</label>
+                        <label for="forgotConfirmPassword" class="mb-2 block text-sm font-medium text-zinc-700">Confirm Password</label>
                         <input
                             id="forgotConfirmPassword"
                             type="password"
@@ -143,11 +231,11 @@
                             minlength="8"
                             pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
                             title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
-                            class="w-full bg-white/5 border border-white/10 py-3 px-4 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-700"
+                            class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
                             placeholder="Confirm new password"
                         >
                     </div>
-                    <button type="button" id="resetPasswordButton" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition active:scale-95">
+                    <button type="button" id="resetPasswordButton" class="inline-flex w-full items-center justify-center rounded-2xl bg-zinc-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-800">
                         Set New Password
                     </button>
                 </div>
@@ -175,13 +263,13 @@
             const showToast = (text, type = 'error') => {
                 const root = ensureToastRoot();
                 const styleByType = {
-                    success: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100',
-                    info: 'border-cyan-400/40 bg-cyan-500/15 text-cyan-100',
-                    error: 'border-rose-400/40 bg-rose-500/15 text-rose-100'
+                    success: 'border-emerald-300 bg-emerald-50 text-emerald-700',
+                    info: 'border-sky-300 bg-sky-50 text-sky-700',
+                    error: 'border-rose-300 bg-rose-50 text-rose-700'
                 };
 
                 const toast = document.createElement('div');
-                toast.className = `toast-pop border backdrop-blur-md shadow-lg ${styleByType[type] || styleByType.error}`;
+                toast.className = `toast-pop border bg-white shadow-lg ${styleByType[type] || styleByType.error}`;
                 toast.textContent = text;
                 root.appendChild(toast);
 
@@ -219,15 +307,15 @@
             const setOtpState = (state = 'default') => {
                 otpInputs.forEach((input) => {
                     input.classList.remove('border-rose-500', 'border-emerald-500');
-                    input.classList.add('border-white/10');
+                    input.classList.add('border-zinc-200');
 
                     if (state === 'error') {
-                        input.classList.remove('border-white/10');
+                        input.classList.remove('border-zinc-200');
                         input.classList.add('border-rose-500');
                     }
 
                     if (state === 'success') {
-                        input.classList.remove('border-white/10');
+                        input.classList.remove('border-zinc-200');
                         input.classList.add('border-emerald-500');
                     }
                 });

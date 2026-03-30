@@ -3,11 +3,15 @@
     $homeHref = route('site.home');
     $servicesHref = route('site.services.index');
     $bookingHref = route('site.booking');
-    $categoriesHref = request()->routeIs('site.home') ? '#categories' : route('site.home') . '#categories';
+    $favoritesHref = route('site.favorites.index');
+    $categoriesHref = route('site.categories.index');
     $howItWorksHref = request()->routeIs('site.home') ? '#how-it-works' : route('site.home') . '#how-it-works';
     $becomeProviderHref = route('register.provider');
     $isBookingActive = request()->routeIs('site.booking') || request()->routeIs('customer.bookings.*');
     $isServicesActive = request()->routeIs('site.services.*');
+    $isCategoriesActive = request()->routeIs('site.categories.*');
+    $isFavoritesActive = request()->routeIs('site.favorites.*');
+    $likedCount = collect(session('site.favorites', []))->filter()->unique()->count();
 @endphp
 
 <header class="sticky top-0 z-40 border-b border-black/5 bg-white">
@@ -30,7 +34,7 @@
             <a href="{{ $servicesHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ $isServicesActive ? 'text-zinc-950' : '' }}">
                 Services
             </a>
-            <a href="{{ $categoriesHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950">
+            <a href="{{ $categoriesHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ $isCategoriesActive ? 'text-zinc-950' : '' }}">
                 Categories
             </a>
             <a href="{{ $bookingHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ $isBookingActive ? 'text-zinc-950' : '' }}">
@@ -43,6 +47,14 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"/>
                 </svg>
+            </a>
+            <a href="{{ $favoritesHref }}" class="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-500 transition hover:bg-rose-100" aria-label="Liked services">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.01 2 11.93 2 8.15 2 5.07 4.42 2.7 7.5 2.7c1.74 0 3.41.81 4.5 2.09A6 6 0 0 1 16.5 2.7C19.58 2.7 22 5.07 22 8.15c0 3.78-3.4 6.86-8.55 11.54L12 21Z"/>
+                </svg>
+                <span class="absolute -right-1 -top-1 inline-flex min-h-[1.2rem] min-w-[1.2rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+                    {{ $likedCount }}
+                </span>
             </a>
             <span class="h-7 w-px bg-zinc-200"></span>
 
@@ -91,6 +103,12 @@
                     </a>
                     <a href="{{ $servicesHref }}" class="block rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
                         Services
+                    </a>
+                    <a href="{{ $favoritesHref }}" class="flex items-center justify-between rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
+                        <span>Liked Services</span>
+                        <span class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+                            {{ $likedCount }}
+                        </span>
                     </a>
                     <a href="{{ $categoriesHref }}" class="block rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
                         Categories

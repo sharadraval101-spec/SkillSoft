@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminProviderApprovalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\CustomerBookingController;
+use App\Http\Controllers\CustomerFavoriteController;
 use App\Http\Controllers\CustomerPaymentController;
 use App\Http\Controllers\CustomerWebsiteController;
 use App\Http\Controllers\NotificationController;
@@ -21,6 +22,11 @@ use App\Http\Controllers\ProfileController;
 
 Route::get('/', [CustomerWebsiteController::class, 'home'])->name('site.home');
 Route::get('/booking', [CustomerBookingController::class, 'create'])->name('site.booking');
+Route::get('/categories', [CustomerWebsiteController::class, 'categories'])->name('site.categories.index');
+Route::get('/favorites', [CustomerFavoriteController::class, 'index'])->name('site.favorites.index');
+Route::post('/favorites/{service}/toggle', [CustomerFavoriteController::class, 'toggle'])
+    ->whereUuid('service')
+    ->name('site.favorites.toggle');
 Route::get('/services', [CustomerWebsiteController::class, 'services'])->name('site.services.index');
 Route::get('/services/data', [CustomerWebsiteController::class, 'servicesData'])->name('site.services.data');
 Route::get('/services/{slug}/availability', [CustomerWebsiteController::class, 'availability'])->name('site.services.availability');
@@ -33,12 +39,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password/verify-otp', [AuthController::class, 'verifyForgotPasswordOtp'])->name('password.forgot.verify_otp');
     Route::post('/forgot-password/reset', [AuthController::class, 'resetForgotPassword'])->name('password.forgot.reset');
 
-    Route::view('/register', 'auth.register-provider')->name('register');
+    Route::view('/register', 'auth.register')->name('register');
+    Route::view('/register/customer', 'auth.register-customer')->name('register.customer');
     Route::view('/register/provider', 'auth.register-provider')->name('register.provider');
     Route::post('/register', [AuthController::class, 'register'])->name('register.store');
 });
 
-Route::middleware(['auth', 'customer.side.disabled'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])
@@ -321,7 +328,7 @@ Route::middleware(['auth', 'customer.side.disabled'])->group(function () {
     Route::post('/notifications/read', [NotificationController::class, 'read'])->name('notifications.read');
 });
 
-Route::middleware(['auth', 'customer.side.disabled'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/profile/photo/{user}', [ProfileController::class, 'showPhoto'])->name('profile.photo.show');

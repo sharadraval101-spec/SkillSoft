@@ -1,40 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Register | SkillSlot</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="bg-[#050505] text-zinc-200 min-h-screen flex items-center justify-center p-6">
-    <div class="w-full max-w-2xl bg-[#0f0f11] border border-white/5 p-8 rounded-3xl shadow-2xl">
-        <h2 class="text-3xl font-bold text-white mb-2">Create Your Account</h2>
-        <p class="text-zinc-500 mb-8 text-sm">Choose the account type that matches your use case.</p>
+@extends('layouts.auth-user', ['title' => 'Register | ServiceBook'])
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a href="{{ route('register.customer') }}" class="rounded-2xl border border-white/10 bg-white/5 p-5 hover:border-indigo-400/60 hover:bg-indigo-500/10 transition">
-                <h3 class="text-lg font-bold text-white">Customer</h3>
-                <p class="mt-2 text-sm text-zinc-400">
-                    Book services and manage your upcoming appointments.
-                </p>
-                <span class="mt-4 inline-block text-xs font-semibold text-indigo-300 uppercase tracking-widest">Register as Customer</span>
+@section('content')
+<section class="mx-auto max-w-[1120px]">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(28rem,0.95fr)] lg:items-center">
+        <div class="max-w-2xl">
+            <a href="{{ route('site.home') }}" class="inline-flex items-center gap-3 text-zinc-950">
+                <span class="flex h-12 w-12 items-center justify-center">
+                    <svg viewBox="0 0 56 52" class="h-11 w-11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M8 42V10l16 8 16-8v32l-16-8-16 8Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M24 16c0-3.866 3.134-7 7-7s7 3.134 7 7c0 5.044-7 11-7 11s-7-5.956-7-11Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="31" cy="16" r="2.5" fill="currentColor"/>
+                    </svg>
+                </span>
+                <span class="text-lg font-semibold tracking-[-0.03em]">ServiceBook</span>
             </a>
 
-            <a href="{{ route('register.provider') }}" class="rounded-2xl border border-white/10 bg-white/5 p-5 hover:border-cyan-400/60 hover:bg-cyan-500/10 transition">
-                <h3 class="text-lg font-bold text-white">Provider</h3>
-                <p class="mt-2 text-sm text-zinc-400">
-                    Offer services and manage availability. Requires admin approval.
-                </p>
-                <span class="mt-4 inline-block text-xs font-semibold text-cyan-300 uppercase tracking-widest">Register as Provider</span>
-            </a>
+            <p class="mt-8 text-sm font-medium uppercase tracking-[0.22em] text-zinc-400">Create Account</p>
+            <h1 class="mt-4 text-[2.8rem] font-semibold leading-[1.08] tracking-[-0.05em] text-zinc-950 sm:text-[3.6rem]">
+                Choose the registration path that fits your role
+            </h1>
+            <p class="mt-5 max-w-xl text-[15px] leading-8 text-zinc-500">
+                Create a customer account to save services and book appointments, or register as a provider to offer services on the platform.
+            </p>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-white/5 text-sm text-zinc-400 text-center">
-            Already have an account?
-            <a href="{{ route('login') }}" class="text-indigo-400 hover:text-indigo-300 font-semibold">Sign In</a>
+        <div class="rounded-[32px] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] ring-1 ring-black/5 sm:p-8">
+            <div class="grid gap-4">
+                <a href="{{ route('register.customer') }}" class="rounded-[24px] border border-zinc-200 bg-zinc-50 p-6 transition hover:border-zinc-950 hover:bg-white hover:shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Customer</p>
+                    <h2 class="mt-3 text-2xl font-semibold tracking-[-0.04em] text-zinc-950">Book trusted services</h2>
+                    <p class="mt-3 text-sm leading-7 text-zinc-500">
+                        Create a customer account to browse categories, save favorite services, and continue with future booking features.
+                    </p>
+                    <span class="mt-5 inline-flex items-center text-sm font-semibold text-zinc-950">Register as Customer</span>
+                </a>
+
+                <a href="{{ route('register.provider') }}" class="rounded-[24px] border border-zinc-200 bg-zinc-50 p-6 transition hover:border-zinc-950 hover:bg-white hover:shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Provider</p>
+                    <h2 class="mt-3 text-2xl font-semibold tracking-[-0.04em] text-zinc-950">List and manage services</h2>
+                    <p class="mt-3 text-sm leading-7 text-zinc-500">
+                        Register as a provider to publish services, manage schedules, and access the provider dashboard after approval.
+                    </p>
+                    <span class="mt-5 inline-flex items-center text-sm font-semibold text-zinc-950">Register as Provider</span>
+                </a>
+            </div>
+
+            <div class="mt-8 border-t border-black/5 pt-6 text-sm text-zinc-500">
+                Already have an account?
+                <a href="{{ route('login') }}" class="ml-1 font-semibold text-zinc-950 transition hover:text-zinc-700">Sign In</a>
+            </div>
         </div>
     </div>
-
-    @include('components.flash-toasts')
-</body>
-</html>
+</section>
+@endsection

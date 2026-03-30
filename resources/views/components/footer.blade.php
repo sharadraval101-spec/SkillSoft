@@ -2,7 +2,7 @@
     $homeHref = route('site.home');
     $servicesHref = route('site.services.index');
     $bookingHref = route('site.booking');
-    $categoriesHref = request()->routeIs('site.home') ? '#categories' : route('site.home') . '#categories';
+    $categoriesHref = route('site.categories.index');
     $howItWorksHref = request()->routeIs('site.home') ? '#how-it-works' : route('site.home') . '#how-it-works';
     $becomeProviderHref = route('register.provider');
 @endphp
