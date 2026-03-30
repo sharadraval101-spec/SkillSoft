@@ -254,6 +254,7 @@ class AuthController extends Controller
             User::ROLE_PROVIDER => $this->isApprovedProvider($user)
                 ? redirect('/provider/dashboard')
                 : redirect()->route('login')->with('error', 'Provider account is pending admin approval.'),
+            User::ROLE_CUSTOMER => redirect()->route('customer.dashboard'),
             default => redirect()->route('site.home'),
         };
     }

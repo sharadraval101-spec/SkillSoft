@@ -14,7 +14,7 @@
     $likedCount = collect(session('site.favorites', []))->filter()->unique()->count();
 @endphp
 
-<header class="sticky top-0 z-40 border-b border-black/5 bg-white">
+<header class="sticky top-0 z-40 border-b border-white/40 bg-white/70 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-white/40">
     <div class="mx-auto flex h-[72px] w-full max-w-[1280px] items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
         <a href="{{ route('site.home') }}" class="inline-flex shrink-0 items-center gap-3 text-zinc-900">
             <span class="flex h-12 w-12 items-center justify-center">
@@ -43,11 +43,11 @@
         </nav>
 
         <div class="hidden items-center gap-4 lg:flex">
-            <a href="{{ route('site.services.index') }}" class="inline-flex h-10 w-10 items-center justify-center rounded-full text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950" aria-label="Search services">
+            {{-- <a href="{{ route('site.services.index') }}" class="inline-flex h-10 w-10 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/70 hover:text-zinc-950" aria-label="Search services">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"/>
                 </svg>
-            </a>
+            </a> --}}
             <a href="{{ $favoritesHref }}" class="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-500 transition hover:bg-rose-100" aria-label="Liked services">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.01 2 11.93 2 8.15 2 5.07 4.42 2.7 7.5 2.7c1.74 0 3.41.81 4.5 2.09A6 6 0 0 1 16.5 2.7C19.58 2.7 22 5.07 22 8.15c0 3.78-3.4 6.86-8.55 11.54L12 21Z"/>
@@ -93,7 +93,7 @@
                 </svg>
             </summary>
 
-            <div class="absolute right-0 top-[calc(100%+0.75rem)] w-[min(21rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-xl shadow-zinc-200/60">
+            <div class="absolute right-0 top-[calc(100%+0.75rem)] w-[min(21rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-white/60 bg-white/85 p-4 shadow-xl shadow-zinc-200/60 backdrop-blur-2xl supports-[backdrop-filter]:bg-white/75">
                 <nav class="space-y-1">
                     <a href="{{ $homeHref }}" class="block rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
                         Home

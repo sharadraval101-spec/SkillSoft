@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Branch;
+use App\Models\Payment;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\User;
@@ -371,8 +372,181 @@ class CustomerWebsiteController extends Controller
 
     public function dashboard(Request $request): View
     {
+        /** @var User $customer */
+        $customer = $request->user();
+
+        $upcomingStatuses = [
+            Booking::STATUS_PENDING,
+            Booking::STATUS_ACCEPTED,
+            Booking::STATUS_CONFIRMED,
+            Booking::STATUS_IN_PROGRESS,
+        ];
+
+        $closedStatuses = [
+            Booking::STATUS_COMPLETED,
+            Booking::STATUS_CANCELLED,
+            Booking::STATUS_REJECTED,
+        ];
+
+        $bookingRelations = [
+            'provider:id,name,email',
+            'service:id,name,slug,base_price',
+            'serviceVariant:id,name,price',
+            'branch:id,name,city,state',
+            'payments:id,booking_id,status',
+        ];
+
+        $bookingsBase = Booking::query()->where('customer_id', $customer->id);
+        $paymentsBase = Payment::query()->where('customer_id', $customer->id);
+        $paidStatuses = [Payment::STATUS_PAID, Payment::STATUS_REFUNDED];
+
+        $totalBookings = (clone $bookingsBase)->count();
+        $upcomingBookingsCount = (clone $bookingsBase)
+            ->whereIn('status', $upcomingStatuses)
+            ->where('scheduled_at', '>=', now())
+            ->count();
+        $completedBookingsCount = (clone $bookingsBase)
+            ->where('status', Booking::STATUS_COMPLETED)
+            ->count();
+        $cancelledBookingsCount = (clone $bookingsBase)
+            ->where('status', Booking::STATUS_CANCELLED)
+            ->count();
+        $favoritesCount = collect(session('site.favorites', []))->filter()->unique()->count();
+        $pendingPaymentsCount = (clone $paymentsBase)
+            ->where('status', Payment::STATUS_PENDING)
+            ->count();
+        $grossPaid = (clone $paymentsBase)
+            ->whereIn('status', $paidStatuses)
+            ->sum('amount');
+        $refundedAmount = (clone $paymentsBase)
+            ->whereIn('status', $paidStatuses)
+            ->sum('refunded_amount');
+        $netSpent = max(0, (float) $grossPaid - (float) $refundedAmount);
+
+        $upcomingBookings = Booking::query()
+            ->with($bookingRelations)
+            ->where('customer_id', $customer->id)
+            ->whereIn('status', $upcomingStatuses)
+            ->where('scheduled_at', '>=', now())
+            ->orderBy('scheduled_at')
+            ->limit(4)
+            ->get();
+
+        $bookingHistory = Booking::query()
+            ->with($bookingRelations)
+            ->where('customer_id', $customer->id)
+            ->where(function (Builder $query) use ($closedStatuses): void {
+                $query
+                    ->whereIn('status', $closedStatuses)
+                    ->orWhere('scheduled_at', '<', now());
+            })
+            ->latest('scheduled_at')
+            ->limit(8)
+            ->get();
+
+        $recentPayments = Payment::query()
+            ->with([
+                'booking:id,booking_number,scheduled_at,service_id',
+                'booking.service:id,name',
+            ])
+            ->where('customer_id', $customer->id)
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $hydrateBookingMeta = function (Collection $bookings) use ($upcomingStatuses): Collection {
+            return $bookings->map(function (Booking $booking) use ($upcomingStatuses): Booking {
+                $hasPaidPayment = $booking->payments->contains(function ($payment) {
+                    return in_array($payment->status, [
+                        Payment::STATUS_PAID,
+                        Payment::STATUS_REFUNDED,
+                    ], true);
+                });
+
+                $booking->setAttribute('can_reschedule', $this->bookingService->canReschedule($booking));
+                $booking->setAttribute('can_cancel', $this->bookingService->canCancel($booking));
+                $booking->setAttribute(
+                    'can_pay',
+                    !$hasPaidPayment && in_array($booking->status, [
+                        Booking::STATUS_PENDING,
+                        Booking::STATUS_ACCEPTED,
+                    ], true)
+                );
+                $booking->setAttribute(
+                    'location_label',
+                    collect([
+                        $booking->branch?->name,
+                        trim(implode(', ', array_filter([$booking->branch?->city, $booking->branch?->state]))),
+                    ])->filter()->implode(' - ')
+                );
+                $booking->setAttribute('status_label', Str::headline((string) $booking->status));
+                $booking->setAttribute('is_upcoming', in_array($booking->status, $upcomingStatuses, true) && $booking->scheduled_at?->isFuture());
+                $booking->setAttribute('book_again_url', route('site.booking', array_filter([
+                    'provider_id' => $booking->provider_id,
+                    'service_id' => $booking->service_id,
+                    'branch_id' => $booking->branch_id,
+                ])));
+
+                return $booking;
+            });
+        };
+
+        $upcomingBookings = $hydrateBookingMeta($upcomingBookings);
+        $bookingHistory = $hydrateBookingMeta($bookingHistory);
+
+        $profileCompletion = (int) round(
+            collect([
+                $customer->name,
+                $customer->email,
+                $customer->profile_photo_path,
+            ])->filter(fn ($value) => filled($value))->count() / 3 * 100
+        );
+
+        $nextBooking = $upcomingBookings->first();
+
         return view('site.dashboard', [
-            'bookingsDataUrl' => route('customer.dashboard.bookings.data'),
+            'customer' => $customer,
+            'nextBooking' => $nextBooking,
+            'upcomingBookings' => $upcomingBookings,
+            'bookingHistory' => $bookingHistory,
+            'recentPayments' => $recentPayments,
+            'profileCompletion' => $profileCompletion,
+            'dashboardStats' => [
+                [
+                    'label' => 'Total bookings',
+                    'value' => number_format($totalBookings),
+                    'hint' => 'Across all services',
+                ],
+                [
+                    'label' => 'Upcoming',
+                    'value' => number_format($upcomingBookingsCount),
+                    'hint' => 'Scheduled sessions ahead',
+                ],
+                [
+                    'label' => 'Completed',
+                    'value' => number_format($completedBookingsCount),
+                    'hint' => 'Finished appointments',
+                ],
+                [
+                    'label' => 'Net spent',
+                    'value' => 'Rs. '.number_format($netSpent, 0),
+                    'hint' => 'After refunds',
+                ],
+            ],
+            'accountHighlights' => [
+                [
+                    'label' => 'Saved favorites',
+                    'value' => number_format($favoritesCount),
+                ],
+                [
+                    'label' => 'Pending payments',
+                    'value' => number_format($pendingPaymentsCount),
+                ],
+                [
+                    'label' => 'Cancelled bookings',
+                    'value' => number_format($cancelledBookingsCount),
+                ],
+            ],
         ]);
     }
 
