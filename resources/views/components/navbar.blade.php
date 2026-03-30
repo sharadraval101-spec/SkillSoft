@@ -1,10 +1,13 @@
 @php
     $isCustomer = auth()->check() && (int) auth()->user()->role === \App\Models\User::ROLE_CUSTOMER;
+    $homeHref = route('site.home');
+    $servicesHref = route('site.services.index');
     $bookingHref = route('site.booking');
-    $categoriesHref = route('site.services.index');
+    $categoriesHref = request()->routeIs('site.home') ? '#categories' : route('site.home') . '#categories';
     $howItWorksHref = request()->routeIs('site.home') ? '#how-it-works' : route('site.home') . '#how-it-works';
     $becomeProviderHref = route('register.provider');
     $isBookingActive = request()->routeIs('site.booking') || request()->routeIs('customer.bookings.*');
+    $isServicesActive = request()->routeIs('site.services.*');
 @endphp
 
 <header class="sticky top-0 z-40 border-b border-black/5 bg-white">
@@ -17,21 +20,21 @@
                     <circle cx="31" cy="16" r="2.5" fill="currentColor"/>
                 </svg>
             </span>
-            <span class="text-lg font-semibold tracking-[-0.03em]">ServiceBook</span>
+            <span class="text-lg font-semibold tracking-[-0.03em]">SkillSlot</span>
         </a>
 
         <nav class="hidden flex-1 items-center justify-center gap-10 lg:flex">
-            <a href="{{ $bookingHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ $isBookingActive ? 'text-zinc-950' : '' }}">
-                Booking
+            <a href="{{ $homeHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ request()->routeIs('site.home') ? 'text-zinc-950' : '' }}">
+               Home
             </a>
-            <a href="{{ $categoriesHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ request()->routeIs('site.services.*') ? 'text-zinc-950' : '' }}">
+            <a href="{{ $servicesHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ $isServicesActive ? 'text-zinc-950' : '' }}">
+                Services
+            </a>
+            <a href="{{ $categoriesHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950">
                 Categories
             </a>
-            <a href="{{ $howItWorksHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950">
-                How It Works
-            </a>
-            <a href="{{ $becomeProviderHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ request()->routeIs('register.provider') ? 'text-zinc-950' : '' }}">
-                Become a Provider
+            <a href="{{ $bookingHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ $isBookingActive ? 'text-zinc-950' : '' }}">
+                Booking
             </a>
         </nav>
 
@@ -80,8 +83,14 @@
 
             <div class="absolute right-0 top-[calc(100%+0.75rem)] w-[min(21rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-xl shadow-zinc-200/60">
                 <nav class="space-y-1">
+                    <a href="{{ $homeHref }}" class="block rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
+                        Home
+                    </a>
                     <a href="{{ $bookingHref }}" class="block rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
                         Booking
+                    </a>
+                    <a href="{{ $servicesHref }}" class="block rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
+                        Services
                     </a>
                     <a href="{{ $categoriesHref }}" class="block rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
                         Categories
@@ -92,7 +101,7 @@
                     <a href="{{ $becomeProviderHref }}" class="block rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
                         Become a Provider
                     </a>
-                    <a href="{{ route('site.services.index') }}" class="block rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
+                    <a href="{{ $servicesHref }}" class="block rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
                         Search Services
                     </a>
                 </nav>

@@ -80,16 +80,7 @@ class CustomerWebsiteController extends Controller
 
     public function services(Request $request): View
     {
-        $validated = $request->validate([
-            'q' => 'nullable|string|max:120',
-            'category' => 'nullable|string',
-            'location' => 'nullable|string|max:80',
-            'price_min' => 'nullable|numeric|min:0',
-            'price_max' => 'nullable|numeric|min:0',
-            'rating' => 'nullable|integer|min:1|max:5',
-            'availability' => 'nullable|date',
-            'sort' => 'nullable|in:recommended,price_low,price_high,rating,newest',
-        ]);
+        $validated = $this->validateServicesFilters($request);
 
         $availabilityDate = !empty($validated['availability'])
             ? Carbon::parse($validated['availability'])->startOfDay()
@@ -102,53 +93,59 @@ class CustomerWebsiteController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'slug']);
 
-        $locations = Branch::query()
-            ->where('is_active', true)
-            ->get(['city', 'state'])
-            ->map(function (Branch $branch): string {
-                return trim(implode(', ', array_filter([$branch->city, $branch->state])));
-            })
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $services = $this->buildServicesQuery($validated, $availabilityDate)
+            ->paginate(9)
+            ->withQueryString();
+        $services->setCollection(
+            $this->decorateServicesForUi(collect($services->items()))
+        );
 
         return view('site.services.index', [
             'categories' => $categories,
-            'locations' => $locations,
-            'servicesDataUrl' => route('site.services.data'),
+            'services' => $services,
+            'resultCount' => $services->total(),
             'filters' => [
-                'q' => $validated['q'] ?? '',
                 'category' => $validated['category'] ?? '',
-                'location' => $validated['location'] ?? '',
-                'price_min' => $validated['price_min'] ?? '',
-                'price_max' => $validated['price_max'] ?? '',
+                'type' => $validated['type'] ?? '',
+                'price_range' => $validated['price_range'] ?? '',
                 'rating' => $validated['rating'] ?? '',
                 'availability' => $availabilityDate?->toDateString() ?? '',
                 'sort' => $sort,
             ],
-            'sortOptions' => [
-                'recommended' => 'Recommended',
-                'rating' => 'Top Rated',
-                'price_low' => 'Price: Low to High',
-                'price_high' => 'Price: High to Low',
-                'newest' => 'Newest',
+            'serviceTypeOptions' => $this->serviceTypeOptions(),
+            'priceRangeOptions' => $this->priceRangeOptions(),
+            'ratingOptions' => [
+                5 => '5.0 only',
+                4 => '4.0 and above',
+                3 => '3.0 and above',
+            ],
+            'sortOptions' => $this->sortOptions(),
+            'heroStats' => [
+                [
+                    'label' => 'Active Services',
+                    'value' => number_format(Service::query()->where('is_active', true)->count()),
+                ],
+                [
+                    'label' => 'Trusted Providers',
+                    'value' => number_format(
+                        User::query()
+                            ->where('role', User::ROLE_PROVIDER)
+                            ->where('is_active', true)
+                            ->whereHas('providerProfile', fn (Builder $query) => $query->where('status', 'active'))
+                            ->count()
+                    ),
+                ],
+                [
+                    'label' => 'Categories',
+                    'value' => number_format($categories->count()),
+                ],
             ],
         ]);
     }
 
     public function servicesData(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'q' => 'nullable|string|max:120',
-            'category' => 'nullable|string',
-            'location' => 'nullable|string|max:80',
-            'price_min' => 'nullable|numeric|min:0',
-            'price_max' => 'nullable|numeric|min:0',
-            'rating' => 'nullable|integer|min:1|max:5',
-            'availability' => 'nullable|date',
-            'sort' => 'nullable|in:recommended,price_low,price_high,rating,newest',
-        ]);
+        $validated = $this->validateServicesFilters($request);
 
         $availabilityDate = !empty($validated['availability'])
             ? Carbon::parse($validated['availability'])->startOfDay()
@@ -158,27 +155,7 @@ class CustomerWebsiteController extends Controller
         $services = $this->decorateServicesForUi($services);
 
         return response()->json([
-            'data' => $services->map(function (Service $service): array {
-                return [
-                    'id' => $service->id,
-                    'name' => $service->name,
-                    'slug' => $service->slug,
-                    'category' => $service->category?->name ?? 'Service',
-                    'provider' => $service->providerProfile?->user?->name ?? 'Provider',
-                    'location' => $service->branch?->city
-                        ? trim(($service->branch->city ?? '').', '.($service->branch->state ?? ''))
-                        : 'Multiple locations',
-                    'price' => number_format((float) ($service->base_price ?? 0), 2),
-                    'price_value' => (float) ($service->base_price ?? 0),
-                    'duration' => (int) ($service->duration_minutes ?? 0),
-                    'rating' => (float) ($service->avg_rating ?? 0),
-                    'rating_label' => (float) ($service->avg_rating ?? 0) > 0 ? number_format((float) $service->avg_rating, 1) : 'New',
-                    'reviews_count' => (int) ($service->reviews_count ?? 0),
-                    'description' => Str::limit((string) ($service->description ?? ''), 90),
-                    'image' => $service->ui_image,
-                    'details_url' => route('site.services.show', $service->slug),
-                ];
-            }),
+            'data' => $services->map(fn (Service $service): array => $this->transformServiceForListing($service)),
         ]);
     }
 
@@ -375,6 +352,89 @@ class CustomerWebsiteController extends Controller
         return response()->json(['data' => $data]);
     }
 
+    private function validateServicesFilters(Request $request): array
+    {
+        return $request->validate([
+            'q' => 'nullable|string|max:120',
+            'category' => 'nullable|string',
+            'type' => 'nullable|in:1-on-1,group',
+            'location' => 'nullable|string|max:80',
+            'price_range' => 'nullable|in:under-500,500-800,800-1000,1000-plus',
+            'rating' => 'nullable|integer|min:1|max:5',
+            'availability' => 'nullable|date',
+            'sort' => 'nullable|in:recommended,price_low,price_high,rating,newest',
+        ]);
+    }
+
+    private function serviceTypeOptions(): array
+    {
+        return [
+            '1-on-1' => '1-on-1',
+            'group' => 'Group',
+        ];
+    }
+
+    private function priceRangeOptions(): array
+    {
+        return [
+            'under-500' => 'Under Rs. 500',
+            '500-800' => 'Rs. 500 - Rs. 800',
+            '800-1000' => 'Rs. 800 - Rs. 1,000',
+            '1000-plus' => 'Rs. 1,000+',
+        ];
+    }
+
+    private function sortOptions(): array
+    {
+        return [
+            'recommended' => 'Recommended',
+            'rating' => 'Top Rated',
+            'price_low' => 'Price: Low to High',
+            'price_high' => 'Price: High to Low',
+            'newest' => 'Newest',
+        ];
+    }
+
+    private function resolvePriceRangeBounds(?string $priceRange): array
+    {
+        return match ($priceRange) {
+            'under-500' => [null, 500],
+            '500-800' => [500, 800],
+            '800-1000' => [800, 1000],
+            '1000-plus' => [1000, null],
+            default => [null, null],
+        };
+    }
+
+    private function transformServiceForListing(Service $service): array
+    {
+        return [
+            'id' => $service->id,
+            'name' => $service->name,
+            'slug' => $service->slug,
+            'type' => $service->type === 'group' ? 'Group' : '1-on-1',
+            'category' => $service->category?->name ?? 'Service',
+            'provider' => $service->providerProfile?->user?->name ?? 'Provider',
+            'location' => $service->branch?->city
+                ? trim(($service->branch->city ?? '').', '.($service->branch->state ?? ''))
+                : 'Multiple locations',
+            'price' => number_format((float) ($service->base_price ?? 0), 2),
+            'price_value' => (float) ($service->base_price ?? 0),
+            'duration' => (int) ($service->duration_minutes ?? 0),
+            'rating' => (float) ($service->avg_rating ?? 0),
+            'rating_label' => (float) ($service->avg_rating ?? 0) > 0 ? number_format((float) $service->avg_rating, 1) : 'New',
+            'reviews_count' => (int) ($service->reviews_count ?? 0),
+            'description' => Str::limit((string) ($service->description ?? ''), 110),
+            'image' => $service->ui_image,
+            'details_url' => route('site.services.show', $service->slug),
+            'book_url' => route('site.booking', array_filter([
+                'provider_id' => $service->providerProfile?->user_id,
+                'service_id' => $service->id,
+                'branch_id' => $service->branch_id,
+            ])),
+        ];
+    }
+
     private function decorateServicesForUi(Collection $services): Collection
     {
         return $services->map(function (Service $service): Service {
@@ -407,6 +467,8 @@ class CustomerWebsiteController extends Controller
 
     private function buildServicesQuery(array $validated, ?Carbon $availabilityDate): Builder
     {
+        [$priceMin, $priceMax] = $this->resolvePriceRangeBounds($validated['price_range'] ?? null);
+
         $servicesQuery = Service::query()
             ->with([
                 'category:id,name,slug',
@@ -434,6 +496,7 @@ class CustomerWebsiteController extends Controller
                         ->orWhere('id', $validated['category']);
                 });
             })
+            ->when(!empty($validated['type']), fn (Builder $query) => $query->where('type', $validated['type']))
             ->when(!empty($validated['location']), function (Builder $query) use ($validated): void {
                 $location = trim((string) $validated['location']);
 
@@ -443,8 +506,8 @@ class CustomerWebsiteController extends Controller
                         ->orWhere('state', 'like', "%{$location}%");
                 });
             })
-            ->when(isset($validated['price_min']), fn (Builder $query) => $query->where('base_price', '>=', (float) $validated['price_min']))
-            ->when(isset($validated['price_max']), fn (Builder $query) => $query->where('base_price', '<=', (float) $validated['price_max']))
+            ->when($priceMin !== null, fn (Builder $query) => $query->where('base_price', '>=', $priceMin))
+            ->when($priceMax !== null, fn (Builder $query) => $query->where('base_price', '<=', $priceMax))
             ->when(!empty($validated['rating']), function (Builder $query) use ($validated): void {
                 $rating = (int) $validated['rating'];
                 $query->whereRaw(
