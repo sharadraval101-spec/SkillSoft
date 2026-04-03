@@ -21,37 +21,55 @@
     }
 @endphp
 
-@if($toasts->isNotEmpty())
-    <div id="flash-toast-root" class="fixed inset-x-0 bottom-4 z-[120] px-4 pointer-events-none">
-        <div class="mx-auto max-w-xl flex flex-col items-stretch gap-2"></div>
-    </div>
+<div id="flash-toast-root" class="fixed inset-x-0 bottom-4 z-[120] pointer-events-none px-4">
+    <div data-toast-stack class="mx-auto flex max-w-xl flex-col items-stretch gap-2"></div>
+</div>
 
-    <script>
-        (() => {
-            const toasts = @json($toasts->values());
-            const root = document.querySelector('#flash-toast-root > div');
-            if (!root) return;
+<script>
+    (() => {
+        const initialToasts = @json($toasts->values());
 
-            const styleByType = {
-                success: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100',
-                info: 'border-cyan-400/40 bg-cyan-500/15 text-cyan-100',
-                error: 'border-rose-400/40 bg-rose-500/15 text-rose-100'
-            };
+        const ensureToastStack = () => {
+            let root = document.getElementById('flash-toast-root');
+            if (!root) {
+                root = document.createElement('div');
+                root.id = 'flash-toast-root';
+                root.className = 'fixed inset-x-0 bottom-4 z-[120] pointer-events-none px-4';
+                root.innerHTML = '<div data-toast-stack class="mx-auto flex max-w-xl flex-col items-stretch gap-2"></div>';
+                document.body.appendChild(root);
+            }
 
-            toasts.forEach((item, index) => {
-                const toast = document.createElement('div');
-                toast.className = `toast-pop border backdrop-blur-md shadow-lg ${styleByType[item.type] || styleByType.info}`;
-                toast.textContent = item.text;
-                root.appendChild(toast);
+            return root.querySelector('[data-toast-stack]');
+        };
 
-                requestAnimationFrame(() => toast.classList.add('toast-pop-show'));
+        const styleByType = {
+            success: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100',
+            info: 'border-cyan-400/40 bg-cyan-500/15 text-cyan-100',
+            error: 'border-rose-400/40 bg-rose-500/15 text-rose-100'
+        };
 
-                const hideAfterMs = 1000 + (index * 80);
-                setTimeout(() => {
-                    toast.classList.remove('toast-pop-show');
-                    setTimeout(() => toast.remove(), 260);
-                }, hideAfterMs);
-            });
-        })();
-    </script>
-@endif
+        window.showFlashToast = (type, text, options = {}) => {
+            const root = ensureToastStack();
+            if (!root || !text) {
+                return;
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast-pop border backdrop-blur-md shadow-lg ${styleByType[type] || styleByType.info}`;
+            toast.textContent = text;
+            root.appendChild(toast);
+
+            requestAnimationFrame(() => toast.classList.add('toast-pop-show'));
+
+            const hideAfterMs = options.duration ?? 1000;
+            setTimeout(() => {
+                toast.classList.remove('toast-pop-show');
+                setTimeout(() => toast.remove(), 260);
+            }, hideAfterMs);
+        };
+
+        initialToasts.forEach((item, index) => {
+            window.showFlashToast(item.type, item.text, { duration: 1000 + (index * 80) });
+        });
+    })();
+</script>

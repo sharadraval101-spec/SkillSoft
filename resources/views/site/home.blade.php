@@ -18,28 +18,28 @@
 @endphp
 
 @section('content')
-<section class="mx-auto flex min-h-[calc(100vh-7rem)] max-w-[1280px] items-center px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-24">
+<section class="mx-auto flex min-h-[calc(100vh-7rem)] max-w-[1280px] items-center px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-24" data-motion-section>
     <div class="grid w-full items-center gap-12 lg:grid-cols-[minmax(0,36rem)_minmax(0,1fr)]">
         <div class="max-w-[38rem] pt-6 lg:pt-0">
-            <h1 class="max-w-[12ch] text-[2.45rem] font-semibold leading-[1.18] tracking-[-0.05em] text-zinc-900 sm:text-[3.35rem] lg:text-[4.15rem]">
+            <h1 class="max-w-[12ch] text-[2.45rem] font-semibold leading-[1.18] tracking-[-0.05em] text-zinc-900 sm:text-[3.35rem] lg:text-[4.15rem]" data-motion-title>
                 Find and book trusted services near you anytime anywhere
             </h1>
 
-            <p class="mt-6 max-w-[35rem] text-[15px] leading-8 text-zinc-500">
+            <p class="mt-6 max-w-[35rem] text-[15px] leading-8 text-zinc-500" data-motion-copy>
                 Explore professional services across beauty, fitness, healthcare, legal consultation, pet care, and many more categories. Find verified service providers, check availability in real time, select a convenient time slot, and book your appointment instantly with safe and secure payment options.
             </p>
 
-            <div class="mt-10 flex flex-wrap items-center gap-4">
-                <a href="{{ route('site.services.index') }}" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] bg-zinc-950 px-7 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
+            <div class="mt-10 flex flex-wrap items-center gap-4" data-motion-actions>
+                <a href="{{ route('site.services.index') }}" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] bg-zinc-950 px-7 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-action>
                     Explore Services
                 </a>
-                <a href="#how-it-works" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] border border-zinc-300 px-7 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950">
+                <a href="#how-it-works" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] border border-zinc-300 px-7 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950" data-motion-action>
                     How It Works
                 </a>
             </div>
         </div>
 
-        <div class="relative flex justify-center lg:justify-end">
+        <div class="relative flex justify-center lg:justify-end" data-motion-media>
             <div class="relative w-full max-w-[39rem]">
                 <div class="absolute right-[10%] top-[12%] h-56 w-56 rounded-full bg-orange-100/75 blur-3xl"></div>
                 <div class="absolute inset-x-[14%] bottom-4 h-20 rounded-full bg-black/15 blur-3xl"></div>
@@ -55,17 +55,17 @@
     </div>
 </section>
 
-<section id="categories" class="mx-auto max-w-[1280px] scroll-mt-24 px-4 pb-24 pt-10 sm:px-6 lg:px-8">
+<section id="categories" class="mx-auto max-w-[1280px] scroll-mt-24 px-4 pb-24 pt-10 sm:px-6 lg:px-8" data-motion-section>
     <div class="mx-auto max-w-2xl text-center">
-        <h2 class="text-[2.4rem] font-semibold tracking-[-0.04em] text-zinc-900 sm:text-[2.8rem]">
+        <h2 class="text-[2.4rem] font-semibold tracking-[-0.04em] text-zinc-900 sm:text-[2.8rem]" data-motion-title>
             Explore Services by Category
         </h2>
-        <p class="mt-4 text-[15px] leading-7 text-zinc-500">
+        <p class="mt-4 text-[15px] leading-7 text-zinc-500" data-motion-copy>
             Find the perfect service tailored to your needs. Browse by category and book instantly.
         </p>
     </div>
 
-    <div class="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+    <div class="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4" data-motion-group>
         @forelse($topCategories as $index => $category)
             @php
                 $categoryImage = $categoryImages[$index % count($categoryImages)];
@@ -74,7 +74,7 @@
                     : $categoryFallbackDescriptions[$index % count($categoryFallbackDescriptions)];
             @endphp
 
-            <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_16px_40px_rgba(0,0,0,0.07)] ring-1 ring-black/5">
+            <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_16px_40px_rgba(0,0,0,0.07)] ring-1 ring-black/5" data-motion-item data-motion-card>
                 <img src="{{ $categoryImage }}" alt="{{ $category->name }}" class="h-52 w-full object-cover">
 
                 <div class="space-y-4 px-6 py-5">
@@ -83,13 +83,13 @@
                         <p class="mt-3 text-[15px] leading-7 text-zinc-500">{{ $categoryDescription }}</p>
                     </div>
 
-                    <a href="{{ route('site.services.index', ['category' => $category->slug]) }}" class="inline-flex w-full items-center justify-center rounded-[10px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
+                    <a href="{{ route('site.services.index', ['category' => $category->slug]) }}" class="inline-flex w-full items-center justify-center rounded-[10px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-action>
                         View Services
                     </a>
                 </div>
             </article>
         @empty
-            <p class="rounded-[28px] border border-dashed border-zinc-300 px-6 py-10 text-center text-sm text-zinc-500 md:col-span-2 xl:col-span-4">
+            <p class="rounded-[28px] border border-dashed border-zinc-300 px-6 py-10 text-center text-sm text-zinc-500 md:col-span-2 xl:col-span-4" data-motion-card>
                 No categories available right now.
             </p>
         @endforelse
@@ -98,17 +98,17 @@
 
 <div id="how-it-works" class="scroll-mt-24"></div>
 
-<section class="mx-auto max-w-[1280px] px-4 pb-20 pt-4 sm:px-6 lg:px-8">
+<section class="mx-auto max-w-[1280px] px-4 pb-20 pt-4 sm:px-6 lg:px-8" data-motion-section>
     <div class="max-w-2xl">
-        <h2 class="text-[2.35rem] font-semibold tracking-[-0.04em] text-zinc-900 sm:text-[2.8rem]">
+        <h2 class="text-[2.35rem] font-semibold tracking-[-0.04em] text-zinc-900 sm:text-[2.8rem]" data-motion-title>
             Popular Services Near You
         </h2>
-        <p class="mt-4 text-[15px] leading-7 text-zinc-500">
+        <p class="mt-4 text-[15px] leading-7 text-zinc-500" data-motion-copy>
             Discover highly rated services trusted by customers in your area. Book top professionals quickly and easily.
         </p>
     </div>
 
-    <div class="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+    <div class="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4" data-motion-group>
         @forelse($highlightedServices as $service)
             @php
                 $providerName = $service->providerProfile?->user?->name ?? 'Service Provider';
@@ -121,7 +121,7 @@
                 ]);
             @endphp
 
-            <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_16px_40px_rgba(0,0,0,0.07)] ring-1 ring-black/5">
+            <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_16px_40px_rgba(0,0,0,0.07)] ring-1 ring-black/5" data-motion-item data-motion-card>
                 <img
                     src="{{ $service->ui_image ?? 'https://picsum.photos/seed/'.urlencode((string) $service->id).'/900/620' }}"
                     alt="{{ $service->name }}"
@@ -148,7 +148,7 @@
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <a href="{{ route('site.booking', $bookingQuery) }}" class="inline-flex flex-1 items-center justify-center rounded-[10px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
+                        <a href="{{ route('site.booking', $bookingQuery) }}" class="inline-flex flex-1 items-center justify-center rounded-[10px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-action>
                             Book Now
                         </a>
                         <x-favorite-button :service="$service" />
@@ -156,7 +156,7 @@
                 </div>
             </article>
         @empty
-            <p class="rounded-[28px] border border-dashed border-zinc-300 px-6 py-10 text-center text-sm text-zinc-500 md:col-span-2 xl:col-span-4">
+            <p class="rounded-[28px] border border-dashed border-zinc-300 px-6 py-10 text-center text-sm text-zinc-500 md:col-span-2 xl:col-span-4" data-motion-card>
                 No popular services available right now.
             </p>
         @endforelse

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -44,7 +45,7 @@ class CustomerFavoriteController extends Controller
         ]);
     }
 
-    public function toggle(Request $request, Service $service): RedirectResponse
+    public function toggle(Request $request, Service $service): JsonResponse|RedirectResponse
     {
         $likedServiceIds = collect($request->session()->get('site.favorites', []))
             ->map(fn ($id): string => (string) $id)
@@ -53,8 +54,9 @@ class CustomerFavoriteController extends Controller
             ->values();
 
         $serviceId = (string) $service->id;
+        $wasLiked = $likedServiceIds->contains($serviceId);
 
-        if ($likedServiceIds->contains($serviceId)) {
+        if ($wasLiked) {
             $likedServiceIds = $likedServiceIds
                 ->reject(fn (string $id): bool => $id === $serviceId)
                 ->values();
@@ -67,7 +69,23 @@ class CustomerFavoriteController extends Controller
 
         $request->session()->put('site.favorites', $likedServiceIds->all());
 
-        return back();
+        $isLiked = !$wasLiked;
+        $message = $isLiked
+            ? 'Service added to liked services.'
+            : 'Service removed from liked services.';
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'message' => $message,
+                'data' => [
+                    'service_id' => $serviceId,
+                    'liked' => $isLiked,
+                    'liked_count' => $likedServiceIds->count(),
+                ],
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 
     private function decorateServicesForUi(Collection $services): Collection

@@ -2,7 +2,7 @@
     $dashboardRole = auth()->check() ? (string) auth()->user()->role : 'guest';
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full" data-theme="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full" data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,7 +21,11 @@
     @stack('styles')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="dashboard-shell h-full flex overflow-hidden" data-dashboard-role="{{ $dashboardRole }}">
+<body
+    class="dashboard-shell h-full flex overflow-hidden"
+    data-dashboard-role="{{ $dashboardRole }}"
+    @if($dashboardRole === '1') data-user-motion-root="customer-dashboard" @endif
+>
 
     @include('components.sidebar')
 
@@ -29,7 +33,7 @@
 
         @include('components.topbar')
 
-        <main class="flex-1 relative overflow-y-auto focus:outline-none p-6 lg:p-10">
+        <main class="flex-1 relative overflow-y-auto focus:outline-none p-6 lg:p-10" data-user-main>
             <div class="app-shell-glow absolute top-0 right-0 -z-10 h-96 w-96 rounded-full pointer-events-none blur-[120px]"></div>
 
             <div class="max-w-7xl mx-auto">

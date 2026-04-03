@@ -16,15 +16,15 @@
     <div class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[1180px] items-center justify-center">
         <div class="grid w-full gap-8 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.9fr)]">
             <section class="hidden overflow-hidden rounded-[2rem] border border-zinc-200 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 px-10 py-12 text-white shadow-[0_28px_80px_-36px_rgba(15,23,42,0.45)] lg:block">
-                <a href="{{ route('site.home') }}" class="inline-flex items-center gap-3 text-sm font-medium text-white/90 transition hover:text-white">
-                    <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/5">
-                        <svg viewBox="0 0 56 52" class="h-9 w-9" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <a href="{{ route('site.home') }}" class="inline-flex items-center gap-3 text-sm font-medium text-white/90 transition hover:text-white leading-none">
+                    <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/5">
+                        <svg viewBox="0 0 56 52" class="block h-9 w-9" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path d="M8 42V10l16 8 16-8v32l-16-8-16 8Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M24 16c0-3.866 3.134-7 7-7s7 3.134 7 7c0 5.044-7 11-7 11s-7-5.956-7-11Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
                             <circle cx="31" cy="16" r="2.5" fill="currentColor"/>
                         </svg>
                     </span>
-                    <span class="text-base font-semibold tracking-[-0.03em]">SkillSlot</span>
+                    <span class="self-center text-base font-semibold tracking-[-0.03em] leading-none">SkillSlot</span>
                 </a>
 
                 <div class="mt-12 max-w-xl">

@@ -1,6 +1,6 @@
 @props(['review'])
 
-<article class="customer-surface p-5">
+<article class="customer-surface p-5" data-motion-card>
     <div class="flex items-center justify-between gap-3">
         <div>
             <p class="text-sm font-bold text-sky-900">{{ $review->customer?->name ?? 'Customer' }}</p>

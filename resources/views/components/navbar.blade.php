@@ -12,32 +12,33 @@
     $isCategoriesActive = request()->routeIs('site.categories.*');
     $isFavoritesActive = request()->routeIs('site.favorites.*');
     $likedCount = collect(session('site.favorites', []))->filter()->unique()->count();
+    $desktopNavLinkClasses = "relative inline-flex items-center pb-1 text-[15px] font-medium text-zinc-700 transition-colors duration-200 hover:text-zinc-950 after:pointer-events-none after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-zinc-950 after:transition-transform after:duration-300 after:ease-out after:content-[''] hover:after:scale-x-100 focus-visible:after:scale-x-100";
 @endphp
 
 <header class="sticky top-0 z-40 border-b border-white/40 bg-white/70 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-white/40">
     <div class="mx-auto flex h-[72px] w-full max-w-[1280px] items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
-        <a href="{{ route('site.home') }}" class="inline-flex shrink-0 items-center gap-3 text-zinc-900">
-            <span class="flex h-12 w-12 items-center justify-center">
-                <svg viewBox="0 0 56 52" class="h-11 w-11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <a href="{{ route('site.home') }}" class="inline-flex shrink-0 items-center gap-3 text-zinc-900 leading-none">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl">
+                <svg viewBox="0 0 56 52" class="block h-9 w-9" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M8 42V10l16 8 16-8v32l-16-8-16 8Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M24 16c0-3.866 3.134-7 7-7s7 3.134 7 7c0 5.044-7 11-7 11s-7-5.956-7-11Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
                     <circle cx="31" cy="16" r="2.5" fill="currentColor"/>
                 </svg>
             </span>
-            <span class="text-lg font-semibold tracking-[-0.03em]">SkillSlot</span>
+            <span class="self-center text-lg font-semibold tracking-[-0.03em] leading-none">SkillSlot</span>
         </a>
 
         <nav class="hidden flex-1 items-center justify-center gap-10 lg:flex">
-            <a href="{{ $homeHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ request()->routeIs('site.home') ? 'text-zinc-950' : '' }}">
+            <a href="{{ $homeHref }}" class="{{ $desktopNavLinkClasses }} {{ request()->routeIs('site.home') ? 'text-zinc-950 after:scale-x-100' : '' }}">
                Home
             </a>
-            <a href="{{ $servicesHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ $isServicesActive ? 'text-zinc-950' : '' }}">
+            <a href="{{ $servicesHref }}" class="{{ $desktopNavLinkClasses }} {{ $isServicesActive ? 'text-zinc-950 after:scale-x-100' : '' }}">
                 Services
             </a>
-            <a href="{{ $categoriesHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ $isCategoriesActive ? 'text-zinc-950' : '' }}">
+            <a href="{{ $categoriesHref }}" class="{{ $desktopNavLinkClasses }} {{ $isCategoriesActive ? 'text-zinc-950 after:scale-x-100' : '' }}">
                 Categories
             </a>
-            <a href="{{ $bookingHref }}" class="text-[15px] font-medium text-zinc-700 transition hover:text-zinc-950 {{ $isBookingActive ? 'text-zinc-950' : '' }}">
+            <a href="{{ $bookingHref }}" class="{{ $desktopNavLinkClasses }} {{ $isBookingActive ? 'text-zinc-950 after:scale-x-100' : '' }}">
                 Booking
             </a>
         </nav>
@@ -52,7 +53,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.01 2 11.93 2 8.15 2 5.07 4.42 2.7 7.5 2.7c1.74 0 3.41.81 4.5 2.09A6 6 0 0 1 16.5 2.7C19.58 2.7 22 5.07 22 8.15c0 3.78-3.4 6.86-8.55 11.54L12 21Z"/>
                 </svg>
-                <span class="absolute -right-1 -top-1 inline-flex min-h-[1.2rem] min-w-[1.2rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+                <span class="absolute -right-1 -top-1 inline-flex min-h-[1.2rem] min-w-[1.2rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white" data-favorites-count>
                     {{ $likedCount }}
                 </span>
             </a>
@@ -106,7 +107,7 @@
                     </a>
                     <a href="{{ $favoritesHref }}" class="flex items-center justify-between rounded-xl px-3 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950">
                         <span>Liked Services</span>
-                        <span class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+                        <span class="inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white" data-favorites-count>
                             {{ $likedCount }}
                         </span>
                     </a>

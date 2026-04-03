@@ -91,6 +91,59 @@
     </style>
 @endpush
 
+@push('styles')
+    <style>
+        #provider-categories-page { position: relative; }
+        #provider-categories-page::before { content: ''; position: absolute; top: -2rem; right: 4rem; width: 11rem; height: 11rem; border-radius: 9999px; background: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 70%); pointer-events: none; }
+        #provider-categories-page > * { position: relative; z-index: 1; }
+        #provider-categories-page > section:first-child { border: 1px solid rgba(228, 228, 231, 0.9); background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(244, 244, 245, 0.94)), radial-gradient(circle at top right, rgba(34, 211, 238, 0.12), transparent 30%); box-shadow: 0 26px 70px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.85); }
+        #provider-categories-page > section:first-child h1 { font-size: clamp(1.9rem, 2.7vw, 2.7rem); line-height: 1.05; letter-spacing: -0.04em; color: #111827 !important; }
+        #provider-categories-page > section:first-child p { max-width: 40rem; font-size: 0.98rem; line-height: 1.7; color: #5b6474 !important; }
+        #provider-categories-page [data-modal-open='add-category-modal'] { border: 1px solid rgba(14, 165, 233, 0.16); background: linear-gradient(135deg, #0891b2, #0ea5e9) !important; color: #f8fafc !important; box-shadow: 0 14px 30px rgba(8, 145, 178, 0.2); }
+        #provider-categories-page [data-modal-open='add-category-modal']:hover { transform: translateY(-1px); box-shadow: 0 18px 36px rgba(8, 145, 178, 0.24); }
+        #provider-categories-page .dashboard-panel { border: 1px solid rgba(228, 228, 231, 0.9); background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)); box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.92); }
+        #provider-categories-page .dataTables_wrapper .dataTables_length label, #provider-categories-page .dataTables_wrapper .dataTables_filter label, #provider-categories-page .dataTables_wrapper .dataTables_info, #provider-categories-page .dataTables_wrapper .dataTables_paginate { color: #6b7280; font-size: 0.875rem; }
+        #provider-categories-page .dataTables_wrapper .dataTables_length label, #provider-categories-page .dataTables_wrapper .dataTables_filter label { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 500; }
+        #provider-categories-page .dataTables_wrapper .dataTables_filter input, #provider-categories-page .dataTables_wrapper .dataTables_length select { min-height: 2.45rem; border: 1px solid rgba(212, 212, 216, 0.9); border-radius: 0.85rem; background: rgba(255, 255, 255, 0.96); color: #18181b; padding: 0.42rem 0.8rem; box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04); }
+        #provider-categories-page .dataTables_wrapper .dataTables_filter input:focus, #provider-categories-page .dataTables_wrapper .dataTables_length select:focus { outline: none; border-color: rgba(14, 165, 233, 0.4); box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.12); }
+        #provider-categories-page table.dataTable.no-footer { border-bottom: 1px solid rgba(228, 228, 231, 0.95); }
+        #provider-categories-page table.dataTable thead th { padding: 0.95rem 0.75rem; border-bottom: 1px solid rgba(228, 228, 231, 0.95); font-size: 0.77rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #52525b; }
+        #provider-categories-page table.dataTable.stripe tbody tr.odd, #provider-categories-page table.dataTable.display tbody tr.odd { background-color: rgba(248, 250, 252, 0.92); }
+        #provider-categories-page table.dataTable tbody td { padding: 1.2rem 0.75rem; border-top: 1px solid rgba(228, 228, 231, 0.82); color: #27272a; }
+        #provider-categories-page table.dataTable tbody tr:first-child td { border-top: none; }
+        #provider-categories-page table.dataTable tbody tr:hover td { background: rgba(244, 244, 245, 0.82); }
+        #provider-categories-page table.dataTable tbody td:first-child { border-radius: 1rem 0 0 1rem; }
+        #provider-categories-page table.dataTable tbody td:last-child { border-radius: 0 1rem 1rem 0; }
+        #provider-categories-page .dataTables_wrapper .dataTables_paginate .paginate_button { border-radius: 0.8rem; border: 1px solid rgba(212, 212, 216, 0.95) !important; color: #52525b !important; background: rgba(255, 255, 255, 0.95) !important; padding: 0.38rem 0.82rem; margin-left: 0.25rem; transition: all 0.18s ease; }
+        #provider-categories-page .dataTables_wrapper .dataTables_paginate .paginate_button:hover { border-color: rgba(14, 165, 233, 0.32) !important; background: rgba(240, 249, 255, 0.95) !important; color: #0f172a !important; }
+        #provider-categories-page .dataTables_wrapper .dataTables_paginate .paginate_button.current { background: linear-gradient(135deg, rgba(34, 211, 238, 0.16), rgba(14, 165, 233, 0.2)) !important; border-color: rgba(14, 165, 233, 0.35) !important; color: #0f172a !important; box-shadow: 0 10px 18px rgba(34, 211, 238, 0.12); }
+        #provider-categories-page .dataTables_wrapper .dataTables_processing { border-radius: 0.75rem; border: 1px solid rgba(14, 165, 233, 0.24); background: rgba(255, 255, 255, 0.96); color: #0f172a; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12); }
+        #provider-categories-page .category-thumb, #providerCategoriesTable .category-thumb.flex { height: 3.35rem; width: 3.35rem; border-radius: 1rem; }
+        #provider-categories-page .category-thumb { border: 1px solid rgba(228, 228, 231, 0.95); box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08); }
+        #providerCategoriesTable .category-thumb.flex { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fafafa, #f4f4f5) !important; border: 1px dashed rgba(161, 161, 170, 0.9); color: #71717a !important; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+        #providerCategoriesTable .text-zinc-100 { color: #18181b !important; font-weight: 700; }
+        #providerCategoriesTable .text-zinc-300 { color: #52525b !important; line-height: 1.65; }
+        #providerCategoriesTable .text-zinc-400 { color: #71717a !important; }
+        #providerCategoriesTable tbody td:nth-child(5) span { display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; padding: 0.45rem 0.8rem; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.01em; }
+        #providerCategoriesTable tbody td:nth-child(5) [class*='emerald'] { border-color: rgba(16, 185, 129, 0.2) !important; background: rgba(236, 253, 245, 0.98) !important; color: #047857 !important; }
+        #providerCategoriesTable tbody td:nth-child(5) [class*='rose'] { border-color: rgba(244, 63, 94, 0.18) !important; background: rgba(255, 241, 242, 0.98) !important; color: #be123c !important; }
+        #providerCategoriesTable .js-toggle-status, #providerCategoriesTable .js-edit-category, #providerCategoriesTable .js-delete-category { display: inline-flex; align-items: center; justify-content: center; min-width: 5.8rem; border-radius: 0.9rem; padding: 0.52rem 0.85rem; font-size: 0.78rem; font-weight: 700; transition: all 0.18s ease; }
+        #providerCategoriesTable .js-toggle-status:hover, #providerCategoriesTable .js-edit-category:hover, #providerCategoriesTable .js-delete-category:hover { transform: translateY(-1px); }
+        #providerCategoriesTable .js-toggle-status[class*='emerald'] { border-color: rgba(16, 185, 129, 0.2) !important; background: rgba(236, 253, 245, 0.96) !important; color: #047857 !important; }
+        #providerCategoriesTable .js-toggle-status[class*='zinc'] { border-color: rgba(161, 161, 170, 0.35) !important; background: rgba(250, 250, 250, 0.96) !important; color: #3f3f46 !important; }
+        #providerCategoriesTable .js-edit-category { border-color: rgba(14, 165, 233, 0.2) !important; background: rgba(240, 249, 255, 0.98) !important; color: #0369a1 !important; }
+        #providerCategoriesTable .js-delete-category { border-color: rgba(244, 63, 94, 0.18) !important; background: rgba(255, 241, 242, 0.98) !important; color: #be123c !important; }
+        #provider-categories-page #addCategoryForm input, #provider-categories-page #addCategoryForm select, #provider-categories-page #addCategoryForm textarea, #provider-categories-page #editCategoryForm input, #provider-categories-page #editCategoryForm select, #provider-categories-page #editCategoryForm textarea { border-color: rgba(212, 212, 216, 0.95) !important; background: rgba(255, 255, 255, 0.95) !important; color: #18181b !important; box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04); }
+        #provider-categories-page #addCategoryForm label, #provider-categories-page #editCategoryForm label { color: #71717a !important; }
+        #provider-categories-page #editCategoryCurrentImageWrap { border-color: rgba(212, 212, 216, 0.9) !important; background: rgba(244, 244, 245, 0.82) !important; }
+        #provider-categories-page #confirmCategoryActionTitle { color: #18181b !important; }
+        #provider-categories-page #confirmCategoryActionMessage { color: #52525b !important; }
+        #provider-categories-page #confirmCategoryActionButton { color: #f8fafc !important; }
+        #provider-categories-page #confirmCategoryActionButton[class*='bg-cyan'] { border: 1px solid rgba(14, 165, 233, 0.16) !important; background: linear-gradient(135deg, #0284c7, #0ea5e9) !important; }
+        #provider-categories-page #confirmCategoryActionButton[class*='bg-rose'] { border: 1px solid rgba(244, 63, 94, 0.18) !important; background: linear-gradient(135deg, #e11d48, #f43f5e) !important; }
+        @media (max-width: 768px) { #provider-categories-page > section:first-child h1 { font-size: 1.7rem; } #provider-categories-page > section:first-child p { font-size: 0.92rem; } #provider-categories-page .dataTables_wrapper .dataTables_length, #provider-categories-page .dataTables_wrapper .dataTables_filter, #provider-categories-page .dataTables_wrapper .dataTables_info, #provider-categories-page .dataTables_wrapper .dataTables_paginate { text-align: left; } }
+    </style>
+@endpush
 @section('content')
 @php
     $inputClass = 'w-full rounded-xl border border-white/15 bg-zinc-950/70 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-cyan-400/50 focus:outline-none';
@@ -237,6 +290,21 @@
 </x-modal>
 @endsection
 
+@push('styles')
+    <style>
+        #add-category-modal .modal-panel, #edit-category-modal .modal-panel, #confirm-category-action-modal .modal-panel { border-color: rgba(228, 228, 231, 0.92) !important; box-shadow: 0 28px 70px rgba(15, 23, 42, 0.12); }
+        #add-category-modal .modal-panel > div:first-child, #edit-category-modal .modal-panel > div:first-child, #confirm-category-action-modal .modal-panel > div:first-child { border-color: rgba(228, 228, 231, 0.92) !important; }
+        #add-category-modal .modal-panel h3, #edit-category-modal .modal-panel h3, #confirm-category-action-modal .modal-panel h3 { color: #18181b !important; }
+        #add-category-modal [data-modal-hide], #edit-category-modal [data-modal-hide], #confirm-category-action-modal [data-modal-hide] { border: 1px solid rgba(212, 212, 216, 0.95) !important; background: rgba(255, 255, 255, 0.94) !important; color: #3f3f46 !important; }
+        #addCategoryForm input, #addCategoryForm select, #addCategoryForm textarea, #editCategoryForm input, #editCategoryForm select, #editCategoryForm textarea { border-color: rgba(212, 212, 216, 0.95) !important; background: rgba(255, 255, 255, 0.95) !important; color: #18181b !important; box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04); }
+        #addCategoryForm label, #editCategoryForm label { color: #71717a !important; }
+        #addCategoryForm button[type='submit'], #editCategoryForm button[type='submit'], #confirmCategoryActionButton { border: 1px solid rgba(14, 165, 233, 0.16) !important; background: linear-gradient(135deg, #0284c7, #0ea5e9) !important; color: #f8fafc !important; box-shadow: 0 14px 30px rgba(14, 165, 233, 0.18); }
+        #confirmCategoryActionButton[class*='bg-rose'] { border-color: rgba(244, 63, 94, 0.18) !important; background: linear-gradient(135deg, #e11d48, #f43f5e) !important; box-shadow: 0 14px 28px rgba(244, 63, 94, 0.16); }
+        #editCategoryCurrentImageWrap { border-color: rgba(212, 212, 216, 0.9) !important; background: rgba(244, 244, 245, 0.82) !important; }
+        #confirmCategoryActionTitle { color: #18181b !important; }
+        #confirmCategoryActionMessage { color: #52525b !important; }
+    </style>
+@endpush
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <script>

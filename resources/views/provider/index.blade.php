@@ -9,7 +9,7 @@
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div>
                 <p class="text-xs font-semibold tracking-[0.2em] uppercase text-cyan-300">Provider Console</p>
-                <h1 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight text-white">Welcome back, {{ $provider->name }}</h1>
+                <h1 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight text-white"> {{ $provider->name }}</h1>
                 <p class="mt-3 text-zinc-400 max-w-3xl">
                     Monitor services, bookings, earnings, and slot performance from one real-time dashboard.
                 </p>

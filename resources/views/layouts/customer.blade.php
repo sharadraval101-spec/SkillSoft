@@ -9,7 +9,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
-<body class="min-h-screen bg-white text-sky-950 antialiased">
+<body class="min-h-screen bg-white text-sky-950 antialiased" data-user-motion-root="customer-site">
     @php
         $usesMinimalCustomerChrome = request()->routeIs('site.home')
             || request()->routeIs('site.booking')
@@ -35,7 +35,7 @@
 
         <x-navbar />
 
-        <main class="min-h-[calc(100vh-15rem)]">
+        <main class="min-h-[calc(100vh-15rem)]" data-user-main>
             @yield('content')
         </main>
 
@@ -44,6 +44,8 @@
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    @include('components.flash-toasts')
 
     @stack('scripts')
 </body>

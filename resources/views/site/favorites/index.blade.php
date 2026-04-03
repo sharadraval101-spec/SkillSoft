@@ -1,39 +1,39 @@
 @extends('layouts.customer')
 
 @section('content')
-<section class="mx-auto max-w-[1280px] px-4 pb-8 pt-10 sm:px-6 lg:px-8">
+<section class="mx-auto max-w-[1280px] px-4 pb-8 pt-10 sm:px-6 lg:px-8" data-motion-section>
     <div class="overflow-hidden rounded-[36px] bg-white px-6 py-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)] ring-1 ring-black/5 sm:px-8 lg:px-10 lg:py-10">
         <div class="grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.9fr)] lg:items-end">
             <div class="max-w-3xl">
-                <p class="text-sm font-medium uppercase tracking-[0.22em] text-zinc-400">Liked Services</p>
-                <h1 class="mt-4 text-[2.65rem] font-semibold leading-[1.08] tracking-[-0.05em] text-zinc-950 sm:text-[3.5rem]">
+                <p class="text-sm font-medium uppercase tracking-[0.22em] text-zinc-400" data-motion-kicker>Liked Services</p>
+                <h1 class="mt-4 text-[2.65rem] font-semibold leading-[1.08] tracking-[-0.05em] text-zinc-950 sm:text-[3.5rem]" data-motion-title>
                     Your saved services, ready whenever you are
                 </h1>
-                <p class="mt-5 max-w-2xl text-[15px] leading-8 text-zinc-500">
+                <p class="mt-5 max-w-2xl text-[15px] leading-8 text-zinc-500" data-motion-copy>
                     Keep your favorite services in one place so you can come back later, compare options, and book faster.
                 </p>
             </div>
 
-            <div class="rounded-[24px] bg-zinc-50 px-5 py-5">
+            <div class="rounded-[24px] bg-zinc-50 px-5 py-5" data-motion-media>
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Saved Items</p>
-                <p class="mt-3 text-[2.2rem] font-semibold tracking-[-0.04em] text-zinc-950">{{ $likedCount }}</p>
+                <p class="mt-3 text-[2.2rem] font-semibold tracking-[-0.04em] text-zinc-950" data-favorites-total>{{ $likedCount }}</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="mx-auto max-w-[1280px] px-4 pb-20 sm:px-6 lg:px-8">
+<section class="mx-auto max-w-[1280px] px-4 pb-20 sm:px-6 lg:px-8" data-motion-section>
     <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
-            <p class="text-sm font-medium uppercase tracking-[0.2em] text-zinc-400">Collection</p>
-            <h2 class="mt-3 text-[2.25rem] font-semibold tracking-[-0.04em] text-zinc-950">All your liked services</h2>
+            <p class="text-sm font-medium uppercase tracking-[0.2em] text-zinc-400" data-motion-kicker>Collection</p>
+            <h2 class="mt-3 text-[2.25rem] font-semibold tracking-[-0.04em] text-zinc-950" data-motion-title>All your liked services</h2>
         </div>
-        <a href="{{ route('site.services.index') }}" class="inline-flex min-w-[170px] items-center justify-center rounded-[12px] border border-zinc-300 px-4 py-3 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950">
+        <a href="{{ route('site.services.index') }}" class="inline-flex min-w-[170px] items-center justify-center rounded-[12px] border border-zinc-300 px-4 py-3 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950" data-motion-actions data-motion-action>
             Explore More Services
         </a>
     </div>
 
-    <div class="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+    <div class="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3" data-motion-group data-favorites-grid data-browse-url="{{ route('site.services.index') }}" data-home-url="{{ route('site.home') }}">
         @forelse($services as $service)
             @php
                 $providerName = $service->providerProfile?->user?->name ?? 'Service Provider';
@@ -48,7 +48,7 @@
                 ]);
             @endphp
 
-            <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)] ring-1 ring-black/5">
+            <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)] ring-1 ring-black/5" data-motion-item data-motion-card data-favorite-card data-service-id="{{ $service->id }}">
                 <a href="{{ route('site.services.show', $service->slug) }}" class="block">
                     <img
                         src="{{ $service->ui_image ?? 'https://picsum.photos/seed/'.urlencode((string) $service->id).'/900/620' }}"
@@ -87,27 +87,27 @@
                     </div>
 
                     <div class="flex flex-wrap gap-3">
-                        <a href="{{ route('site.services.show', $service->slug) }}" class="inline-flex min-w-[140px] flex-1 items-center justify-center rounded-[12px] border border-zinc-300 px-4 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950">
+                        <a href="{{ route('site.services.show', $service->slug) }}" class="inline-flex min-w-[140px] flex-1 items-center justify-center rounded-[12px] border border-zinc-300 px-4 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950" data-motion-action>
                             View Details
                         </a>
-                        <a href="{{ route('site.booking', $bookingQuery) }}" class="inline-flex min-w-[140px] flex-1 items-center justify-center rounded-[12px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
+                        <a href="{{ route('site.booking', $bookingQuery) }}" class="inline-flex min-w-[140px] flex-1 items-center justify-center rounded-[12px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-action>
                             Book Now
                         </a>
                     </div>
                 </div>
             </article>
         @empty
-            <div class="col-span-full rounded-[32px] border border-dashed border-zinc-300 bg-white px-8 py-14 text-center shadow-[0_18px_50px_rgba(15,23,42,0.04)]">
+            <div class="col-span-full rounded-[32px] border border-dashed border-zinc-300 bg-white px-8 py-14 text-center shadow-[0_18px_50px_rgba(15,23,42,0.04)]" data-motion-card data-favorites-empty>
                 <p class="text-sm font-medium uppercase tracking-[0.2em] text-zinc-400">No Likes Yet</p>
                 <h3 class="mt-4 text-[2rem] font-semibold tracking-[-0.04em] text-zinc-950">You have not saved any services</h3>
                 <p class="mx-auto mt-4 max-w-2xl text-[15px] leading-7 text-zinc-500">
                     Tap the heart icon on any service card to add it here. Your liked collection will stay ready for future browsing and booking.
                 </p>
                 <div class="mt-6 flex flex-wrap justify-center gap-3">
-                    <a href="{{ route('site.services.index') }}" class="inline-flex min-w-[160px] items-center justify-center rounded-[14px] bg-zinc-950 px-5 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
+                    <a href="{{ route('site.services.index') }}" class="inline-flex min-w-[160px] items-center justify-center rounded-[14px] bg-zinc-950 px-5 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-action>
                         Browse Services
                     </a>
-                    <a href="{{ route('site.home') }}" class="inline-flex min-w-[160px] items-center justify-center rounded-[14px] border border-zinc-300 px-5 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950">
+                    <a href="{{ route('site.home') }}" class="inline-flex min-w-[160px] items-center justify-center rounded-[14px] border border-zinc-300 px-5 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950" data-motion-action>
                         Back to Home
                     </a>
                 </div>

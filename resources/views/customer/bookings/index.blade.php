@@ -1,19 +1,19 @@
 @extends('layouts.customer')
 
 @section('content')
-<section class="mx-auto max-w-[1280px] px-4 pb-14 pt-10 sm:px-6 lg:px-8">
+<section class="mx-auto max-w-[1280px] px-4 pb-14 pt-10 sm:px-6 lg:px-8" data-motion-section>
     <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div class="max-w-2xl">
-            <p class="text-sm font-medium uppercase tracking-[0.2em] text-zinc-400">My Bookings</p>
-            <h1 class="mt-4 text-[2.5rem] font-semibold tracking-[-0.05em] text-zinc-900 sm:text-[3.1rem]">Track, manage, and update your bookings</h1>
-            <p class="mt-4 text-[15px] leading-8 text-zinc-500">Review upcoming bookings, pay pending items, and reschedule or cancel within the allowed booking window.</p>
+            <p class="text-sm font-medium uppercase tracking-[0.2em] text-zinc-400" data-motion-kicker>My Bookings</p>
+            <h1 class="mt-4 text-[2.5rem] font-semibold tracking-[-0.05em] text-zinc-900 sm:text-[3.1rem]" data-motion-title>Track, manage, and update your bookings</h1>
+            <p class="mt-4 text-[15px] leading-8 text-zinc-500" data-motion-copy>Review upcoming bookings, pay pending items, and reschedule or cancel within the allowed booking window.</p>
         </div>
-        <a href="{{ route('site.booking') }}" class="inline-flex items-center justify-center rounded-[14px] bg-zinc-950 px-6 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
+        <a href="{{ route('site.booking') }}" class="inline-flex items-center justify-center rounded-[14px] bg-zinc-950 px-6 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-actions data-motion-action>
             New Booking
         </a>
     </div>
 
-    <section class="mt-10 overflow-hidden rounded-[32px] bg-white shadow-[0_18px_50px_rgba(0,0,0,0.06)] ring-1 ring-black/5">
+    <section class="mt-10 overflow-hidden rounded-[32px] bg-white shadow-[0_18px_50px_rgba(0,0,0,0.06)] ring-1 ring-black/5" data-motion-card>
         @if($bookings->isEmpty())
             <div class="px-6 py-16 text-center sm:px-8">
                 <div class="mx-auto max-w-xl rounded-[24px] border border-dashed border-zinc-300 bg-zinc-50 px-6 py-10 text-sm text-zinc-500">
@@ -33,7 +33,7 @@
                             <th class="px-6 py-4 font-semibold sm:px-8">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-zinc-100">
+                    <tbody class="divide-y divide-zinc-100" data-motion-group>
                         @foreach($bookings as $booking)
                             @php
                                 $statusClass = match($booking->status) {
@@ -44,7 +44,7 @@
                                     default => 'bg-zinc-100 text-zinc-700 border-zinc-200',
                                 };
                             @endphp
-                            <tr class="align-top">
+                            <tr class="align-top" data-motion-item>
                                 <td class="px-6 py-5 sm:px-8">
                                     <p class="font-medium text-zinc-900">{{ $booking->booking_number }}</p>
                                     @if($booking->serviceVariant)

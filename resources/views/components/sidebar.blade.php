@@ -30,7 +30,7 @@
 <aside id="appSidebar" data-collapsed="0" class="sidebar-shell w-64 transition-[width] duration-300 ease-in-out bg-gradient-to-b from-[#060a12] via-[#080d16] to-[#060913] border-r border-white/10 flex flex-col shrink-0">
     <div class="p-5 border-b border-white/10">
         <div class="sidebar-brand-wrap flex items-center gap-3">
-            <div class="h-10 w-10 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-200 font-black text-lg flex items-center justify-center">
+            <div class="h-10 w-10 rounded-2xl border border-zinc-200 bg-zinc-950 text-white font-black text-lg flex items-center justify-center">
                 S
             </div>
             <div class="min-w-0 sidebar-brand-text">

@@ -22,7 +22,7 @@
     ];
 @endphp
 
-<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8" data-motion-section>
     @if($errors->any())
         <div class="mb-6 rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">{{ $errors->first() }}</div>
     @endif
@@ -36,7 +36,7 @@
         <div class="mb-6 rounded-3xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700">{{ session('password_reset_success') }}</div>
     @endif
 
-    <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-8">
+    <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-8" data-motion-card>
         <div class="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
             <div class="flex flex-col gap-5 sm:flex-row sm:items-start">
                 @if($customer->profile_photo_url)
@@ -45,22 +45,22 @@
                     <div class="flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-zinc-950 text-2xl font-semibold text-white">{{ $customerInitial }}</div>
                 @endif
                 <div class="max-w-2xl">
-                    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-400">Customer Dashboard</p>
-                    <h1 class="mt-3 text-4xl font-semibold tracking-[-0.05em] text-zinc-950 sm:text-[3rem]">Hello, {{ $firstName }}.</h1>
-                    <p class="mt-4 text-[15px] leading-8 text-zinc-500">A simple modern dashboard for your profile, bookings, history, and payments in one place.</p>
+                    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-400" data-motion-kicker>Customer Dashboard</p>
+                    <h1 class="mt-3 text-4xl font-semibold tracking-[-0.05em] text-zinc-950 sm:text-[3rem]" data-motion-title>Hello, {{ $firstName }}.</h1>
+                    <p class="mt-4 text-[15px] leading-8 text-zinc-500" data-motion-copy>A simple modern dashboard for your profile, bookings, history, and payments in one place.</p>
                 </div>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-2 xl:w-[24rem]">
-                <a href="{{ route('customer.bookings.create') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] bg-zinc-950 px-5 py-4 text-center text-sm font-semibold text-white transition hover:bg-zinc-800">Book New Service</a>
-                <a href="#profile-center" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50">Profile Settings</a>
-                <a href="{{ route('customer.payments.index') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50">Payment History</a>
-                <a href="{{ route('site.favorites.index') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50">Saved Favorites</a>
+            <div class="grid gap-3 sm:grid-cols-2 xl:w-[24rem]" data-motion-actions>
+                <a href="{{ route('customer.bookings.create') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] bg-zinc-950 px-5 py-4 text-center text-sm font-semibold text-white transition hover:bg-zinc-800" data-motion-action>Book New Service</a>
+                <a href="#profile-center" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Profile Settings</a>
+                <a href="{{ route('customer.payments.index') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Payment History</a>
+                <a href="{{ route('site.favorites.index') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Saved Favorites</a>
             </div>
         </div>
 
         @if($nextBooking)
-            <div class="mt-7 rounded-[1.6rem] border border-zinc-200 bg-zinc-50 p-5">
+            <div class="mt-7 rounded-[1.6rem] border border-zinc-200 bg-zinc-50 p-5" data-motion-card>
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Next booking</p>
                 <div class="mt-3 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
@@ -81,9 +81,9 @@
         @endif
     </section>
 
-    <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" data-motion-group>
         @foreach($dashboardStats as $stat)
-            <article class="rounded-[1.6rem] border border-zinc-200 bg-white p-5 shadow-[0_18px_48px_-38px_rgba(15,23,42,0.28)]">
+            <article class="rounded-[1.6rem] border border-zinc-200 bg-white p-5 shadow-[0_18px_48px_-38px_rgba(15,23,42,0.28)]" data-motion-item data-motion-card>
                 <p class="text-sm font-medium text-zinc-500">{{ $stat['label'] }}</p>
                 <p class="mt-3 text-3xl font-semibold tracking-[-0.04em] text-zinc-950">{{ $stat['value'] }}</p>
                 <p class="mt-2 text-sm text-zinc-400">{{ $stat['hint'] }}</p>
@@ -92,7 +92,7 @@
     </div>
 
     <div class="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-7">
+        <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-7" data-motion-card>
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400">Upcoming</p>
@@ -107,9 +107,9 @@
                     <p class="mt-2 text-sm leading-7 text-zinc-500">Book a service and your next appointment will appear here.</p>
                 </div>
             @else
-                <div class="mt-6 space-y-4">
+                <div class="mt-6 space-y-4" data-motion-group>
                     @foreach($upcomingBookings as $booking)
-                        <article class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5">
+                        <article class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5" data-motion-item data-motion-card>
                             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div class="min-w-0">
                                     <div class="flex flex-wrap items-center gap-2">
@@ -130,7 +130,7 @@
             @endif
         </section>
 
-        <section id="profile-center" class="scroll-mt-28 rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-7">
+        <section id="profile-center" class="scroll-mt-28 rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-7" data-motion-card>
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400">Profile</p>
@@ -206,7 +206,7 @@
     </div>
 
     <div class="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-7">
+        <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-7" data-motion-card>
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400">History</p>
@@ -220,9 +220,9 @@
                     <p class="mt-2 text-sm leading-7 text-zinc-500">Completed and older bookings will appear here.</p>
                 </div>
             @else
-                <div class="mt-6 space-y-4">
+                <div class="mt-6 space-y-4" data-motion-group>
                     @foreach($bookingHistory as $booking)
-                        <article class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5">
+                        <article class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5" data-motion-item data-motion-card>
                             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div class="min-w-0">
                                     <div class="flex flex-wrap items-center gap-2">
@@ -240,7 +240,7 @@
             @endif
         </section>
 
-        <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-7">
+        <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-7" data-motion-card>
             <div class="flex items-center justify-between gap-3">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400">Payments</p>
@@ -254,9 +254,9 @@
                     <p class="mt-2 text-sm leading-7 text-zinc-500">Payment updates and refund records will appear here.</p>
                 </div>
             @else
-                <div class="mt-6 space-y-3">
+                <div class="mt-6 space-y-3" data-motion-group>
                     @foreach($recentPayments as $payment)
-                        <article class="rounded-[1.35rem] border border-zinc-200 bg-zinc-50 px-4 py-4">
+                        <article class="rounded-[1.35rem] border border-zinc-200 bg-zinc-50 px-4 py-4" data-motion-item data-motion-card>
                             <div class="flex items-start justify-between gap-3">
                                 <div class="min-w-0">
                                     <p class="truncate text-sm font-semibold text-zinc-950">{{ $payment->booking?->service?->name ?? 'Booking payment' }}</p>

@@ -10,7 +10,7 @@
 <header class="dashboard-topbar h-[72px] border-b border-white/10 bg-zinc-950/70 backdrop-blur-xl flex items-center justify-between px-4 lg:px-6 z-20 relative">
     <div class="flex items-center gap-3 flex-1 min-w-0">
         <button type="button" data-sidebar-toggle aria-label="Toggle sidebar" aria-expanded="true"
-            class="h-10 w-10 rounded-xl border border-white/15 bg-white/5 hover:bg-cyan-500/15 hover:border-cyan-400/40 text-zinc-200 transition flex items-center justify-center">
+            class="h-10 w-10 rounded-xl border border-white/15 bg-white/5 hover:bg-zinc-50 hover:border-zinc-300 text-zinc-200 transition flex items-center justify-center">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
@@ -52,9 +52,9 @@
             </button>
         @endif
 
-        <a href="{{ route('notifications.index') }}" class="h-10 w-10 rounded-xl border border-white/10 bg-black/35 hover:bg-cyan-500/15 hover:border-cyan-400/35 text-zinc-300 transition relative flex items-center justify-center">
+        <a href="{{ route('notifications.index') }}" class="h-10 w-10 rounded-xl border border-white/10 bg-black/35 hover:bg-zinc-50 hover:border-zinc-300 text-zinc-300 transition relative flex items-center justify-center">
             @if($unreadNotifications > 0)
-                <span class="absolute top-1.5 right-1.5 min-w-4 h-4 px-1 bg-cyan-400 text-black text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span class="absolute top-1.5 right-1.5 min-w-4 h-4 px-1 bg-zinc-950 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                     {{ $unreadNotifications > 9 ? '9+' : $unreadNotifications }}
                 </span>
             @endif
@@ -63,7 +63,7 @@
             </svg>
         </a>
 
-        <a href="{{ route('profile.index') }}" class="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-1.5 hover:bg-cyan-500/10 hover:border-cyan-400/35 transition">
+        <a href="{{ route('profile.index') }}" class="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-1.5 hover:bg-zinc-50 hover:border-zinc-300 transition">
             <div class="text-right hidden sm:block">
                 <p class="text-sm font-bold text-zinc-100 leading-none">{{ auth()->user()->name }}</p>
                 <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">{{ $roleText }}</p>
@@ -71,9 +71,9 @@
 
             @if(auth()->user()->profile_photo_url)
                 <img src="{{ auth()->user()->profile_photo_url }}" alt="Profile photo"
-                    class="w-10 h-10 rounded-xl object-cover ring-2 ring-cyan-300/40">
+                    class="w-10 h-10 rounded-xl object-cover ring-2 ring-zinc-200">
             @else
-                <div class="w-10 h-10 bg-cyan-600 rounded-xl flex items-center justify-center text-white font-bold ring-2 ring-cyan-300/40">
+                <div class="w-10 h-10 bg-zinc-950 rounded-xl flex items-center justify-center text-white font-bold ring-2 ring-zinc-200">
                     {{ substr(auth()->user()->name, 0, 1) }}
                 </div>
             @endif

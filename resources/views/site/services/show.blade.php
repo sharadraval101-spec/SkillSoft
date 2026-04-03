@@ -7,12 +7,12 @@
     $avgRating = round((float) ($service->avg_rating ?? 0), 1);
 @endphp
 
-<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8" data-motion-section>
     <div class="mb-8">
-        <a href="{{ route('site.services.index') }}" class="text-sm font-semibold text-sky-700 hover:text-sky-900">&larr; Back to services</a>
-        <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-sky-600">{{ $service->category?->name ?? 'Service' }}</p>
-        <h1 class="mt-2 customer-section-title">{{ $service->name }}</h1>
-        <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-sky-700">
+        <a href="{{ route('site.services.index') }}" class="text-sm font-semibold text-sky-700 hover:text-sky-900" data-motion-kicker data-motion-action>&larr; Back to services</a>
+        <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-sky-600" data-motion-kicker>{{ $service->category?->name ?? 'Service' }}</p>
+        <h1 class="mt-2 customer-section-title" data-motion-title>{{ $service->name }}</h1>
+        <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-sky-700" data-motion-copy>
             <span class="inline-flex items-center gap-1 font-semibold text-sky-900">&#9733; {{ $avgRating > 0 ? number_format($avgRating, 1) : 'New' }}</span>
             <span>{{ (int) ($service->reviews_count ?? 0) }} reviews</span>
             <span>{{ $service->duration_minutes }} mins</span>
@@ -22,7 +22,7 @@
 
     <div class="grid items-start gap-8 lg:grid-cols-[1fr,22rem]">
         <div class="space-y-8">
-            <div class="customer-surface overflow-hidden p-4 sm:p-5">
+            <div class="customer-surface overflow-hidden p-4 sm:p-5" data-motion-media data-motion-card>
                 <div class="overflow-hidden rounded-2xl">
                     <img id="service-main-image" src="{{ $gallery[0] ?? 'https://picsum.photos/seed/'.urlencode((string) $service->id).'/1200/800' }}" alt="{{ $service->name }}" class="h-[18rem] w-full object-cover sm:h-[26rem]">
                 </div>
@@ -35,7 +35,7 @@
                 </div>
             </div>
 
-            <div class="customer-surface p-6">
+            <div class="customer-surface p-6" data-motion-card>
                 <h2 class="text-xl font-bold text-sky-950">About This Service</h2>
                 <p class="mt-4 whitespace-pre-line text-sm leading-7 text-sky-700">
                     {{ $service->description ?: 'Detailed description will be updated soon.' }}
@@ -55,7 +55,7 @@
                 @endif
             </div>
 
-            <div class="customer-surface p-6">
+            <div class="customer-surface p-6" data-motion-card>
                 <h2 class="text-xl font-bold text-sky-950">Provider Information</h2>
                 <div class="mt-4 flex items-center gap-4">
                     <div class="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 text-lg font-bold text-sky-700">
@@ -75,11 +75,13 @@
                 @endif
             </div>
 
-            <div class="customer-surface p-6">
+            <div class="customer-surface p-6" data-motion-card>
                 <h2 class="text-xl font-bold text-sky-950">Customer Reviews</h2>
-                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                <div class="mt-4 grid gap-4 md:grid-cols-2" data-motion-group>
                     @forelse($service->reviews as $review)
-                        <x-review-card :review="$review" />
+                        <div data-motion-item>
+                            <x-review-card :review="$review" />
+                        </div>
                     @empty
                         <p class="text-sm text-sky-700 md:col-span-2">No reviews yet for this service.</p>
                     @endforelse
@@ -87,8 +89,8 @@
             </div>
         </div>
 
-        <aside class="lg:sticky lg:top-24">
-            <div class="customer-surface p-5">
+        <aside class="lg:sticky lg:top-24" data-motion-aside>
+            <div class="customer-surface p-5" data-motion-card>
                 <h2 class="text-lg font-bold text-sky-950">Book This Service</h2>
                 <p class="mt-1 text-sm text-sky-700">Select date and slot to continue.</p>
                 <form id="serviceAvailabilityForm" method="GET" action="{{ route('site.services.show', $service->slug) }}" class="mt-4 space-y-3">
@@ -107,7 +109,7 @@
                         <input id="detail-date" type="date" name="date" value="{{ $selectedDate->toDateString() }}"
                             class="w-full rounded-xl border border-sky-200 px-3 py-2 text-sm text-sky-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
                     </div>
-                    <button type="submit" class="w-full rounded-xl border border-sky-300 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-50">
+                    <button type="submit" class="w-full rounded-xl border border-sky-300 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-50" data-motion-action>
                         Refresh Availability
                     </button>
                 </form>
@@ -163,7 +165,7 @@
                                     </div>
                                 </div>
 
-                                <button id="confirmBookingButton" type="submit" class="w-full rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500 {{ $availableSlots->isEmpty() ? 'cursor-not-allowed opacity-60' : '' }}" @disabled($availableSlots->isEmpty())>
+                                <button id="confirmBookingButton" type="submit" class="w-full rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500 {{ $availableSlots->isEmpty() ? 'cursor-not-allowed opacity-60' : '' }}" @disabled($availableSlots->isEmpty()) data-motion-action>
                                     Confirm Booking
                                 </button>
                             </form>
@@ -178,7 +180,7 @@
                         </p>
                     @endif
                 @else
-                    <a href="{{ route('login') }}" class="mt-5 inline-flex w-full justify-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500">
+                    <a href="{{ route('login') }}" class="mt-5 inline-flex w-full justify-center rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500" data-motion-action>
                         Login to Book
                     </a>
                 @endauth
@@ -192,12 +194,59 @@
 <script>
     $(function () {
         const mainImage = $('#service-main-image');
-        $('.service-gallery-thumb').on('click', function () {
-            const image = $(this).data('image');
-            if (!image) {
+        const mainImageElement = mainImage.get(0);
+        const gsap = window.gsap;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const canAnimate = Boolean(gsap) && !prefersReducedMotion;
+
+        const animateAvailabilityItems = function (container) {
+            if (!canAnimate || !container.length) {
                 return;
             }
-            mainImage.attr('src', image);
+
+            const children = container.children().toArray();
+            if (!children.length) {
+                return;
+            }
+
+            gsap.from(children, {
+                y: 18,
+                autoAlpha: 0,
+                duration: 0.34,
+                stagger: 0.05,
+                ease: 'power2.out',
+                overwrite: 'auto'
+            });
+        };
+
+        $('.service-gallery-thumb').on('click', function () {
+            const image = $(this).data('image');
+            if (!image || mainImage.attr('src') === image) {
+                return;
+            }
+
+            if (!canAnimate || !mainImageElement) {
+                mainImage.attr('src', image);
+                return;
+            }
+
+            gsap.to(mainImageElement, {
+                autoAlpha: 0.35,
+                scale: 0.985,
+                duration: 0.18,
+                ease: 'power2.out',
+                overwrite: 'auto',
+                onComplete: function () {
+                    mainImage.attr('src', image);
+                    gsap.to(mainImageElement, {
+                        autoAlpha: 1,
+                        scale: 1,
+                        duration: 0.32,
+                        ease: 'power2.out',
+                        overwrite: 'auto'
+                    });
+                }
+            });
         });
 
         const availabilityUrl = @json($availabilityUrl);
@@ -232,6 +281,8 @@
             if (!slots.length) {
                 setSubmitState(false);
                 slotsContainer.append('<p class="rounded-xl border border-dashed border-sky-200 px-3 py-4 text-xs text-sky-700">No available slots for selected date.</p>');
+                animateAvailabilityItems(slotsContainer);
+                window.ScrollTrigger?.refresh();
                 return;
             }
 
@@ -246,12 +297,17 @@
                     <input type="radio" name="slot_id" value="${slotId}" class="h-4 w-4 border-sky-300 text-sky-600 focus:ring-sky-500" ${checked}>
                 </label>`);
             });
+
+            animateAvailabilityItems(slotsContainer);
+            window.ScrollTrigger?.refresh();
         };
 
         const renderCalendar = function (days) {
             calendarContainer.empty();
             if (!days.length) {
                 calendarContainer.append('<p class="col-span-2 text-xs text-sky-700">No schedule set for this provider.</p>');
+                animateAvailabilityItems(calendarContainer);
+                window.ScrollTrigger?.refresh();
                 return;
             }
 
@@ -265,6 +321,9 @@
                     <span class="mt-0.5 block text-[10px] font-medium opacity-90">${day.slot_count} slots</span>
                 </button>`);
             });
+
+            animateAvailabilityItems(calendarContainer);
+            window.ScrollTrigger?.refresh();
         };
 
         const fetchAvailability = function () {

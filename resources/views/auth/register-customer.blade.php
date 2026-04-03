@@ -1,18 +1,18 @@
-@extends('layouts.auth-user', ['title' => 'Customer Registration | ServiceBook'])
+@extends('layouts.auth-user', ['title' => 'Customer Registration | SkillSlot'])
 
 @section('content')
 <section class="mx-auto max-w-[1120px]">
     <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(28rem,0.95fr)] lg:items-center">
         <div class="max-w-2xl">
-            <a href="{{ route('site.home') }}" class="inline-flex items-center gap-3 text-zinc-950">
-                <span class="flex h-12 w-12 items-center justify-center">
-                    <svg viewBox="0 0 56 52" class="h-11 w-11" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <a href="{{ route('site.home') }}" class="inline-flex shrink-0 items-center gap-3 text-zinc-950 leading-none">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl">
+                    <svg viewBox="0 0 56 52" class="block h-9 w-9" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M8 42V10l16 8 16-8v32l-16-8-16 8Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M24 16c0-3.866 3.134-7 7-7s7 3.134 7 7c0 5.044-7 11-7 11s-7-5.956-7-11Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
                         <circle cx="31" cy="16" r="2.5" fill="currentColor"/>
                     </svg>
                 </span>
-                <span class="text-lg font-semibold tracking-[-0.03em]">ServiceBook</span>
+                <span class="self-center text-lg font-semibold tracking-[-0.03em] leading-none">SkillSlot</span>
             </a>
 
             <p class="mt-8 text-sm font-medium uppercase tracking-[0.22em] text-zinc-400">Customer Sign Up</p>
