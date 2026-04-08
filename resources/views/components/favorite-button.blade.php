@@ -28,6 +28,7 @@
     action="{{ route('site.favorites.toggle', $service) }}"
     class="inline-flex"
     data-favorite-form
+    data-boneyard-ignore
     data-service-id="{{ $service->id }}"
 >
     @csrf

@@ -10,6 +10,7 @@
     @stack('styles')
 </head>
 <body class="min-h-screen bg-white text-sky-950 antialiased" data-user-motion-root="customer-site">
+    @include('components.boneyard-loader')
     @php
         $usesMinimalCustomerChrome = request()->routeIs('site.home')
             || request()->routeIs('site.booking')
@@ -36,7 +37,7 @@
 
         <x-navbar />
 
-        <main class="min-h-[calc(100vh-15rem)]" data-user-main>
+        <main class="min-h-[calc(100vh-15rem)]" data-user-main data-boneyard-target>
             @yield('content')
         </main>
 

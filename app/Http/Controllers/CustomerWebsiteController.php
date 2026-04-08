@@ -260,11 +260,18 @@ class CustomerWebsiteController extends Controller
 
         $selectedDate = Carbon::parse((string) $request->query('date', now()->addDay()->toDateString()))->startOfDay();
         $selectedBranchId = $request->query('branch_id', $service->branch_id ?: $service->providerProfile?->branch_id);
+        $branches = Branch::query()
+            ->where('is_active', true)
+            ->whereIn('id', collect([$service->branch_id, $service->providerProfile?->branch_id])->filter()->unique())
+            ->orderBy('name')
+            ->get(['id', 'name', 'city', 'state']);
 
         /** @var User|null $provider */
         $provider = $service->providerProfile?->user;
         $availableSlots = collect();
         $calendarDays = collect();
+        $serviceIsUnavailable = true;
+        $serviceAvailabilityMessage = 'This service is currently not available for booking. Please check back again later.';
 
         if ($provider) {
             $availableSlots = $this->availabilityService->generateAvailableSlotsForDate(
@@ -274,29 +281,25 @@ class CustomerWebsiteController extends Controller
                 $service
             );
 
-            $calendarDays = collect(range(0, 13))->map(function (int $offset) use ($provider, $selectedBranchId, $service): array {
-                $date = now()->addDays($offset)->startOfDay();
-                $slots = $this->availabilityService->generateAvailableSlotsForDate(
-                    $provider,
-                    $date,
-                    $selectedBranchId ? (string) $selectedBranchId : null,
-                    $service
-                );
-
-                return [
-                    'date' => $date,
-                    'slot_count' => $slots->count(),
-                ];
-            });
+            $calendarDays = $this->buildServiceCalendarDays(
+                $provider,
+                $service,
+                $selectedBranchId ? (string) $selectedBranchId : null,
+                $selectedDate
+            );
+            $serviceIsUnavailable = !$this->serviceHasUpcomingAvailability(
+                $provider,
+                $service,
+                $branches->pluck('id')
+            );
+            $serviceAvailabilityMessage = $serviceIsUnavailable
+                ? 'This service does not have any upcoming booking slots right now. Please check again later.'
+                : '';
+        } else {
+            $serviceAvailabilityMessage = 'This service is currently not available because the provider cannot accept bookings right now.';
         }
 
         $gallery = $this->generateServiceGallery($service);
-
-        $branches = Branch::query()
-            ->where('is_active', true)
-            ->whereIn('id', collect([$service->branch_id, $service->providerProfile?->branch_id])->filter()->unique())
-            ->orderBy('name')
-            ->get(['id', 'name', 'city', 'state']);
 
         return view('site.services.show', [
             'service' => $service,
@@ -307,6 +310,8 @@ class CustomerWebsiteController extends Controller
             'availableSlots' => $availableSlots,
             'calendarDays' => $calendarDays,
             'availabilityUrl' => route('site.services.availability', $service->slug),
+            'serviceIsUnavailable' => $serviceIsUnavailable,
+            'serviceAvailabilityMessage' => $serviceAvailabilityMessage,
         ]);
     }
 
@@ -346,22 +351,13 @@ class CustomerWebsiteController extends Controller
             $service
         );
 
-        $calendarDays = collect(range(0, 13))->map(function (int $offset) use ($provider, $branchId, $service, $selectedDate): array {
-            $date = now()->addDays($offset)->startOfDay();
-            $available = $this->availabilityService->generateAvailableSlotsForDate(
-                $provider,
-                $date,
-                $branchId,
-                $service
-            );
-
-            return [
-                'date' => $date->toDateString(),
-                'label' => $date->format('d M'),
-                'slot_count' => $available->count(),
-                'is_selected' => $date->isSameDay($selectedDate),
-            ];
-        });
+        $calendarDays = $this->buildServiceCalendarDays($provider, $service, $branchId, $selectedDate)
+            ->map(fn (array $day): array => [
+                'date' => $day['date']->toDateString(),
+                'label' => $day['label'],
+                'slot_count' => $day['slot_count'],
+                'is_selected' => $day['is_selected'],
+            ]);
 
         return response()->json([
             'data' => [
@@ -726,6 +722,53 @@ class CustomerWebsiteController extends Controller
             '1000-plus' => [1000, null],
             default => [null, null],
         };
+    }
+
+    private function buildServiceCalendarDays(
+        User $provider,
+        Service $service,
+        ?string $branchId,
+        Carbon $selectedDate,
+        int $days = 14
+    ): Collection {
+        return collect(range(0, $days - 1))->map(function (int $offset) use ($provider, $service, $branchId, $selectedDate): array {
+            $date = now()->addDays($offset)->startOfDay();
+            $slots = $this->availabilityService->generateAvailableSlotsForDate(
+                $provider,
+                $date,
+                $branchId,
+                $service
+            );
+
+            return [
+                'date' => $date,
+                'label' => $date->format('d M'),
+                'slot_count' => $slots->count(),
+                'is_selected' => $date->isSameDay($selectedDate),
+            ];
+        });
+    }
+
+    private function serviceHasUpcomingAvailability(
+        User $provider,
+        Service $service,
+        Collection $branchIds,
+        int $days = 14
+    ): bool {
+        $branchIds = $branchIds->filter()->values();
+        $branchOptions = $branchIds->isNotEmpty() ? $branchIds->all() : [null];
+
+        foreach ($branchOptions as $branchId) {
+            foreach (range(0, $days - 1) as $offset) {
+                $date = now()->addDays($offset)->startOfDay();
+
+                if ($this->availabilityService->generateAvailableSlotsForDate($provider, $date, $branchId, $service)->isNotEmpty()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private function transformServiceForListing(Service $service): array

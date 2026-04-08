@@ -1,10 +1,10 @@
 @extends('layouts.auth-user', ['title' => 'Customer Registration | SkillSlot'])
 
 @section('content')
-<section class="mx-auto max-w-[1120px]">
+<section class="mx-auto max-w-[1120px]" data-motion-section>
     <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(28rem,0.95fr)] lg:items-center">
         <div class="max-w-2xl">
-            <a href="{{ route('site.home') }}" class="inline-flex shrink-0 items-center gap-3 text-zinc-950 leading-none">
+            <a href="{{ route('site.home') }}" class="inline-flex shrink-0 items-center gap-3 text-zinc-950 leading-none" data-motion-kicker data-motion-action>
                 <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl">
                     <svg viewBox="0 0 56 52" class="block h-9 w-9" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M8 42V10l16 8 16-8v32l-16-8-16 8Z" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -15,18 +15,18 @@
                 <span class="self-center text-lg font-semibold tracking-[-0.03em] leading-none">SkillSlot</span>
             </a>
 
-            <p class="mt-8 text-sm font-medium uppercase tracking-[0.22em] text-zinc-400">Customer Sign Up</p>
-            <h1 class="mt-4 text-[2.8rem] font-semibold leading-[1.08] tracking-[-0.05em] text-zinc-950 sm:text-[3.5rem]">
+            <p class="mt-8 text-sm font-medium uppercase tracking-[0.22em] text-zinc-400" data-motion-kicker>Customer Sign Up</p>
+            <h1 class="mt-4 text-[2.8rem] font-semibold leading-[1.08] tracking-[-0.05em] text-zinc-950 sm:text-[3.5rem]" data-motion-title>
                 Create your customer account in the same clean user-side style
             </h1>
-            <p class="mt-5 max-w-xl text-[15px] leading-8 text-zinc-500">
+            <p class="mt-5 max-w-xl text-[15px] leading-8 text-zinc-500" data-motion-copy>
                 Sign up to save favorite services, explore categories, and prepare for booking flows as the customer side continues to evolve.
             </p>
         </div>
 
-        <div class="rounded-[32px] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] ring-1 ring-black/5 sm:p-8">
+        <div class="rounded-[32px] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] ring-1 ring-black/5 sm:p-8" data-motion-panel data-motion-card>
             @if($errors->any())
-                <div class="mb-6 rounded-[18px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                <div class="mb-6 rounded-[18px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" data-motion-card>
                     {{ $errors->first() }}
                 </div>
             @endif
@@ -63,14 +63,14 @@
 
                 <p class="text-xs leading-6 text-zinc-500">Use 8+ characters with uppercase, lowercase, number, and a special character.</p>
 
-                <button class="inline-flex h-12 w-full items-center justify-center rounded-[14px] bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                <button class="inline-flex h-12 w-full items-center justify-center rounded-[14px] bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800" data-motion-action>
                     Create Customer Account
                 </button>
             </form>
 
             <div class="mt-6 border-t border-black/5 pt-6 text-sm text-zinc-500">
                 Want to register as provider?
-                <a href="{{ route('register.provider') }}" class="ml-1 font-semibold text-zinc-950 transition hover:text-zinc-700">Provider Sign Up</a>
+                <a href="{{ route('register.provider') }}" class="ml-1 font-semibold text-zinc-950 transition hover:text-zinc-700" data-motion-action>Provider Sign Up</a>
             </div>
         </div>
     </div>

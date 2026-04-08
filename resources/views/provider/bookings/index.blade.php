@@ -57,17 +57,34 @@
                                     </span>
                                 </td>
                                 <td class="py-3 pr-4 text-zinc-300">
-                                    @if($booking->can_provider_reschedule)
-                                        <button
-                                            type="button"
-                                            data-modal-open="provider-booking-reschedule-{{ $booking->id }}"
-                                            class="smooth-action-btn rounded-lg border border-cyan-400/35 px-3 py-1.5 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/10"
-                                        >
-                                            Reschedule
-                                        </button>
-                                    @else
-                                        <span class="text-xs text-zinc-500">Unavailable</span>
-                                    @endif
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        @if($booking->can_provider_accept)
+                                            <form method="POST" action="{{ route('provider.bookings.accept', $booking) }}">
+                                                @csrf
+                                                @method('PUT')
+                                                <button
+                                                    type="submit"
+                                                    class="smooth-action-btn rounded-lg border border-emerald-400/35 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-500/10"
+                                                >
+                                                    Accept
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        @if($booking->can_provider_reschedule)
+                                            <button
+                                                type="button"
+                                                data-modal-open="provider-booking-reschedule-{{ $booking->id }}"
+                                                class="smooth-action-btn rounded-lg border border-cyan-400/35 px-3 py-1.5 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/10"
+                                            >
+                                                Reschedule
+                                            </button>
+                                        @endif
+
+                                        @if(!$booking->can_provider_accept && !$booking->can_provider_reschedule)
+                                            <span class="text-xs text-zinc-500">Unavailable</span>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

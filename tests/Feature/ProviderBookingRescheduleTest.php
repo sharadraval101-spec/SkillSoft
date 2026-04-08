@@ -27,6 +27,63 @@ class ProviderBookingRescheduleTest extends TestCase
         parent::tearDown();
     }
 
+    public function test_provider_can_accept_a_pending_listed_booking_from_the_appointments_page(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-03-28 09:00:00'));
+
+        $branch = $this->createBranch();
+        $provider = $this->createProvider($branch, 'provider@example.com');
+        $customer = $this->createCustomer('customer@example.com');
+        $service = $this->createService($provider, $branch);
+        $scheduleDate = Carbon::parse('2026-04-02');
+        $schedule = $this->createSchedule($provider, $branch, $scheduleDate);
+        $slot = $this->createSlot($schedule, $provider, $branch, $scheduleDate->copy()->setTime(10, 0), $scheduleDate->copy()->setTime(10, 30));
+        $booking = $this->createBooking($customer, $provider, $branch, $service, $slot, 'BK-ACCEPT-0001');
+
+        $page = $this->actingAs($provider)->get(route('provider.bookings.index'));
+        $page->assertOk();
+        $page->assertSee('Accept');
+        $page->assertSee($booking->booking_number);
+
+        $response = $this->actingAs($provider)
+            ->from(route('provider.bookings.index'))
+            ->put(route('provider.bookings.accept', $booking));
+
+        $response->assertRedirect(route('provider.bookings.index'));
+        $response->assertSessionHas('success', 'Appointment accepted successfully.');
+
+        $booking->refresh();
+
+        $this->assertSame(Booking::STATUS_ACCEPTED, $booking->status);
+        $this->assertNull($booking->cancelled_at);
+    }
+
+    public function test_provider_cannot_accept_a_non_pending_booking(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-03-28 09:00:00'));
+
+        $branch = $this->createBranch();
+        $provider = $this->createProvider($branch, 'provider@example.com');
+        $customer = $this->createCustomer('customer@example.com');
+        $service = $this->createService($provider, $branch);
+        $scheduleDate = Carbon::parse('2026-04-02');
+        $schedule = $this->createSchedule($provider, $branch, $scheduleDate);
+        $slot = $this->createSlot($schedule, $provider, $branch, $scheduleDate->copy()->setTime(10, 0), $scheduleDate->copy()->setTime(10, 30));
+        $booking = $this->createBooking($customer, $provider, $branch, $service, $slot, 'BK-ACCEPT-1001');
+        $booking->update(['status' => Booking::STATUS_ACCEPTED]);
+
+        $response = $this->actingAs($provider)
+            ->from(route('provider.bookings.index'))
+            ->put(route('provider.bookings.accept', $booking));
+
+        $response->assertRedirect(route('provider.bookings.index'));
+        $response->assertSessionHasErrors('booking');
+
+        $booking->refresh();
+
+        $this->assertSame(Booking::STATUS_ACCEPTED, $booking->status);
+    }
+
     public function test_provider_can_reschedule_a_listed_booking_from_the_appointments_page(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-03-28 09:00:00'));

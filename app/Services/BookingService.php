@@ -293,6 +293,150 @@ class BookingService
         return $rescheduledCount;
     }
 
+    public function acceptBookingByProvider(User $provider, Booking $booking): Booking
+    {
+        return DB::transaction(function () use ($provider, $booking): Booking {
+            $booking = Booking::query()
+                ->with([
+                    'customer:id,name,email',
+                    'service:id,name',
+                    'serviceVariant:id,name',
+                    'slot:id,start_at,end_at',
+                ])
+                ->lockForUpdate()
+                ->findOrFail($booking->id);
+
+            if ((int) $booking->provider_id !== (int) $provider->id) {
+                abort(403);
+            }
+
+            if (!$this->canProviderAccept($booking)) {
+                throw ValidationException::withMessages([
+                    'booking' => 'Only pending upcoming bookings can be accepted.',
+                ]);
+            }
+
+            $booking->update([
+                'status' => Booking::STATUS_ACCEPTED,
+                'cancelled_at' => null,
+            ]);
+
+            $freshBooking = $booking->fresh([
+                'customer:id,name,email',
+                'service:id,name',
+                'serviceVariant:id,name',
+                'slot:id,start_at,end_at',
+            ]);
+
+            $this->notificationService->notifyUser(
+                $freshBooking->customer_id,
+                'booking.accepted.by_provider',
+                'Booking Accepted',
+                'Your booking '.$freshBooking->booking_number.' has been accepted.',
+                [
+                    'booking_id' => $freshBooking->id,
+                    'booking_number' => $freshBooking->booking_number,
+                ],
+                sendEmailFallback: true,
+                sendSms: true,
+                sendWhatsapp: true
+            );
+
+            return $freshBooking;
+        });
+    }
+
+    public function rescheduleBookingByProvider(
+        User $provider,
+        Booking $booking,
+        string $targetDate,
+        ?string $reason = null
+    ): Booking {
+        return DB::transaction(function () use ($provider, $booking, $targetDate, $reason): Booking {
+            $booking = Booking::query()
+                ->with([
+                    'customer:id,name,email',
+                    'service:id,name,branch_id,duration_minutes',
+                    'slot:id,schedule_id,provider_id,branch_id,start_at,end_at,is_available,reason',
+                ])
+                ->lockForUpdate()
+                ->findOrFail($booking->id);
+
+            if ((int) $booking->provider_id !== (int) $provider->id) {
+                abort(403);
+            }
+
+            if (!$this->canProviderReschedule($booking)) {
+                throw ValidationException::withMessages([
+                    'booking' => 'This appointment cannot be rescheduled by the provider.',
+                ]);
+            }
+
+            $oldSlot = Slot::query()->lockForUpdate()->findOrFail($booking->slot_id);
+
+            if (!$oldSlot->start_at || !$oldSlot->end_at) {
+                throw ValidationException::withMessages([
+                    'booking' => 'The current appointment slot is missing scheduling details.',
+                ]);
+            }
+
+            $booking->setRelation('slot', $oldSlot);
+
+            $targetDay = Carbon::parse($targetDate)->startOfDay();
+            $targetStart = Carbon::parse($targetDay->toDateString().' '.$oldSlot->start_at->format('H:i:s'));
+            $targetEnd = Carbon::parse($targetDay->toDateString().' '.$oldSlot->end_at->format('H:i:s'));
+            $targetSlot = $this->resolveProviderRescheduleTargetSlot($provider, $booking, $targetStart, $targetEnd);
+
+            if ((string) $targetSlot->id === (string) $oldSlot->id) {
+                return $booking;
+            }
+
+            $targetSlot = Slot::query()->lockForUpdate()->findOrFail($targetSlot->id);
+            $originalScheduledAt = $booking->scheduled_at?->copy();
+
+            $booking->update([
+                'slot_id' => $targetSlot->id,
+                'branch_id' => $targetSlot->branch_id ?: $booking->branch_id,
+                'scheduled_at' => $targetSlot->start_at,
+                'notes' => $this->appendProviderRescheduleNote($booking->notes, $originalScheduledAt, $targetSlot->start_at, $reason),
+                'cancelled_at' => null,
+            ]);
+
+            $targetSlot->update([
+                'is_available' => false,
+                'reason' => null,
+            ]);
+
+            $this->refreshSlotAvailability($oldSlot);
+
+            $freshBooking = $booking->fresh([
+                'customer:id,name,email',
+                'service:id,name',
+                'serviceVariant:id,name',
+                'slot:id,start_at,end_at',
+            ]);
+
+            $this->notificationService->notifyUser(
+                $freshBooking->customer_id,
+                'booking.rescheduled.by_provider',
+                'Booking Rescheduled by Provider',
+                $this->buildProviderRescheduleMessage($freshBooking, $reason),
+                [
+                    'booking_id' => $freshBooking->id,
+                    'booking_number' => $freshBooking->booking_number,
+                    'old_scheduled_at' => $originalScheduledAt?->toIso8601String(),
+                    'new_scheduled_at' => $freshBooking->scheduled_at?->toIso8601String(),
+                    'reason' => $reason,
+                ],
+                sendEmailFallback: true,
+                sendSms: true,
+                sendWhatsapp: true
+            );
+
+            return $freshBooking;
+        });
+    }
+
     public function cancelBooking(User $customer, Booking $booking, ?string $reason = null): Booking
     {
         return DB::transaction(function () use ($customer, $booking, $reason): Booking {
@@ -360,6 +504,28 @@ class BookingService
 
         $cutoffHours = max(0, (int) config('booking.rules.reschedule_cutoff_hours', 12));
         return now()->lt($booking->scheduled_at->copy()->subHours($cutoffHours));
+    }
+
+    public function canProviderAccept(Booking $booking): bool
+    {
+        if (!$booking->scheduled_at) {
+            return false;
+        }
+
+        return $booking->status === Booking::STATUS_PENDING && $booking->scheduled_at->gte(now());
+    }
+
+    public function canProviderReschedule(Booking $booking): bool
+    {
+        if (!$booking->scheduled_at) {
+            return false;
+        }
+
+        if (!in_array($booking->status, Booking::slotBlockingStatuses(), true)) {
+            return false;
+        }
+
+        return $booking->scheduled_at->gt(now());
     }
 
     public function canCancel(Booking $booking): bool

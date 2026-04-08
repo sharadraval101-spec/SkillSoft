@@ -1,8 +1,11 @@
-const gsap = window.gsap ?? null;
-const ScrollTrigger = window.ScrollTrigger ?? null;
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+window.gsap = gsap;
+window.ScrollTrigger = ScrollTrigger;
 
 const body = document.body;
-const userMotionRoot = body?.dataset.userMotionRoot;
+const userMotionRoot = body?.dataset.userMotionRoot ?? '';
 
 const prefersReducedMotion = userMotionRoot
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -10,9 +13,10 @@ const prefersReducedMotion = userMotionRoot
 const canHover = userMotionRoot
     ? window.matchMedia('(hover: hover) and (pointer: fine)').matches
     : false;
-const canAnimate = Boolean(gsap) && Boolean(ScrollTrigger) && !prefersReducedMotion;
+const canAnimate = Boolean(userMotionRoot) && !prefersReducedMotion;
+const clearMotionProps = 'opacity,visibility,transform';
 
-if (userMotionRoot && canAnimate) {
+if (userMotionRoot) {
     gsap.registerPlugin(ScrollTrigger);
     document.documentElement.classList.add('js-user-motion');
 }
@@ -22,6 +26,73 @@ const toUniqueElements = (elements) =>
 
 const queryElements = (root, selectors) =>
     toUniqueElements(selectors.flatMap((selector) => Array.from(root.querySelectorAll(selector))));
+
+const refreshScrollTriggers = () => {
+    if (!canAnimate) {
+        return;
+    }
+
+    requestAnimationFrame(() => ScrollTrigger.refresh());
+};
+
+const bindInteractiveMotion = (element) => {
+    if (!canHover || !canAnimate || !(element instanceof HTMLElement) || element.dataset.motionHoverBound === 'true') {
+        return;
+    }
+
+    element.dataset.motionHoverBound = 'true';
+
+    const yOffset = element.hasAttribute('data-motion-card') ? -8 : -3;
+    const scale = element.hasAttribute('data-motion-card') ? 1.01 : 1.02;
+
+    element.addEventListener('pointerenter', () => {
+        gsap.to(element, {
+            y: yOffset,
+            scale,
+            duration: 0.28,
+            ease: 'power2.out',
+            overwrite: 'auto',
+        });
+    });
+
+    element.addEventListener('pointerleave', () => {
+        gsap.to(element, {
+            y: 0,
+            scale: 1,
+            duration: 0.28,
+            ease: 'power2.out',
+            overwrite: 'auto',
+        });
+    });
+};
+
+const animatePageChrome = () => {
+    if (!canAnimate) {
+        return;
+    }
+
+    const header = document.querySelector('[data-motion-header]');
+
+    if (!header) {
+        return;
+    }
+
+    const targets = queryElements(header, [
+        '[data-motion-brand]',
+        '[data-motion-nav-item]',
+        '[data-motion-utility]',
+        '[data-motion-menu-trigger]',
+    ]);
+
+    gsap.from(targets.length ? targets : header, {
+        y: -18,
+        autoAlpha: 0,
+        duration: 0.72,
+        stagger: targets.length ? 0.06 : 0,
+        ease: 'power3.out',
+        clearProps: clearMotionProps,
+    });
+};
 
 const animateSections = () => {
     if (!canAnimate) {
@@ -64,7 +135,7 @@ const animateSections = () => {
                 autoAlpha: 0,
                 duration: 0.82,
                 stagger: 0.08,
-                clearProps: 'opacity,visibility,transform',
+                clearProps: clearMotionProps,
             });
         }
 
@@ -77,7 +148,7 @@ const animateSections = () => {
                     scale: 0.96,
                     duration: 0.95,
                     stagger: 0.1,
-                    clearProps: 'opacity,visibility,transform',
+                    clearProps: clearMotionProps,
                 },
                 textTargets.length ? '-=0.5' : 0,
             );
@@ -110,7 +181,7 @@ const animateGroups = () => {
                 start: 'top 86%',
                 once: true,
             },
-            clearProps: 'opacity,visibility,transform',
+            clearProps: clearMotionProps,
         });
     });
 };
@@ -135,7 +206,7 @@ const animateStandaloneCards = () => {
                 start: 'top 88%',
                 once: true,
             },
-            clearProps: 'opacity,visibility,transform',
+            clearProps: clearMotionProps,
         });
     });
 };
@@ -169,7 +240,7 @@ const animateFallbackBlocks = () => {
                 start: 'top 88%',
                 once: true,
             },
-            clearProps: 'opacity,visibility,transform',
+            clearProps: clearMotionProps,
         });
     });
 };
@@ -198,7 +269,7 @@ const animateFooter = () => {
             start: 'top bottom-=40',
             once: true,
         },
-        clearProps: 'opacity,visibility,transform',
+        clearProps: clearMotionProps,
     });
 };
 
@@ -217,6 +288,45 @@ const animateMediaParallax = () => {
                 end: 'bottom top',
                 scrub: 0.8,
             },
+        });
+    });
+};
+
+const initDetailsMenus = () => {
+    if (!canAnimate) {
+        return;
+    }
+
+    document.querySelectorAll('[data-motion-menu]').forEach((menu) => {
+        const panel = menu.querySelector('[data-motion-menu-panel]');
+
+        if (!panel) {
+            return;
+        }
+
+        menu.addEventListener('toggle', () => {
+            if (!menu.open) {
+                gsap.set(panel, { clearProps: clearMotionProps });
+                return;
+            }
+
+            gsap.fromTo(
+                panel,
+                {
+                    autoAlpha: 0,
+                    y: -10,
+                    scale: 0.985,
+                    transformOrigin: 'top right',
+                },
+                {
+                    autoAlpha: 1,
+                    y: 0,
+                    scale: 1,
+                    duration: 0.24,
+                    ease: 'power2.out',
+                    clearProps: clearMotionProps,
+                },
+            );
         });
     });
 };
@@ -383,6 +493,7 @@ const initFavoriteToggles = () => {
             card.remove();
 
             if (grid.querySelector('[data-favorite-card]')) {
+                refreshScrollTriggers();
                 return;
             }
 
@@ -397,11 +508,25 @@ const initFavoriteToggles = () => {
                     Tap the heart icon on any service card to add it here. Your liked collection will stay ready for future browsing and booking.
                 </p>
                 <div class="mt-6 flex flex-wrap justify-center gap-3">
-                    <a href="${browseUrl}" class="inline-flex min-w-[160px] items-center justify-center rounded-[14px] bg-zinc-950 px-5 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">Browse Services</a>
-                    <a href="${homeUrl}" class="inline-flex min-w-[160px] items-center justify-center rounded-[14px] border border-zinc-300 px-5 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950">Back to Home</a>
+                    <a href="${browseUrl}" class="inline-flex min-w-[160px] items-center justify-center rounded-[14px] bg-zinc-950 px-5 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-action>Browse Services</a>
+                    <a href="${homeUrl}" class="inline-flex min-w-[160px] items-center justify-center rounded-[14px] border border-zinc-300 px-5 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950" data-motion-action>Back to Home</a>
                 </div>
             `;
             grid.appendChild(emptyState);
+            bindInteractiveMotion(emptyState);
+            emptyState.querySelectorAll('[data-motion-action]').forEach(bindInteractiveMotion);
+
+            if (canAnimate) {
+                gsap.from(emptyState, {
+                    y: 18,
+                    autoAlpha: 0,
+                    duration: 0.42,
+                    ease: 'power2.out',
+                    clearProps: clearMotionProps,
+                });
+            }
+
+            refreshScrollTriggers();
         };
 
         if (canAnimate) {
@@ -468,49 +593,21 @@ const setupInteractiveMotion = () => {
         return;
     }
 
-    document.querySelectorAll('[data-motion-card], [data-motion-action]').forEach((element) => {
-        const yOffset = element.hasAttribute('data-motion-card') ? -8 : -3;
-        const scale = element.hasAttribute('data-motion-card') ? 1.01 : 1.02;
-
-        element.addEventListener('pointerenter', () => {
-            gsap.to(element, {
-                y: yOffset,
-                scale,
-                duration: 0.28,
-                ease: 'power2.out',
-                overwrite: 'auto',
-            });
-        });
-
-        element.addEventListener('pointerleave', () => {
-            gsap.to(element, {
-                y: 0,
-                scale: 1,
-                duration: 0.28,
-                ease: 'power2.out',
-                overwrite: 'auto',
-            });
-        });
-    });
-};
-
-const refreshScrollTriggers = () => {
-    if (!canAnimate) {
-        return;
-    }
-
-    window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
+    document.querySelectorAll('[data-motion-card], [data-motion-action]').forEach(bindInteractiveMotion);
 };
 
 if (userMotionRoot) {
+    animatePageChrome();
     animateSections();
     animateGroups();
     animateStandaloneCards();
     animateFallbackBlocks();
     animateFooter();
     animateMediaParallax();
+    initDetailsMenus();
     initFilterDrawers();
     initFavoriteToggles();
     setupInteractiveMotion();
-    refreshScrollTriggers();
+
+    window.addEventListener('load', refreshScrollTriggers, { once: true });
 }

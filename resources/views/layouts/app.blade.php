@@ -26,6 +26,9 @@
     data-dashboard-role="{{ $dashboardRole }}"
     @if($dashboardRole === '1') data-user-motion-root="customer-dashboard" @endif
 >
+    @if($dashboardRole === '1')
+        @include('components.boneyard-loader')
+    @endif
 
     @include('components.sidebar')
 
@@ -33,7 +36,7 @@
 
         @include('components.topbar')
 
-        <main class="flex-1 relative overflow-y-auto focus:outline-none p-6 lg:p-10" data-user-main>
+        <main class="flex-1 relative overflow-y-auto focus:outline-none p-6 lg:p-10" data-user-main data-boneyard-target>
             <div class="app-shell-glow absolute top-0 right-0 -z-10 h-96 w-96 rounded-full pointer-events-none blur-[120px]"></div>
 
             <div class="max-w-7xl mx-auto">

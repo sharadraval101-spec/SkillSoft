@@ -7,16 +7,16 @@
     ], true);
 @endphp
 
-<header class="dashboard-topbar h-[72px] border-b border-white/10 bg-zinc-950/70 backdrop-blur-xl flex items-center justify-between px-4 lg:px-6 z-20 relative">
+<header class="dashboard-topbar h-[72px] border-b border-white/10 bg-zinc-950/70 backdrop-blur-xl flex items-center justify-between px-4 lg:px-6 z-20 relative" data-motion-header>
     <div class="flex items-center gap-3 flex-1 min-w-0">
         <button type="button" data-sidebar-toggle aria-label="Toggle sidebar" aria-expanded="true"
-            class="h-10 w-10 rounded-xl border border-white/15 bg-white/5 hover:bg-zinc-50 hover:border-zinc-300 text-zinc-200 transition flex items-center justify-center">
+            class="h-10 w-10 rounded-xl border border-white/15 bg-white/5 hover:bg-zinc-50 hover:border-zinc-300 text-zinc-200 transition flex items-center justify-center" data-motion-utility data-motion-action>
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
         </button>
 
-        <div class="hidden xl:block">
+        <div class="hidden xl:block" data-motion-brand>
             <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">Workspace</p>
             <p class="text-sm font-bold text-zinc-100 leading-tight">SkillSlot Panel</p>
         </div>
@@ -34,7 +34,7 @@
 
     <div class="flex items-center gap-3 ml-3">
         @if($showThemeSwitch)
-            <button type="button" data-theme-toggle aria-label="Switch dashboard theme" aria-pressed="false" class="theme-switch smooth-action-btn">
+            <button type="button" data-theme-toggle aria-label="Switch dashboard theme" aria-pressed="false" class="theme-switch smooth-action-btn" data-motion-utility data-motion-action>
                 <span class="theme-switch-track" aria-hidden="true">
                     <span class="theme-switch-thumb">
                         <svg data-theme-icon="dark" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +52,7 @@
             </button>
         @endif
 
-        <a href="{{ route('notifications.index') }}" class="h-10 w-10 rounded-xl border border-white/10 bg-black/35 hover:bg-zinc-50 hover:border-zinc-300 text-zinc-300 transition relative flex items-center justify-center">
+        <a href="{{ route('notifications.index') }}" class="h-10 w-10 rounded-xl border border-white/10 bg-black/35 hover:bg-zinc-50 hover:border-zinc-300 text-zinc-300 transition relative flex items-center justify-center" data-motion-utility data-motion-action>
             @if($unreadNotifications > 0)
                 <span class="absolute top-1.5 right-1.5 min-w-4 h-4 px-1 bg-zinc-950 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                     {{ $unreadNotifications > 9 ? '9+' : $unreadNotifications }}
@@ -63,7 +63,7 @@
             </svg>
         </a>
 
-        <a href="{{ route('profile.index') }}" class="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-1.5 hover:bg-zinc-50 hover:border-zinc-300 transition">
+        <a href="{{ route('profile.index') }}" class="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-1.5 hover:bg-zinc-50 hover:border-zinc-300 transition" data-motion-utility data-motion-action>
             <div class="text-right hidden sm:block">
                 <p class="text-sm font-bold text-zinc-100 leading-none">{{ auth()->user()->name }}</p>
                 <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">{{ $roleText }}</p>
