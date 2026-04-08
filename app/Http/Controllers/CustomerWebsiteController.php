@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\User;
 use App\Services\BookingService;
+use App\Services\PaymentService;
 use App\Services\ScheduleAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,7 +23,8 @@ class CustomerWebsiteController extends Controller
 {
     public function __construct(
         private readonly ScheduleAvailabilityService $availabilityService,
-        private readonly BookingService $bookingService
+        private readonly BookingService $bookingService,
+        private readonly PaymentService $paymentService
     ) {
     }
 
@@ -246,8 +248,8 @@ class CustomerWebsiteController extends Controller
                 'category:id,name,slug',
                 'branch:id,name,address_line_1,address_line_2,city,state,country',
                 'providerProfile.user:id,name,email,profile_photo_path',
-                'variants' => fn (Builder $query) => $query->where('is_active', true)->orderBy('price'),
-                'reviews' => fn (Builder $query) => $query->where('is_approved', true)->latest()->limit(6),
+                'variants' => fn ($query) => $query->where('is_active', true)->orderBy('price'),
+                'reviews' => fn ($query) => $query->where('is_approved', true)->latest()->limit(6),
                 'reviews.customer:id,name,profile_photo_path',
             ])
             ->withAvg('reviews as avg_rating', 'rating')
@@ -454,6 +456,22 @@ class CustomerWebsiteController extends Controller
             ->limit(5)
             ->get();
 
+        $paymentHistory = Payment::query()
+            ->with([
+                'booking:id,booking_number,scheduled_at,status,service_id',
+                'booking.service:id,name',
+                'provider:id,name,email',
+            ])
+            ->where('customer_id', $customer->id)
+            ->latest()
+            ->limit(12)
+            ->get()
+            ->map(function (Payment $payment): Payment {
+                $payment->setAttribute('can_refund', $this->paymentService->canRefund($payment));
+
+                return $payment;
+            });
+
         $hydrateBookingMeta = function (Collection $bookings) use ($upcomingStatuses): Collection {
             return $bookings->map(function (Booking $booking) use ($upcomingStatuses): Booking {
                 $hasPaidPayment = $booking->payments->contains(function ($payment) {
@@ -494,12 +512,32 @@ class CustomerWebsiteController extends Controller
         $upcomingBookings = $hydrateBookingMeta($upcomingBookings);
         $bookingHistory = $hydrateBookingMeta($bookingHistory);
 
+        $payableBookings = $upcomingBookings
+            ->filter(fn (Booking $booking): bool => (bool) $booking->getAttribute('can_pay'))
+            ->values();
+
+        $selectedPaymentBookingId = (string) $request->query('pay_booking', '');
+        $selectedPaymentBooking = $payableBookings->firstWhere('id', $selectedPaymentBookingId) ?? $payableBookings->first();
+
+        if ($selectedPaymentBooking) {
+            $selectedPaymentBooking->load([
+                'provider:id,name,email',
+                'service:id,name,base_price',
+                'serviceVariant:id,name,price',
+                'payments' => fn ($query) => $query->latest(),
+            ]);
+
+            $selectedPaymentBooking->setAttribute(
+                'payment_amount',
+                number_format((float) ($selectedPaymentBooking->serviceVariant?->price ?? $selectedPaymentBooking->service?->base_price ?? 0), 2, '.', '')
+            );
+        }
+
         $profileCompletion = (int) round(
             collect([
                 $customer->name,
                 $customer->email,
-                $customer->profile_photo_path,
-            ])->filter(fn ($value) => filled($value))->count() / 3 * 100
+            ])->filter(fn ($value) => filled($value))->count() / 2 * 100
         );
 
         $nextBooking = $upcomingBookings->first();
@@ -510,7 +548,11 @@ class CustomerWebsiteController extends Controller
             'upcomingBookings' => $upcomingBookings,
             'bookingHistory' => $bookingHistory,
             'recentPayments' => $recentPayments,
+            'paymentHistory' => $paymentHistory,
+            'payableBookings' => $payableBookings,
+            'selectedPaymentBooking' => $selectedPaymentBooking,
             'profileCompletion' => $profileCompletion,
+            'paymentCurrency' => config('payment.currency', 'INR'),
             'dashboardStats' => [
                 [
                     'label' => 'Total bookings',
@@ -598,7 +640,7 @@ class CustomerWebsiteController extends Controller
                 'can_pay' => $canPay,
                 'reschedule_url' => route('customer.bookings.reschedule.form', $booking),
                 'cancel_url' => route('customer.bookings.cancel', $booking),
-                'checkout_url' => $canPay ? route('customer.payments.checkout', $booking) : null,
+                'checkout_url' => $canPay ? route('customer.dashboard', ['pay_booking' => $booking->id]).'#payments-center' : null,
             ];
         });
 

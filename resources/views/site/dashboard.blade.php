@@ -2,7 +2,6 @@
 
 @section('content')
 @php
-    $customerInitial = strtoupper(substr($customer->name ?? 'U', 0, 1));
     $firstName = trim(explode(' ', $customer->name)[0] ?? $customer->name);
     $focusProfile = $errors->any() || session('success') || session('code_sent') || session('password_reset_success');
     $statusClasses = [
@@ -38,23 +37,16 @@
 
     <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-8" data-motion-card>
         <div class="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
-            <div class="flex flex-col gap-5 sm:flex-row sm:items-start">
-                @if($customer->profile_photo_url)
-                    <img src="{{ $customer->profile_photo_url }}" alt="{{ $customer->name }}" class="h-20 w-20 rounded-[1.6rem] object-cover">
-                @else
-                    <div class="flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-zinc-950 text-2xl font-semibold text-white">{{ $customerInitial }}</div>
-                @endif
-                <div class="max-w-2xl">
+            <div class="max-w-2xl">
                     <p class="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-400" data-motion-kicker>Customer Dashboard</p>
                     <h1 class="mt-3 text-4xl font-semibold tracking-[-0.05em] text-zinc-950 sm:text-[3rem]" data-motion-title>Hello, {{ $firstName }}.</h1>
                     <p class="mt-4 text-[15px] leading-8 text-zinc-500" data-motion-copy>A simple modern dashboard for your profile, bookings, history, and payments in one place.</p>
-                </div>
             </div>
 
             <div class="grid gap-3 sm:grid-cols-2 xl:w-[24rem]" data-motion-actions>
                 <a href="{{ route('customer.bookings.create') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] bg-zinc-950 px-5 py-4 text-center text-sm font-semibold text-white transition hover:bg-zinc-800" data-motion-action>Book New Service</a>
                 <a href="#profile-center" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Profile Settings</a>
-                <a href="{{ route('customer.payments.index') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Payment History</a>
+                <a href="#payments-center" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Payments</a>
                 <a href="{{ route('site.favorites.index') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Saved Favorites</a>
             </div>
         </div>
@@ -70,7 +62,7 @@
                     </div>
                     <div class="flex flex-wrap gap-3">
                         @if($nextBooking->can_pay)
-                            <a href="{{ route('customer.payments.checkout', $nextBooking) }}" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Complete Payment</a>
+                            <a href="{{ route('customer.dashboard', ['pay_booking' => $nextBooking->id]) }}#payments-center" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Complete Payment</a>
                         @endif
                         @if($nextBooking->can_reschedule)
                             <a href="{{ route('customer.bookings.reschedule.form', $nextBooking) }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50">Reschedule</a>
@@ -120,7 +112,7 @@
                                     @if($booking->location_label)<p class="mt-1 text-sm text-zinc-500">{{ $booking->location_label }}</p>@endif
                                 </div>
                                 <div class="flex flex-wrap gap-3">
-                                    @if($booking->can_pay)<a href="{{ route('customer.payments.checkout', $booking) }}" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Pay now</a>@endif
+                                    @if($booking->can_pay)<a href="{{ route('customer.dashboard', ['pay_booking' => $booking->id]) }}#payments-center" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Pay now</a>@endif
                                     @if($booking->can_reschedule)<a href="{{ route('customer.bookings.reschedule.form', $booking) }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50">Reschedule</a>@endif
                                 </div>
                             </div>
@@ -143,20 +135,8 @@
                 </div>
             </div>
 
-            <form id="customerProfileForm" data-has-photo="{{ $customer->profile_photo_path ? '1' : '0' }}" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="mt-6 space-y-4">
+            <form id="customerProfileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="mt-6 space-y-4">
                 @csrf
-                <div class="flex items-center gap-4">
-                    @if($customer->profile_photo_url)
-                        <img id="customerProfilePhotoPreview" src="{{ $customer->profile_photo_url }}" alt="{{ $customer->name }}" class="h-16 w-16 rounded-2xl object-cover">
-                    @else
-                        <img id="customerProfilePhotoPreview" src="" alt="{{ $customer->name }}" class="hidden h-16 w-16 rounded-2xl object-cover">
-                    @endif
-                    <div id="customerProfileInitial" class="{{ $customer->profile_photo_url ? 'hidden ' : '' }}flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-950 text-xl font-semibold text-white">{{ $customerInitial }}</div>
-                    <div>
-                        <p class="text-sm font-medium text-zinc-900">Profile photo</p>
-                        <p class="mt-1 text-xs text-zinc-500">Upload JPG, PNG, or WEBP up to 2MB.</p>
-                    </div>
-                </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <label for="dashboard-name" class="block text-sm font-medium text-zinc-700">Full name</label>
@@ -166,10 +146,6 @@
                         <label for="dashboard-email" class="block text-sm font-medium text-zinc-700">Email address</label>
                         <input id="dashboard-email" type="email" name="email" value="{{ old('email', $customer->email) }}" required class="mt-2 h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white">
                     </div>
-                </div>
-                <div>
-                    <label for="customerProfilePhotoInput" class="block text-sm font-medium text-zinc-700">Upload photo</label>
-                    <input id="customerProfilePhotoInput" type="file" name="profile_photo" accept=".jpg,.jpeg,.png,.webp" @if(!$customer->profile_photo_path) required @endif class="mt-2 block w-full rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-zinc-600 file:mr-4 file:rounded-xl file:border-0 file:bg-zinc-950 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white">
                 </div>
                 <div class="flex justify-end">
                     <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Save profile</button>
@@ -240,22 +216,136 @@
             @endif
         </section>
 
-        <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-7" data-motion-card>
+        <section id="payments-center" class="scroll-mt-28 rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-7" data-motion-card>
             <div class="flex items-center justify-between gap-3">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400">Payments</p>
-                    <h2 class="mt-2 text-2xl font-semibold tracking-[-0.04em] text-zinc-950">Recent payment activity</h2>
+                    <h2 class="mt-2 text-2xl font-semibold tracking-[-0.04em] text-zinc-950">Payment center</h2>
                 </div>
-                <a href="{{ route('customer.payments.index') }}" class="text-sm font-semibold text-zinc-950 transition hover:text-zinc-600">All payments</a>
+                <span class="text-sm font-semibold text-zinc-500">Managed inside this dashboard</span>
             </div>
-            @if($recentPayments->isEmpty())
+
+            @if($selectedPaymentBooking)
+                <div class="mt-6 grid gap-4 lg:grid-cols-3">
+                    <article class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5 lg:col-span-2">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Selected booking</p>
+                        <p class="mt-2 text-lg font-semibold text-zinc-950">{{ $selectedPaymentBooking->booking_number }}</p>
+                        <p class="mt-1 text-zinc-700">{{ $selectedPaymentBooking->service?->name }}</p>
+                        @if($selectedPaymentBooking->serviceVariant)
+                            <p class="mt-1 text-sm text-zinc-500">Variant: {{ $selectedPaymentBooking->serviceVariant->name }}</p>
+                        @endif
+                        <p class="mt-3 text-sm text-zinc-500">Provider: {{ $selectedPaymentBooking->provider?->name ?? 'N/A' }}</p>
+                        <p class="text-sm text-zinc-500">Scheduled: {{ $selectedPaymentBooking->scheduled_at?->format('d M Y, h:i A') }}</p>
+                    </article>
+                    <article class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Payable amount</p>
+                        <p class="mt-3 text-3xl font-semibold tracking-[-0.04em] text-zinc-950">{{ $paymentCurrency }} {{ $selectedPaymentBooking->payment_amount }}</p>
+                    </article>
+                </div>
+
+                @if($payableBookings->count() > 1)
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        @foreach($payableBookings as $payableBooking)
+                            <a href="{{ route('customer.dashboard', ['pay_booking' => $payableBooking->id]) }}#payments-center" class="inline-flex items-center rounded-full border px-4 py-2 text-xs font-semibold transition {{ (string) $selectedPaymentBooking->id === (string) $payableBooking->id ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-zinc-950 hover:text-zinc-950' }}">
+                                {{ $payableBooking->booking_number }}
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="mt-6 grid gap-6 xl:grid-cols-2">
+                    <section class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5">
+                        <h3 class="text-lg font-semibold text-zinc-950">Online payment</h3>
+                        <form method="POST" action="{{ route('customer.payments.online', $selectedPaymentBooking) }}" class="mt-4 grid gap-4">
+                            @csrf
+                            <div>
+                                <label class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Gateway</label>
+                                <select name="gateway" class="mt-2 h-12 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-400" required>
+                                    <option value="razorpay">Razorpay (India)</option>
+                                    <option value="stripe">Stripe</option>
+                                    <option value="paypal">PayPal</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Mode</label>
+                                <select name="payment_mode" class="mt-2 h-12 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-400" required>
+                                    <option value="prepaid">Prepaid</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                                Pay Online
+                            </button>
+                        </form>
+                    </section>
+
+                    <section class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5">
+                        <h3 class="text-lg font-semibold text-zinc-950">Cash payment</h3>
+                        <form method="POST" action="{{ route('customer.payments.cash', $selectedPaymentBooking) }}" class="mt-4 grid gap-4">
+                            @csrf
+                            <div>
+                                <label class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Method</label>
+                                <input type="text" value="Cash" disabled class="mt-2 h-12 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-500">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Mode</label>
+                                <select name="payment_mode" class="mt-2 h-12 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-400" required>
+                                    <option value="postpaid">Postpaid</option>
+                                    <option value="prepaid">Prepaid</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 bg-white px-5 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">
+                                Record Cash Payment
+                            </button>
+                        </form>
+                    </section>
+                </div>
+
+                @if($selectedPaymentBooking->payments->isNotEmpty())
+                    <div class="mt-6 rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5">
+                        <h3 class="text-lg font-semibold text-zinc-950">Existing payment attempts</h3>
+                        <div class="mt-4 overflow-x-auto">
+                            <table class="min-w-full text-left text-sm">
+                                <thead class="text-zinc-500">
+                                    <tr class="border-b border-zinc-200">
+                                        <th class="py-3 pr-4 font-semibold">Gateway</th>
+                                        <th class="py-3 pr-4 font-semibold">Method</th>
+                                        <th class="py-3 pr-4 font-semibold">Mode</th>
+                                        <th class="py-3 pr-4 font-semibold">Amount</th>
+                                        <th class="py-3 pr-4 font-semibold">Status</th>
+                                        <th class="py-3 pr-4 font-semibold">Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($selectedPaymentBooking->payments as $payment)
+                                        <tr class="border-b border-zinc-200/70">
+                                            <td class="py-3 pr-4 text-zinc-700">{{ strtoupper($payment->gateway) }}</td>
+                                            <td class="py-3 pr-4 text-zinc-700">{{ ucfirst($payment->method) }}</td>
+                                            <td class="py-3 pr-4 text-zinc-700">{{ ucfirst($payment->payment_mode) }}</td>
+                                            <td class="py-3 pr-4 text-zinc-700">{{ number_format((float) $payment->amount, 2) }}</td>
+                                            <td class="py-3 pr-4 text-zinc-700">{{ ucfirst($payment->status) }}</td>
+                                            <td class="py-3 pr-4 text-zinc-500">{{ $payment->created_at?->diffForHumans() }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endif
+            @else
+                <div class="mt-6 rounded-[1.5rem] border border-dashed border-zinc-300 bg-zinc-50 px-5 py-10 text-center">
+                    <p class="text-lg font-semibold text-zinc-950">No pending payments right now</p>
+                    <p class="mt-2 text-sm leading-7 text-zinc-500">When a booking needs payment, you can manage it directly here.</p>
+                </div>
+            @endif
+
+            @if($paymentHistory->isEmpty())
                 <div class="mt-6 rounded-[1.5rem] border border-dashed border-zinc-300 bg-zinc-50 px-5 py-10 text-center">
                     <p class="text-lg font-semibold text-zinc-950">No payments yet</p>
                     <p class="mt-2 text-sm leading-7 text-zinc-500">Payment updates and refund records will appear here.</p>
                 </div>
             @else
                 <div class="mt-6 space-y-3" data-motion-group>
-                    @foreach($recentPayments as $payment)
+                    @foreach($paymentHistory as $payment)
                         <article class="rounded-[1.35rem] border border-zinc-200 bg-zinc-50 px-4 py-4" data-motion-item data-motion-card>
                             <div class="flex items-start justify-between gap-3">
                                 <div class="min-w-0">
@@ -269,7 +359,17 @@
                                     <p class="text-lg font-semibold text-zinc-950">Rs. {{ number_format((float) $payment->amount, 0) }}</p>
                                     <p class="mt-1 text-xs text-zinc-500">{{ optional($payment->paid_at ?? $payment->created_at)->format('d M Y, h:i A') }}</p>
                                 </div>
-                                <a href="{{ route('customer.payments.index') }}" class="text-xs font-semibold text-zinc-950 transition hover:text-zinc-600">Payment history</a>
+                                <div class="flex flex-wrap gap-2">
+                                    @if($payment->booking && in_array($payment->booking->status, [\App\Models\Booking::STATUS_PENDING, \App\Models\Booking::STATUS_ACCEPTED], true))
+                                        <a href="{{ route('customer.dashboard', ['pay_booking' => $payment->booking->id]) }}#payments-center" class="text-xs font-semibold text-zinc-950 transition hover:text-zinc-600">Open payment</a>
+                                    @endif
+                                    @if($payment->can_refund)
+                                        <form method="POST" action="{{ route('customer.payments.refund', $payment) }}">
+                                            @csrf
+                                            <button type="submit" class="text-xs font-semibold text-rose-600 transition hover:text-rose-500">Refund</button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
                         </article>
                     @endforeach
@@ -297,25 +397,9 @@
     (() => {
         const focusProfile = @json($focusProfile);
         const profileSection = document.getElementById('profile-center');
-        const photoInput = document.getElementById('customerProfilePhotoInput');
-        const photoPreview = document.getElementById('customerProfilePhotoPreview');
-        const photoInitial = document.getElementById('customerProfileInitial');
 
         if (focusProfile && profileSection) {
             requestAnimationFrame(() => profileSection.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-        }
-
-        if (photoInput && photoPreview && photoInitial) {
-            photoInput.addEventListener('change', () => {
-                const file = photoInput.files && photoInput.files[0] ? photoInput.files[0] : null;
-                if (!file || !file.type.startsWith('image/')) {
-                    return;
-                }
-
-                photoPreview.src = URL.createObjectURL(file);
-                photoPreview.classList.remove('hidden');
-                photoInitial.classList.add('hidden');
-            });
         }
     })();
 </script>

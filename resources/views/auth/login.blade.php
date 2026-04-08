@@ -97,16 +97,8 @@
                     </div>
 
                     <div class="space-y-2">
-                        <div class="flex items-center justify-between gap-4">
-                            <label for="password" class="block text-sm font-medium text-zinc-700">Password</label>
-                            <button
-                                type="button"
-                                id="forgotPasswordLink"
-                                class="text-sm font-medium text-zinc-500 transition hover:text-zinc-950"
-                            >
-                                Forgot password?
-                            </button>
-                        </div>
+                      
+                        <label for="password" class="block text-sm font-medium text-zinc-700">Password</label>
                         <input
                             id="password"
                             type="password"
@@ -116,6 +108,15 @@
                             class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-4 focus:ring-zinc-100"
                             placeholder="Enter your password"
                         >
+                          <div class="flex items-center justify-between gap-4">
+                            <button
+                                type="button"
+                                id="forgotPasswordLink"
+                                class="text-sm font-medium text-zinc-500 transition hover:text-zinc-950"
+                            >
+                                Forgot password?
+                            </button>
+                        </div>
                     </div>
 
                     <label class="inline-flex items-center gap-3 text-sm text-zinc-600">

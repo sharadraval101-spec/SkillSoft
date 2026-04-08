@@ -5,13 +5,13 @@
     $dashboardRoute = match ($role) {
         \App\Models\User::ROLE_ADMIN => route('admin.dashboard'),
         \App\Models\User::ROLE_PROVIDER => route('provider.dashboard'),
-        default => route('user.dashboard'),
+        default => route('customer.dashboard'),
     };
 
     $isDashboardActive = request()->routeIs(match ($role) {
         \App\Models\User::ROLE_ADMIN => 'admin.dashboard',
         \App\Models\User::ROLE_PROVIDER => 'provider.dashboard',
-        default => 'user.dashboard',
+        default => 'customer.dashboard',
     });
 
     $isProfileActive = request()->routeIs('profile.index');
@@ -22,7 +22,6 @@
     $isProviderCategoriesActive = request()->routeIs('provider.categories.*');
     $isProviderPayoutsActive = request()->routeIs('provider.payouts.*');
     $isCustomerBookingsActive = request()->routeIs('customer.bookings.*');
-    $isCustomerPaymentsActive = request()->routeIs('customer.payments.*');
     $isNotificationsActive = request()->routeIs('notifications.*');
     $isAdminUsersActive = request()->routeIs('admin.users.*');
 @endphp
@@ -112,12 +111,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.42a12.08 12.08 0 01.84 4.92c0 3.31-3.13 6-7 6s-7-2.69-7-6c0-1.74.31-3.41.84-4.92L12 14z"/>
                 </svg>
                 <span class="sidebar-label">My Bookings</span>
-            </a>
-            <a href="{{ route('customer.payments.index') }}" title="Payment History" class="sidebar-link group {{ $isCustomerPaymentsActive ? 'sidebar-link-active' : '' }}">
-                <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7h18M5 11h14a2 2 0 012 2v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4a2 2 0 012-2z"/>
-                </svg>
-                <span class="sidebar-label">Payment History</span>
             </a>
         @endif
 

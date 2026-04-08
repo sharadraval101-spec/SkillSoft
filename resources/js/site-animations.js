@@ -1,8 +1,5 @@
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-window.gsap = gsap;
-window.ScrollTrigger = ScrollTrigger;
+const gsap = window.gsap ?? null;
+const ScrollTrigger = window.ScrollTrigger ?? null;
 
 const body = document.body;
 const userMotionRoot = body?.dataset.userMotionRoot;
@@ -13,8 +10,9 @@ const prefersReducedMotion = userMotionRoot
 const canHover = userMotionRoot
     ? window.matchMedia('(hover: hover) and (pointer: fine)').matches
     : false;
+const canAnimate = Boolean(gsap) && Boolean(ScrollTrigger) && !prefersReducedMotion;
 
-if (userMotionRoot && !prefersReducedMotion) {
+if (userMotionRoot && canAnimate) {
     gsap.registerPlugin(ScrollTrigger);
     document.documentElement.classList.add('js-user-motion');
 }
@@ -26,7 +24,7 @@ const queryElements = (root, selectors) =>
     toUniqueElements(selectors.flatMap((selector) => Array.from(root.querySelectorAll(selector))));
 
 const animateSections = () => {
-    if (prefersReducedMotion) {
+    if (!canAnimate) {
         return;
     }
 
@@ -88,7 +86,7 @@ const animateSections = () => {
 };
 
 const animateGroups = () => {
-    if (prefersReducedMotion) {
+    if (!canAnimate) {
         return;
     }
 
@@ -118,7 +116,7 @@ const animateGroups = () => {
 };
 
 const animateStandaloneCards = () => {
-    if (prefersReducedMotion) {
+    if (!canAnimate) {
         return;
     }
 
@@ -143,7 +141,7 @@ const animateStandaloneCards = () => {
 };
 
 const animateFallbackBlocks = () => {
-    if (prefersReducedMotion) {
+    if (!canAnimate) {
         return;
     }
 
@@ -179,7 +177,7 @@ const animateFallbackBlocks = () => {
 const animateFooter = () => {
     const footer = document.querySelector('[data-motion-footer]');
 
-    if (!footer || prefersReducedMotion) {
+    if (!footer || !canAnimate) {
         return;
     }
 
@@ -205,7 +203,7 @@ const animateFooter = () => {
 };
 
 const animateMediaParallax = () => {
-    if (prefersReducedMotion) {
+    if (!canAnimate) {
         return;
     }
 
@@ -238,7 +236,7 @@ const initFilterDrawers = () => {
 
         let isOpen = false;
 
-        if (!prefersReducedMotion) {
+        if (canAnimate) {
             drawer.classList.remove('translate-x-full');
             overlay.classList.remove('pointer-events-none', 'opacity-0');
             gsap.set(drawer, { xPercent: 100 });
@@ -259,7 +257,7 @@ const initFilterDrawers = () => {
             isOpen = true;
             syncExpandedState(true);
 
-            if (prefersReducedMotion) {
+            if (!canAnimate) {
                 drawer.classList.remove('translate-x-full');
                 overlay.classList.remove('pointer-events-none', 'opacity-0');
                 return;
@@ -289,7 +287,7 @@ const initFilterDrawers = () => {
             isOpen = false;
             syncExpandedState(false);
 
-            if (prefersReducedMotion) {
+            if (!canAnimate) {
                 drawer.classList.add('translate-x-full');
                 overlay.classList.add('pointer-events-none', 'opacity-0');
                 return;
@@ -406,7 +404,7 @@ const initFavoriteToggles = () => {
             grid.appendChild(emptyState);
         };
 
-        if (window.gsap && !prefersReducedMotion) {
+        if (canAnimate) {
             gsap.to(card, {
                 autoAlpha: 0,
                 y: 18,
@@ -466,7 +464,7 @@ const initFavoriteToggles = () => {
 };
 
 const setupInteractiveMotion = () => {
-    if (!canHover || prefersReducedMotion) {
+    if (!canHover || !canAnimate) {
         return;
     }
 
@@ -497,7 +495,7 @@ const setupInteractiveMotion = () => {
 };
 
 const refreshScrollTriggers = () => {
-    if (prefersReducedMotion) {
+    if (!canAnimate) {
         return;
     }
 

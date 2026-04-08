@@ -33,9 +33,9 @@
                 <a href="{{ route('site.services.index') }}" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] bg-zinc-950 px-7 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-action>
                     Explore Services
                 </a>
-                <a href="#how-it-works" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] border border-zinc-300 px-7 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950" data-motion-action>
+                {{-- <a href="#how-it-works" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] border border-zinc-300 px-7 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950" data-motion-action>
                     How It Works
-                </a>
+                </a> --}}
             </div>
         </div>
 

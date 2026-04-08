@@ -17,6 +17,7 @@
         $usesNeutralCustomerChrome = request()->routeIs('site.services.index')
             || request()->routeIs('site.categories.index')
             || request()->routeIs('site.favorites.index')
+            || request()->routeIs('site.services.show')
             || request()->routeIs('customer.dashboard');
     @endphp
 

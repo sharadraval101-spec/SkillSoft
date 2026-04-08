@@ -34,11 +34,13 @@ class ProfileController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        $requiresProfilePhoto = (int) $user->role !== User::ROLE_CUSTOMER && !$user->profile_photo_path;
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'profile_photo' => [
-                Rule::requiredIf(!$user->profile_photo_path),
+                Rule::requiredIf($requiresProfilePhoto),
                 'nullable',
                 'image',
                 'mimes:jpg,jpeg,png,webp',

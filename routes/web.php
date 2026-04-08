@@ -277,7 +277,7 @@ Route::middleware(['auth'])->group(function () {
         ])
         ->name('provider.payouts.index');
 
-    Route::get('/user/dashboard', fn() => view('user.index'))
+    Route::get('/user/dashboard', fn() => redirect()->route('customer.dashboard'))
         ->middleware([
             'role:'.User::ROLE_CUSTOMER,
             'spatie.role:customer',

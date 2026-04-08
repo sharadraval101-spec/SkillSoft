@@ -32,7 +32,7 @@
 
     <div class="mt-5 flex flex-wrap gap-2 border-t border-sky-100 pt-4">
         @if(!$booking->has_paid_payment && in_array($booking->status, [\App\Models\Booking::STATUS_PENDING, \App\Models\Booking::STATUS_ACCEPTED], true))
-            <a href="{{ route('customer.payments.checkout', $booking) }}" class="rounded-lg border border-sky-300 px-3 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-50">
+            <a href="{{ route('customer.dashboard', ['pay_booking' => $booking->id]) }}#payments-center" class="rounded-lg border border-sky-300 px-3 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-50">
                 Pay Now
             </a>
         @endif

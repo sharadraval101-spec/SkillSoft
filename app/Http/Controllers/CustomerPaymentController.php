@@ -7,7 +7,6 @@ use App\Models\Payment;
 use App\Services\PaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class CustomerPaymentController extends Controller
 {
@@ -15,26 +14,15 @@ class CustomerPaymentController extends Controller
     {
     }
 
-    public function checkout(Request $request, Booking $booking): View
+    public function checkout(Request $request, Booking $booking): RedirectResponse
     {
         /** @var \App\Models\User $customer */
         $customer = $request->user();
         $this->ensureBookingOwner($booking, $customer->id);
 
-        $booking->load([
-            'provider:id,name,email',
-            'service:id,name,base_price',
-            'serviceVariant:id,name,price',
-            'payments' => fn ($query) => $query->latest(),
-        ]);
-
-        $amount = $booking->serviceVariant?->price ?? $booking->service?->base_price ?? 0;
-
-        return view('customer.payments.checkout', [
-            'booking' => $booking,
-            'amount' => number_format((float) $amount, 2, '.', ''),
-            'currency' => config('payment.currency', 'INR'),
-        ]);
+        return redirect()->to(route('customer.dashboard', [
+            'pay_booking' => $booking->getKey(),
+        ]).'#payments-center');
     }
 
     public function payOnline(Request $request, Booking $booking): RedirectResponse
@@ -56,7 +44,7 @@ class CustomerPaymentController extends Controller
         );
 
         return redirect()
-            ->route('customer.payments.index')
+            ->to(route('customer.dashboard').'#payments-center')
             ->with('success', 'Online payment initiated successfully.');
     }
 
@@ -73,31 +61,13 @@ class CustomerPaymentController extends Controller
         $this->paymentService->payCash($customer, $booking, $data['payment_mode']);
 
         return redirect()
-            ->route('customer.payments.index')
+            ->to(route('customer.dashboard').'#payments-center')
             ->with('success', 'Cash payment record created successfully.');
     }
 
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse
     {
-        /** @var \App\Models\User $customer */
-        $customer = $request->user();
-
-        $payments = Payment::query()
-            ->with([
-                'booking:id,booking_number,scheduled_at,status,service_id',
-                'booking.service:id,name',
-                'provider:id,name,email',
-            ])
-            ->where('customer_id', $customer->id)
-            ->latest()
-            ->paginate(12);
-
-        $payments->getCollection()->transform(function (Payment $payment) {
-            $payment->setAttribute('can_refund', $this->paymentService->canRefund($payment));
-            return $payment;
-        });
-
-        return view('customer.payments.index', compact('payments'));
+        return redirect()->to(route('customer.dashboard').'#payments-center');
     }
 
     public function refund(Request $request, Payment $payment): RedirectResponse
@@ -116,7 +86,7 @@ class CustomerPaymentController extends Controller
         $this->paymentService->refund($customer, $payment, $data['reason'] ?? null);
 
         return redirect()
-            ->route('customer.payments.index')
+            ->to(route('customer.dashboard').'#payments-center')
             ->with('success', 'Refund processed successfully.');
     }
 
