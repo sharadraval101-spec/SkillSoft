@@ -4,7 +4,7 @@
 <div class="space-y-6">
     <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-6 shadow-xl shadow-black/30">
         <h1 class="text-2xl font-black text-white">Payment History</h1>
-        <p class="mt-2 text-sm text-zinc-400">Track online/cash payments, refunds, and booking-linked transactions.</p>
+        <p class="mt-2 text-sm text-zinc-400">Track online payments, refunds, and booking-linked transactions.</p>
     </section>
 
     <section class="dashboard-panel">

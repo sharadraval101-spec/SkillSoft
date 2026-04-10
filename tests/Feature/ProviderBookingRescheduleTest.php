@@ -10,6 +10,7 @@ use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\Slot;
 use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +20,13 @@ use Tests\TestCase;
 class ProviderBookingRescheduleTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(RoleSeeder::class);
+    }
 
     protected function tearDown(): void
     {
@@ -129,6 +137,62 @@ class ProviderBookingRescheduleTest extends TestCase
         $this->assertStringContainsString('Provider changed availability', (string) $booking->notes);
         $this->assertTrue($sourceSlot->is_available);
         $this->assertFalse($targetSlot->is_available);
+    }
+
+    public function test_provider_can_complete_an_accepted_booking_from_the_appointments_page(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-04-02 11:00:00'));
+
+        $branch = $this->createBranch();
+        $provider = $this->createProvider($branch, 'provider@example.com');
+        $customer = $this->createCustomer('customer@example.com');
+        $service = $this->createService($provider, $branch);
+        $scheduleDate = Carbon::parse('2026-04-02');
+        $schedule = $this->createSchedule($provider, $branch, $scheduleDate);
+        $slot = $this->createSlot($schedule, $provider, $branch, $scheduleDate->copy()->setTime(10, 0), $scheduleDate->copy()->setTime(10, 30));
+        $booking = $this->createBooking($customer, $provider, $branch, $service, $slot, 'BK-COMPLETE-0001');
+        $booking->update(['status' => Booking::STATUS_ACCEPTED]);
+
+        $page = $this->actingAs($provider)->get(route('provider.bookings.index'));
+        $page->assertOk();
+        $page->assertSee('Complete');
+
+        $response = $this->actingAs($provider)
+            ->from(route('provider.bookings.index'))
+            ->put(route('provider.bookings.complete', $booking));
+
+        $response->assertRedirect(route('provider.bookings.index'));
+        $response->assertSessionHas('success', 'Appointment marked as completed successfully.');
+
+        $booking->refresh();
+
+        $this->assertSame(Booking::STATUS_COMPLETED, $booking->status);
+        $this->assertNull($booking->cancelled_at);
+    }
+
+    public function test_provider_cannot_complete_a_pending_booking(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-04-02 11:00:00'));
+
+        $branch = $this->createBranch();
+        $provider = $this->createProvider($branch, 'provider@example.com');
+        $customer = $this->createCustomer('customer@example.com');
+        $service = $this->createService($provider, $branch);
+        $scheduleDate = Carbon::parse('2026-04-02');
+        $schedule = $this->createSchedule($provider, $branch, $scheduleDate);
+        $slot = $this->createSlot($schedule, $provider, $branch, $scheduleDate->copy()->setTime(10, 0), $scheduleDate->copy()->setTime(10, 30));
+        $booking = $this->createBooking($customer, $provider, $branch, $service, $slot, 'BK-COMPLETE-1001');
+
+        $response = $this->actingAs($provider)
+            ->from(route('provider.bookings.index'))
+            ->put(route('provider.bookings.complete', $booking));
+
+        $response->assertRedirect(route('provider.bookings.index'));
+        $response->assertSessionHasErrors('booking');
+
+        $booking->refresh();
+
+        $this->assertSame(Booking::STATUS_PENDING, $booking->status);
     }
 
     public function test_provider_cannot_reschedule_listed_booking_when_target_slot_is_taken(): void

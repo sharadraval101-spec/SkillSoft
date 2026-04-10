@@ -6,11 +6,16 @@
         <div class="max-w-2xl">
             <p class="text-sm font-medium uppercase tracking-[0.2em] text-zinc-400" data-motion-kicker>My Bookings</p>
             <h1 class="mt-4 text-[2.5rem] font-semibold tracking-[-0.05em] text-zinc-900 sm:text-[3.1rem]" data-motion-title>Track, manage, and update your bookings</h1>
-            <p class="mt-4 text-[15px] leading-8 text-zinc-500" data-motion-copy>Review upcoming bookings, pay pending items, and reschedule or cancel within the allowed booking window.</p>
+            <p class="mt-4 text-[15px] leading-8 text-zinc-500" data-motion-copy>Review upcoming bookings, pay pending items, and leave feedback once a service is completed. Providers now handle schedule changes.</p>
         </div>
-        <a href="{{ route('site.booking') }}" class="inline-flex items-center justify-center rounded-[14px] bg-zinc-950 px-6 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-actions data-motion-action>
-            New Booking
-        </a>
+        <div class="flex flex-wrap gap-3">
+            <a href="{{ route('customer.feedback.index') }}" class="inline-flex items-center justify-center rounded-[14px] border border-zinc-300 px-6 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950" data-motion-actions data-motion-action>
+                Feedback & Ratings
+            </a>
+            <a href="{{ route('site.booking') }}" class="inline-flex items-center justify-center rounded-[14px] bg-zinc-950 px-6 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-actions data-motion-action>
+                New Booking
+            </a>
+        </div>
     </div>
 
     <section class="mt-10 overflow-hidden rounded-[32px] bg-white shadow-[0_18px_50px_rgba(0,0,0,0.06)] ring-1 ring-black/5" data-motion-card>
@@ -50,6 +55,11 @@
                                     @if($booking->serviceVariant)
                                         <p class="mt-1 text-xs text-zinc-500">Variant: {{ $booking->serviceVariant->name }}</p>
                                     @endif
+                                    @if($booking->status === \App\Models\Booking::STATUS_COMPLETED)
+                                        <p class="mt-2 text-xs font-medium {{ $booking->review ? 'text-emerald-600' : 'text-zinc-500' }}">
+                                            {{ $booking->review ? 'Feedback saved' : 'Ready for feedback' }}
+                                        </p>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-5 text-zinc-700">{{ $booking->provider?->name ?? 'N/A' }}</td>
                                 <td class="px-6 py-5 text-zinc-700">{{ $booking->service?->name ?? 'N/A' }}</td>
@@ -60,16 +70,14 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-5 sm:px-8">
+                                    @php
+                                        $hasPayAction = !$booking->has_paid_payment && in_array($booking->status, [\App\Models\Booking::STATUS_PENDING, \App\Models\Booking::STATUS_ACCEPTED], true);
+                                        $hasFeedbackAction = $booking->status === \App\Models\Booking::STATUS_COMPLETED;
+                                    @endphp
                                     <div class="flex flex-wrap gap-2">
-                                        @if(!$booking->has_paid_payment && in_array($booking->status, [\App\Models\Booking::STATUS_PENDING, \App\Models\Booking::STATUS_ACCEPTED], true))
+                                        @if($hasPayAction)
                                             <a href="{{ route('customer.dashboard', ['pay_booking' => $booking->id]) }}#payments-center" class="inline-flex rounded-[10px] border border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950">
                                                 Pay Now
-                                            </a>
-                                        @endif
-
-                                        @if($booking->can_reschedule)
-                                            <a href="{{ route('customer.bookings.reschedule.form', $booking) }}" class="inline-flex rounded-[10px] border border-zinc-300 px-3 py-2 text-xs font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950">
-                                                Reschedule
                                             </a>
                                         @endif
 
@@ -82,7 +90,13 @@
                                             </form>
                                         @endif
 
-                                        @if(!$booking->can_reschedule && !$booking->can_cancel && !(!$booking->has_paid_payment && in_array($booking->status, [\App\Models\Booking::STATUS_PENDING, \App\Models\Booking::STATUS_ACCEPTED], true)))
+                                        @if($hasFeedbackAction)
+                                            <a href="{{ route('customer.feedback.edit', $booking) }}" class="inline-flex rounded-[10px] border {{ $booking->review ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-amber-200 text-amber-700 hover:bg-amber-50' }} px-3 py-2 text-xs font-medium transition">
+                                                {{ $booking->review ? 'Edit Feedback' : 'Leave Feedback' }}
+                                            </a>
+                                        @endif
+
+                                        @if(!$booking->can_cancel && !$hasPayAction && !$hasFeedbackAction)
                                             <span class="text-xs text-zinc-400">No actions</span>
                                         @endif
                                     </div>

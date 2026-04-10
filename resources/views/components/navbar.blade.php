@@ -11,7 +11,14 @@
     $isServicesActive = request()->routeIs('site.services.*');
     $isCategoriesActive = request()->routeIs('site.categories.*');
     $isFavoritesActive = request()->routeIs('site.favorites.*');
-    $likedCount = collect(session('site.favorites', []))->filter()->unique()->count();
+    $isNotificationsActive = request()->routeIs('notifications.*');
+    $likedCount = \App\Support\SiteFavorites::count();
+    $unreadNotificationCount = auth()->check()
+        ? \App\Models\Notification::query()
+            ->where('user_id', auth()->id())
+            ->unread()
+            ->count()
+        : 0;
     $desktopNavLinkClasses = "relative inline-flex items-center pb-1 text-[15px] font-medium text-zinc-700 transition-colors duration-200 hover:text-zinc-950 after:pointer-events-none after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-zinc-950 after:transition-transform after:duration-300 after:ease-out after:content-[''] hover:after:scale-x-100 focus-visible:after:scale-x-100";
 @endphp
 
@@ -57,12 +64,30 @@
                     {{ $likedCount }}
                 </span>
             </a>
+            @auth
+                <a
+                    href="{{ route('notifications.index') }}"
+                    class="relative inline-flex h-10 w-10 items-center justify-center rounded-full transition {{ $isNotificationsActive ? 'bg-sky-100 text-sky-700' : 'bg-sky-50 text-sky-500 hover:bg-sky-100' }}"
+                    aria-label="Notifications"
+                    data-motion-utility
+                    data-motion-action
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1" />
+                    </svg>
+                    @if($unreadNotificationCount > 0)
+                        <span class="absolute -right-1 -top-1 inline-flex min-h-[1.2rem] min-w-[1.2rem] items-center justify-center rounded-full bg-sky-500 px-1 text-[10px] font-semibold text-white">
+                            {{ $unreadNotificationCount > 9 ? '9+' : $unreadNotificationCount }}
+                        </span>
+                    @endif
+                </a>
+            @endauth
             <span class="h-7 w-px bg-zinc-200"></span>
 
             @auth
                 @if($isCustomer)
                     <a href="{{ route('customer.dashboard') }}" class="inline-flex items-center rounded-lg bg-zinc-950 px-6 py-3 text-[15px] font-medium text-white transition hover:bg-zinc-800" data-motion-utility data-motion-action>
-                        Dashboard
+                        My Account
                     </a>
                 @else
                     <a href="{{ route('profile.index') }}" class="inline-flex items-center rounded-lg bg-zinc-950 px-6 py-3 text-[15px] font-medium text-white transition hover:bg-zinc-800" data-motion-utility data-motion-action>
@@ -127,12 +152,21 @@
 
                 <div class="mt-4 border-t border-zinc-200 pt-4">
                     @auth
+                        <a href="{{ route('notifications.index') }}" class="inline-flex w-full items-center justify-between rounded-xl border border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>
+                            <span>Notifications</span>
+                            @if($unreadNotificationCount > 0)
+                                <span class="inline-flex min-h-[1.35rem] min-w-[1.35rem] items-center justify-center rounded-full bg-sky-500 px-1.5 text-[10px] font-semibold text-white">
+                                    {{ $unreadNotificationCount > 9 ? '9+' : $unreadNotificationCount }}
+                                </span>
+                            @endif
+                        </a>
+
                         @if($isCustomer)
-                            <a href="{{ route('customer.dashboard') }}" class="inline-flex w-full items-center justify-center rounded-xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800" data-motion-action>
-                                Dashboard
+                            <a href="{{ route('customer.dashboard') }}" class="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800" data-motion-action>
+                                My Account
                             </a>
                         @else
-                            <a href="{{ route('profile.index') }}" class="inline-flex w-full items-center justify-center rounded-xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800" data-motion-action>
+                            <a href="{{ route('profile.index') }}" class="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800" data-motion-action>
                                 Profile
                             </a>
                         @endif

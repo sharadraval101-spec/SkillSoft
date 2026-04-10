@@ -437,6 +437,66 @@ class BookingService
         });
     }
 
+    public function completeBookingByProvider(User $provider, Booking $booking): Booking
+    {
+        return DB::transaction(function () use ($provider, $booking): Booking {
+            $booking = Booking::query()
+                ->with([
+                    'customer:id,name,email',
+                    'service:id,name',
+                    'serviceVariant:id,name',
+                    'slot:id,start_at,end_at',
+                ])
+                ->lockForUpdate()
+                ->findOrFail($booking->id);
+
+            if ((int) $booking->provider_id !== (int) $provider->id) {
+                abort(403);
+            }
+
+            if (!$this->canProviderComplete($booking)) {
+                throw ValidationException::withMessages([
+                    'booking' => 'Only active provider appointments can be marked as completed.',
+                ]);
+            }
+
+            /** @var Slot|null $slot */
+            $slot = Slot::query()->lockForUpdate()->find($booking->slot_id);
+
+            $booking->update([
+                'status' => Booking::STATUS_COMPLETED,
+                'cancelled_at' => null,
+            ]);
+
+            if ($slot) {
+                $this->refreshSlotAvailability($slot);
+            }
+
+            $freshBooking = $booking->fresh([
+                'customer:id,name,email',
+                'service:id,name',
+                'serviceVariant:id,name',
+                'slot:id,start_at,end_at',
+            ]);
+
+            $this->notificationService->notifyUser(
+                $freshBooking->customer_id,
+                'booking.completed.by_provider',
+                'Booking Completed',
+                'Your booking '.$freshBooking->booking_number.' has been marked as completed.',
+                [
+                    'booking_id' => $freshBooking->id,
+                    'booking_number' => $freshBooking->booking_number,
+                ],
+                sendEmailFallback: true,
+                sendSms: true,
+                sendWhatsapp: true
+            );
+
+            return $freshBooking;
+        });
+    }
+
     public function cancelBooking(User $customer, Booking $booking, ?string $reason = null): Booking
     {
         return DB::transaction(function () use ($customer, $booking, $reason): Booking {
@@ -526,6 +586,23 @@ class BookingService
         }
 
         return $booking->scheduled_at->gt(now());
+    }
+
+    public function canProviderComplete(Booking $booking): bool
+    {
+        if (!$booking->scheduled_at) {
+            return false;
+        }
+
+        if (!in_array($booking->status, [
+            Booking::STATUS_ACCEPTED,
+            Booking::STATUS_CONFIRMED,
+            Booking::STATUS_IN_PROGRESS,
+        ], true)) {
+            return false;
+        }
+
+        return $booking->scheduled_at->lte(now());
     }
 
     public function canCancel(Booking $booking): bool

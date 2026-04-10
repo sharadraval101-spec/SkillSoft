@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,7 +25,11 @@ class NotificationController extends Controller
             ->unread()
             ->count();
 
-        return view('notifications.index', compact('notifications', 'unreadCount'));
+        $view = (int) $user->role === User::ROLE_CUSTOMER
+            ? 'customer.notifications.index'
+            : 'notifications.index';
+
+        return view($view, compact('notifications', 'unreadCount'));
     }
 
     public function read(Request $request): RedirectResponse

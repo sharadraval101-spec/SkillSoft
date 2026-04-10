@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'SkillSlot' }}</title>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
@@ -15,11 +14,16 @@
         $usesMinimalCustomerChrome = request()->routeIs('site.home')
             || request()->routeIs('site.booking')
             || request()->routeIs('customer.bookings.*');
+        $usesCustomerNotificationChrome = request()->routeIs('notifications.index')
+            && auth()->check()
+            && (int) auth()->user()->role === \App\Models\User::ROLE_CUSTOMER;
         $usesNeutralCustomerChrome = request()->routeIs('site.services.index')
             || request()->routeIs('site.categories.index')
             || request()->routeIs('site.favorites.index')
             || request()->routeIs('site.services.show')
-            || request()->routeIs('customer.dashboard');
+            || request()->routeIs('customer.dashboard')
+            || request()->routeIs('customer.feedback.*')
+            || $usesCustomerNotificationChrome;
     @endphp
 
     <div class="relative overflow-x-clip">
@@ -44,10 +48,11 @@
         <x-footer />
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
     @include('components.flash-toasts')
+
+    @if(request()->routeIs('site.services.show'))
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    @endif
 
     @stack('scripts')
 </body>

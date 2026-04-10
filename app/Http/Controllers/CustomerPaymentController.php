@@ -54,15 +54,9 @@ class CustomerPaymentController extends Controller
         $customer = $request->user();
         $this->ensureBookingOwner($booking, $customer->id);
 
-        $data = $request->validate([
-            'payment_mode' => 'required|in:prepaid,postpaid',
-        ]);
-
-        $this->paymentService->payCash($customer, $booking, $data['payment_mode']);
-
         return redirect()
             ->to(route('customer.dashboard').'#payments-center')
-            ->with('success', 'Cash payment record created successfully.');
+            ->with('error', 'Cash payment is no longer available on the website. Please use an online payment gateway.');
     }
 
     public function index(Request $request): RedirectResponse

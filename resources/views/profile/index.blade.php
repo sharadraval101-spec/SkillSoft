@@ -146,16 +146,22 @@
             };
 
             const showToast = (text, type = 'error') => {
+                if (window.showFlashToast) {
+                    window.showFlashToast(type, text, { duration: 1200 });
+                    return;
+                }
+
                 const root = ensureToastRoot();
                 const styleByType = {
-                    success: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100',
-                    info: 'border-cyan-400/40 bg-cyan-500/15 text-cyan-100',
-                    error: 'border-rose-400/40 bg-rose-500/15 text-rose-100'
+                    success: 'border-emerald-300 bg-emerald-50 text-emerald-800',
+                    info: 'border-sky-300 bg-sky-50 text-sky-800',
+                    warning: 'border-amber-300 bg-amber-50 text-amber-800',
+                    error: 'border-rose-300 bg-rose-50 text-rose-800'
                 };
 
                 const toast = document.createElement('div');
                 toast.className = `toast-pop border backdrop-blur-md shadow-lg ${styleByType[type] || styleByType.error}`;
-                toast.textContent = text;
+                toast.textContent = typeof text === 'string' ? text.trim() : String(text ?? '').trim();
                 root.appendChild(toast);
 
                 requestAnimationFrame(() => toast.classList.add('toast-pop-show'));

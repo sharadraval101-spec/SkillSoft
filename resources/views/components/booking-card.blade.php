@@ -36,11 +36,6 @@
                 Pay Now
             </a>
         @endif
-        @if($booking->can_reschedule)
-            <a href="{{ route('customer.bookings.reschedule.form', $booking) }}" class="rounded-lg border border-sky-300 px-3 py-2 text-xs font-semibold text-sky-700 transition hover:bg-sky-50">
-                Reschedule
-            </a>
-        @endif
         @if($booking->can_cancel)
             <form method="POST" action="{{ route('customer.bookings.cancel', $booking) }}">
                 @csrf

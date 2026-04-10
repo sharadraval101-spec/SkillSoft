@@ -1,12 +1,45 @@
 @php
     $toasts = collect();
 
-    foreach (['success', 'code_sent', 'password_reset_success', 'status', 'error'] as $key) {
-        if (session($key)) {
-            $type = in_array($key, ['success', 'password_reset_success'], true) ? 'success' : (in_array($key, ['error'], true) ? 'error' : 'info');
+    $resolveToastText = static function (mixed $value): ?string {
+        if (is_string($value) || is_numeric($value)) {
+            $text = trim((string) $value);
+
+            return $text !== '' ? $text : null;
+        }
+
+        if (is_array($value)) {
+            $candidate = data_get($value, 'message')
+                ?? data_get($value, 'text')
+                ?? collect($value)->flatten()->first(fn ($item) => is_string($item) || is_numeric($item));
+
+            return $candidate !== null ? trim((string) $candidate) : null;
+        }
+
+        if (is_object($value) && method_exists($value, '__toString')) {
+            $text = trim((string) $value);
+
+            return $text !== '' ? $text : null;
+        }
+
+        return null;
+    };
+
+    foreach ([
+        'success' => 'success',
+        'password_reset_success' => 'success',
+        'status' => 'info',
+        'info' => 'info',
+        'code_sent' => 'info',
+        'warning' => 'warning',
+        'error' => 'error',
+    ] as $key => $type) {
+        $text = $resolveToastText(session($key));
+
+        if ($text !== null) {
             $toasts->push([
                 'type' => $type,
-                'text' => session($key),
+                'text' => $text,
             ]);
         }
     }
@@ -43,20 +76,25 @@
         };
 
         const styleByType = {
-            success: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100',
-            info: 'border-cyan-400/40 bg-cyan-500/15 text-cyan-100',
-            error: 'border-rose-400/40 bg-rose-500/15 text-rose-100'
+            success: 'border-emerald-300 bg-emerald-50 text-emerald-800',
+            info: 'border-sky-300 bg-sky-50 text-sky-800',
+            warning: 'border-amber-300 bg-amber-50 text-amber-800',
+            error: 'border-rose-300 bg-rose-50 text-rose-800'
         };
 
         window.showFlashToast = (type, text, options = {}) => {
             const root = ensureToastStack();
-            if (!root || !text) {
+            const message = typeof text === 'string'
+                ? text.trim()
+                : String(text ?? '').trim();
+
+            if (!root || !message) {
                 return;
             }
 
             const toast = document.createElement('div');
             toast.className = `toast-pop border backdrop-blur-md shadow-lg ${styleByType[type] || styleByType.info}`;
-            toast.textContent = text;
+            toast.textContent = message;
             root.appendChild(toast);
 
             requestAnimationFrame(() => toast.classList.add('toast-pop-show'));

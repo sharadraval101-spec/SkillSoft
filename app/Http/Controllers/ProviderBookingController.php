@@ -33,6 +33,7 @@ class ProviderBookingController extends Controller
 
         $bookings->getCollection()->transform(function (Booking $booking) {
             $booking->setAttribute('can_provider_accept', $this->bookingService->canProviderAccept($booking));
+            $booking->setAttribute('can_provider_complete', $this->bookingService->canProviderComplete($booking));
             $booking->setAttribute('can_provider_reschedule', $this->bookingService->canProviderReschedule($booking));
 
             return $booking;
@@ -54,6 +55,19 @@ class ProviderBookingController extends Controller
         return redirect()
             ->route('provider.bookings.index')
             ->with('success', 'Appointment accepted successfully.');
+    }
+
+    public function complete(Request $request, Booking $booking): RedirectResponse
+    {
+        /** @var User $provider */
+        $provider = $request->user();
+        abort_unless((int) $booking->provider_id === (int) $provider->id, 403);
+
+        $this->bookingService->completeBookingByProvider($provider, $booking);
+
+        return redirect()
+            ->route('provider.bookings.index')
+            ->with('success', 'Appointment marked as completed successfully.');
     }
 
     public function reschedule(Request $request, Booking $booking): RedirectResponse

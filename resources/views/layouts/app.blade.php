@@ -1,5 +1,11 @@
 @php
     $dashboardRole = auth()->check() ? (string) auth()->user()->role : 'guest';
+    $usesJquery = request()->routeIs('admin.users.*')
+        || request()->routeIs('admin.providers.pending')
+        || request()->routeIs('provider.services.*')
+        || request()->routeIs('provider.categories.*')
+        || request()->routeIs('provider.schedule.*')
+        || request()->routeIs('provider.availability.*');
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full" data-theme="light">
@@ -47,7 +53,9 @@
 
     @include('components.flash-toasts')
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    @if($usesJquery)
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    @endif
     @stack('scripts')
 </body>
 </html>

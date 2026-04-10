@@ -22,6 +22,7 @@
     $isProviderCategoriesActive = request()->routeIs('provider.categories.*');
     $isProviderPayoutsActive = request()->routeIs('provider.payouts.*');
     $isCustomerBookingsActive = request()->routeIs('customer.bookings.*');
+    $isCustomerFeedbackActive = request()->routeIs('customer.feedback.*');
     $isNotificationsActive = request()->routeIs('notifications.*');
     $isAdminUsersActive = request()->routeIs('admin.users.*');
 @endphp
@@ -111,6 +112,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.42a12.08 12.08 0 01.84 4.92c0 3.31-3.13 6-7 6s-7-2.69-7-6c0-1.74.31-3.41.84-4.92L12 14z"/>
                 </svg>
                 <span class="sidebar-label">My Bookings</span>
+            </a>
+            <a href="{{ route('customer.feedback.index') }}" title="Feedback & Ratings" class="sidebar-link group {{ $isCustomerFeedbackActive ? 'sidebar-link-active' : '' }}">
+                <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11.05 3.84c.3-.92 1.6-.92 1.9 0l1.17 3.6a1 1 0 00.95.69h3.78c.97 0 1.38 1.24.59 1.81l-3.06 2.22a1 1 0 00-.36 1.12l1.17 3.6c.3.92-.75 1.68-1.54 1.12l-3.06-2.23a1 1 0 00-1.18 0l-3.06 2.23c-.79.56-1.84-.2-1.54-1.12l1.17-3.6a1 1 0 00-.36-1.12L4.56 9.94c-.79-.57-.38-1.81.59-1.81h3.78a1 1 0 00.95-.69l1.17-3.6z"/>
+                </svg>
+                <span class="sidebar-label">Feedback & Ratings</span>
             </a>
         @endif
 

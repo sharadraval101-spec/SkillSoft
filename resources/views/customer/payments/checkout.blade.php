@@ -4,7 +4,7 @@
 <div class="space-y-6">
     <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-6 shadow-xl shadow-black/30">
         <h1 class="text-2xl font-black text-white">Payment Checkout</h1>
-        <p class="mt-2 text-sm text-zinc-400">Complete payment for your booking using Razorpay, Stripe, PayPal, or Cash.</p>
+        <p class="mt-2 text-sm text-zinc-400">Complete payment for your booking using Razorpay, Stripe, or PayPal.</p>
     </section>
 
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -26,6 +26,7 @@
 
     <section class="dashboard-panel">
         <h2 class="text-lg font-bold text-white">Online Payment</h2>
+        <p class="mt-2 text-sm text-zinc-400">Cash payment has been removed from the website. Please choose an online gateway below.</p>
         <form method="POST" action="{{ route('customer.payments.online', $booking) }}" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             @csrf
             <div>
@@ -45,29 +46,6 @@
             <div class="flex items-end">
                 <button type="submit" class="w-full rounded-xl bg-cyan-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-cyan-400">
                     Pay Online
-                </button>
-            </div>
-        </form>
-    </section>
-
-    <section class="dashboard-panel">
-        <h2 class="text-lg font-bold text-white">Cash Payment</h2>
-        <form method="POST" action="{{ route('customer.payments.cash', $booking) }}" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            @csrf
-            <div>
-                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Method</label>
-                <input type="text" value="Cash" disabled class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-400">
-            </div>
-            <div>
-                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Mode</label>
-                <select name="payment_mode" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100" required>
-                    <option value="postpaid">Postpaid</option>
-                    <option value="prepaid">Prepaid</option>
-                </select>
-            </div>
-            <div class="flex items-end">
-                <button type="submit" class="w-full rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-amber-400">
-                    Record Cash Payment
                 </button>
             </div>
         </form>

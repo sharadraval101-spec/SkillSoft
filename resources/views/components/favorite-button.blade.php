@@ -4,13 +4,7 @@
 ])
 
 @php
-    $likedServiceIds = collect(session('site.favorites', []))
-        ->map(fn ($id): string => (string) $id)
-        ->filter()
-        ->unique()
-        ->all();
-
-    $isLiked = in_array((string) $service->id, $likedServiceIds, true);
+    $isLiked = \App\Support\SiteFavorites::contains((string) $service->id);
 
     $sizeMap = [
         'small' => 'h-10 w-10 rounded-[12px]',

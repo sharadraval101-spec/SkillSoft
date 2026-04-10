@@ -5,17 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Branch;
 use App\Models\Payment;
+use App\Models\Review;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\User;
+use App\Support\SiteFavorites;
 use App\Services\BookingService;
 use App\Services\PaymentService;
 use App\Services\ScheduleAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -30,47 +34,56 @@ class CustomerWebsiteController extends Controller
 
     public function home(Request $request): View
     {
-        $categories = ServiceCategory::query()
-            ->withCount('services')
-            ->where('is_active', true)
-            ->orderBy('display_order')
-            ->orderBy('name')
-            ->limit(8)
-            ->get(['id', 'name', 'slug', 'description']);
+        $categories = Cache::remember('site.home.categories', now()->addMinutes(10), function (): Collection {
+            return ServiceCategory::query()
+                ->withCount('services')
+                ->where('is_active', true)
+                ->orderBy('display_order')
+                ->orderBy('name')
+                ->limit(8)
+                ->get(['id', 'name', 'slug', 'description']);
+        });
 
-        $featuredServices = Service::query()
-            ->with([
-                'category:id,name,slug',
-                'branch:id,name,city,state',
-                'providerProfile.user:id,name,profile_photo_path',
-            ])
-            ->withAvg('reviews as avg_rating', 'rating')
-            ->withCount('reviews')
-            ->where('is_active', true)
-            ->latest()
-            ->limit(6)
-            ->get();
+        $featuredServices = Cache::remember('site.home.featured-services', now()->addMinutes(5), function (): Collection {
+            $services = Service::query()
+                ->select($this->serviceListingColumns())
+                ->with([
+                    'category:id,name,slug',
+                    'branch:id,name,city,state',
+                    'providerProfile.user:id,name,profile_photo_path',
+                ])
+                ->withAvg('reviews as avg_rating', 'rating')
+                ->withCount('reviews')
+                ->where('is_active', true)
+                ->latest()
+                ->limit(6)
+                ->get();
 
-        $featuredServices = $this->decorateServicesForUi($featuredServices);
+            return $this->decorateServicesForUi($services);
+        });
 
-        $testimonials = \App\Models\Review::query()
-            ->with(['customer:id,name,profile_photo_path', 'service:id,name'])
-            ->where('is_approved', true)
-            ->latest()
-            ->limit(6)
-            ->get(['id', 'customer_id', 'service_id', 'rating', 'title', 'comment', 'created_at']);
+        $testimonials = Cache::remember('site.home.testimonials', now()->addMinutes(5), function (): Collection {
+            return Review::query()
+                ->with(['customer:id,name,profile_photo_path', 'service:id,name'])
+                ->where('is_approved', true)
+                ->latest()
+                ->limit(6)
+                ->get(['id', 'customer_id', 'service_id', 'rating', 'title', 'comment', 'created_at']);
+        });
 
-        $locations = Branch::query()
-            ->where('is_active', true)
-            ->get(['city', 'state'])
-            ->map(function (Branch $branch): string {
-                return trim(implode(', ', array_filter([$branch->city, $branch->state])));
-            })
-            ->filter()
-            ->unique()
-            ->sort()
-            ->take(12)
-            ->values();
+        $locations = Cache::remember('site.home.locations', now()->addMinutes(10), function (): Collection {
+            return Branch::query()
+                ->where('is_active', true)
+                ->get(['city', 'state'])
+                ->map(function (Branch $branch): string {
+                    return trim(implode(', ', array_filter([$branch->city, $branch->state])));
+                })
+                ->filter()
+                ->unique()
+                ->sort()
+                ->take(12)
+                ->values();
+        });
 
         return view('site.home', [
             'categories' => $categories,
@@ -113,26 +126,31 @@ class CustomerWebsiteController extends Controller
         };
 
         $categories = $categoriesQuery
+            ->with([
+                'services' => function (HasMany $query): void {
+                    $query
+                        ->select($this->serviceListingColumns())
+                        ->with([
+                            'category:id,name,slug',
+                            'branch:id,name,city,state',
+                            'providerProfile.user:id,name',
+                        ])
+                        ->withAvg('reviews as avg_rating', 'rating')
+                        ->withCount('reviews')
+                        ->where('is_active', true)
+                        ->latest()
+                        ->limit(3);
+                },
+            ])
             ->get(['id', 'name', 'slug', 'description', 'image_path', 'display_order'])
             ->map(function (ServiceCategory $category): ServiceCategory {
-                $previewServices = Service::query()
-                    ->with([
-                        'category:id,name,slug',
-                        'branch:id,name,city,state',
-                        'providerProfile.user:id,name',
-                    ])
-                    ->withAvg('reviews as avg_rating', 'rating')
-                    ->withCount('reviews')
-                    ->where('is_active', true)
-                    ->where('service_category_id', $category->id)
-                    ->latest()
-                    ->limit(3)
-                    ->get();
-
-                $category->setAttribute('preview_services', $this->decorateServicesForUi($previewServices));
+                $category->setAttribute('preview_services', $this->decorateServicesForUi($category->services));
+                $category->unsetRelation('services');
 
                 return $category;
             });
+
+        $directoryStats = $this->directoryStats();
 
         return view('site.categories.index', [
             'categories' => $categories,
@@ -146,11 +164,11 @@ class CustomerWebsiteController extends Controller
             'heroStats' => [
                 [
                     'label' => 'Active Categories',
-                    'value' => number_format(ServiceCategory::query()->where('is_active', true)->count()),
+                    'value' => number_format($directoryStats['active_categories']),
                 ],
                 [
                     'label' => 'Listed Services',
-                    'value' => number_format(Service::query()->where('is_active', true)->count()),
+                    'value' => number_format($directoryStats['active_services']),
                 ],
                 [
                     'label' => 'Visible Results',
@@ -169,11 +187,8 @@ class CustomerWebsiteController extends Controller
             : null;
         $sort = $validated['sort'] ?? 'recommended';
 
-        $categories = ServiceCategory::query()
-            ->where('is_active', true)
-            ->orderBy('display_order')
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug']);
+        $categories = $this->activeServiceCategories();
+        $directoryStats = $this->directoryStats();
 
         $services = $this->buildServicesQuery($validated, $availabilityDate)
             ->paginate(9)
@@ -205,17 +220,11 @@ class CustomerWebsiteController extends Controller
             'heroStats' => [
                 [
                     'label' => 'Active Services',
-                    'value' => number_format(Service::query()->where('is_active', true)->count()),
+                    'value' => number_format($directoryStats['active_services']),
                 ],
                 [
                     'label' => 'Trusted Providers',
-                    'value' => number_format(
-                        User::query()
-                            ->where('role', User::ROLE_PROVIDER)
-                            ->where('is_active', true)
-                            ->whereHas('providerProfile', fn (Builder $query) => $query->where('status', 'active'))
-                            ->count()
-                    ),
+                    'value' => number_format($directoryStats['trusted_providers']),
                 ],
                 [
                     'label' => 'Categories',
@@ -409,7 +418,7 @@ class CustomerWebsiteController extends Controller
         $cancelledBookingsCount = (clone $bookingsBase)
             ->where('status', Booking::STATUS_CANCELLED)
             ->count();
-        $favoritesCount = collect(session('site.favorites', []))->filter()->unique()->count();
+        $favoritesCount = SiteFavorites::count($request);
         $pendingPaymentsCount = (clone $paymentsBase)
             ->where('status', Payment::STATUS_PENDING)
             ->count();
@@ -477,7 +486,7 @@ class CustomerWebsiteController extends Controller
                     ], true);
                 });
 
-                $booking->setAttribute('can_reschedule', $this->bookingService->canReschedule($booking));
+                $booking->setAttribute('can_reschedule', false);
                 $booking->setAttribute('can_cancel', $this->bookingService->canCancel($booking));
                 $booking->setAttribute(
                     'can_pay',
@@ -613,7 +622,7 @@ class CustomerWebsiteController extends Controller
                 ], true);
             });
 
-            $canReschedule = $this->bookingService->canReschedule($booking);
+            $canReschedule = false;
             $canCancel = $this->bookingService->canCancel($booking);
             $canPay = !$hasPaidPayment && in_array($booking->status, [
                 Booking::STATUS_PENDING,
@@ -634,7 +643,7 @@ class CustomerWebsiteController extends Controller
                 'can_reschedule' => $canReschedule,
                 'can_cancel' => $canCancel,
                 'can_pay' => $canPay,
-                'reschedule_url' => route('customer.bookings.reschedule.form', $booking),
+                'reschedule_url' => null,
                 'cancel_url' => route('customer.bookings.cancel', $booking),
                 'checkout_url' => $canPay ? route('customer.dashboard', ['pay_booking' => $booking->id]).'#payments-center' : null,
             ];
@@ -722,6 +731,48 @@ class CustomerWebsiteController extends Controller
             '1000-plus' => [1000, null],
             default => [null, null],
         };
+    }
+
+    private function activeServiceCategories(): Collection
+    {
+        return Cache::remember('site.catalog.active-categories', now()->addMinutes(10), function (): Collection {
+            return ServiceCategory::query()
+                ->where('is_active', true)
+                ->orderBy('display_order')
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug']);
+        });
+    }
+
+    private function directoryStats(): array
+    {
+        return Cache::remember('site.directory.stats', now()->addMinutes(10), fn (): array => [
+            'active_categories' => ServiceCategory::query()->where('is_active', true)->count(),
+            'active_services' => Service::query()->where('is_active', true)->count(),
+            'trusted_providers' => User::query()
+                ->where('role', User::ROLE_PROVIDER)
+                ->where('is_active', true)
+                ->whereHas('providerProfile', fn (Builder $query) => $query->where('status', 'active'))
+                ->count(),
+        ]);
+    }
+
+    private function serviceListingColumns(): array
+    {
+        return [
+            'id',
+            'provider_profile_id',
+            'service_category_id',
+            'branch_id',
+            'name',
+            'slug',
+            'description',
+            'image_path',
+            'duration_minutes',
+            'type',
+            'base_price',
+            'created_at',
+        ];
     }
 
     private function buildServiceCalendarDays(
@@ -835,6 +886,7 @@ class CustomerWebsiteController extends Controller
         [$priceMin, $priceMax] = $this->resolvePriceRangeBounds($validated['price_range'] ?? null);
 
         $servicesQuery = Service::query()
+            ->select($this->serviceListingColumns())
             ->with([
                 'category:id,name,slug',
                 'branch:id,name,city,state',

@@ -5,7 +5,7 @@
 <div id="provider-bookings-page" class="space-y-6">
     <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-6 shadow-xl shadow-black/30">
         <h1 class="text-2xl font-black text-white">Bookings</h1>
-        <p class="mt-2 text-sm text-zinc-400">Review customer bookings assigned to your services and reschedule upcoming appointments directly from this list.</p>
+        <p class="mt-2 text-sm text-zinc-400">Review customer bookings assigned to your services, reschedule upcoming appointments, and mark completed appointments once the service is finished.</p>
     </section>
 
     <section class="dashboard-panel">
@@ -71,6 +71,19 @@
                                             </form>
                                         @endif
 
+                                        @if($booking->can_provider_complete)
+                                            <form method="POST" action="{{ route('provider.bookings.complete', $booking) }}">
+                                                @csrf
+                                                @method('PUT')
+                                                <button
+                                                    type="submit"
+                                                    class="smooth-action-btn rounded-lg border border-sky-400/35 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/10"
+                                                >
+                                                    Complete
+                                                </button>
+                                            </form>
+                                        @endif
+
                                         @if($booking->can_provider_reschedule)
                                             <button
                                                 type="button"
@@ -81,7 +94,7 @@
                                             </button>
                                         @endif
 
-                                        @if(!$booking->can_provider_accept && !$booking->can_provider_reschedule)
+                                        @if(!$booking->can_provider_accept && !$booking->can_provider_complete && !$booking->can_provider_reschedule)
                                             <span class="text-xs text-zinc-500">Unavailable</span>
                                         @endif
                                     </div>

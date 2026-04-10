@@ -38,15 +38,18 @@
     <section class="rounded-[2rem] border border-zinc-200 bg-white p-6 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.18)] sm:p-8" data-motion-card>
         <div class="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
             <div class="max-w-2xl">
-                    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-400" data-motion-kicker>Customer Dashboard</p>
+                    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-400" data-motion-kicker>Account Center</p>
                     <h1 class="mt-3 text-4xl font-semibold tracking-[-0.05em] text-zinc-950 sm:text-[3rem]" data-motion-title>Hello, {{ $firstName }}.</h1>
-                    <p class="mt-4 text-[15px] leading-8 text-zinc-500" data-motion-copy>A simple modern dashboard for your profile, bookings, history, and payments in one place.</p>
+                    <p class="mt-4 text-[15px] leading-8 text-zinc-500" data-motion-copy>Your bookings, payments, profile, notifications, and feedback all stay in one customer-friendly space.</p>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-2 xl:w-[24rem]" data-motion-actions>
+            <div class="grid gap-3 sm:grid-cols-2 xl:w-[32rem]" data-motion-actions>
                 <a href="{{ route('customer.bookings.create') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] bg-zinc-950 px-5 py-4 text-center text-sm font-semibold text-white transition hover:bg-zinc-800" data-motion-action>Book New Service</a>
+                <a href="{{ route('customer.bookings.index') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>My Bookings</a>
                 <a href="#profile-center" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Profile Settings</a>
                 <a href="#payments-center" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Payments</a>
+                <a href="{{ route('notifications.index') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Notifications</a>
+                <a href="{{ route('customer.feedback.index') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Feedback</a>
                 <a href="{{ route('site.favorites.index') }}" class="inline-flex min-h-[4.25rem] items-center justify-center rounded-[1.35rem] border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50" data-motion-action>Saved Favorites</a>
             </div>
         </div>
@@ -63,9 +66,6 @@
                     <div class="flex flex-wrap gap-3">
                         @if($nextBooking->can_pay)
                             <a href="{{ route('customer.dashboard', ['pay_booking' => $nextBooking->id]) }}#payments-center" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Complete Payment</a>
-                        @endif
-                        @if($nextBooking->can_reschedule)
-                            <a href="{{ route('customer.bookings.reschedule.form', $nextBooking) }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50">Reschedule</a>
                         @endif
                     </div>
                 </div>
@@ -113,7 +113,6 @@
                                 </div>
                                 <div class="flex flex-wrap gap-3">
                                     @if($booking->can_pay)<a href="{{ route('customer.dashboard', ['pay_booking' => $booking->id]) }}#payments-center" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Pay now</a>@endif
-                                    @if($booking->can_reschedule)<a href="{{ route('customer.bookings.reschedule.form', $booking) }}" class="inline-flex items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50">Reschedule</a>@endif
                                 </div>
                             </div>
                         </article>
@@ -253,9 +252,10 @@
                     </div>
                 @endif
 
-                <div class="mt-6 grid gap-6 xl:grid-cols-2">
+                <div class="mt-6">
                     <section class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5">
                         <h3 class="text-lg font-semibold text-zinc-950">Online payment</h3>
+                        <p class="mt-2 text-sm leading-7 text-zinc-500">Online gateways are the only payment option available on the website right now.</p>
                         <form method="POST" action="{{ route('customer.payments.online', $selectedPaymentBooking) }}" class="mt-4 grid gap-4">
                             @csrf
                             <div>
@@ -274,27 +274,6 @@
                             </div>
                             <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
                                 Pay Online
-                            </button>
-                        </form>
-                    </section>
-
-                    <section class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-5">
-                        <h3 class="text-lg font-semibold text-zinc-950">Cash payment</h3>
-                        <form method="POST" action="{{ route('customer.payments.cash', $selectedPaymentBooking) }}" class="mt-4 grid gap-4">
-                            @csrf
-                            <div>
-                                <label class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Method</label>
-                                <input type="text" value="Cash" disabled class="mt-2 h-12 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-500">
-                            </div>
-                            <div>
-                                <label class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Mode</label>
-                                <select name="payment_mode" class="mt-2 h-12 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-400" required>
-                                    <option value="postpaid">Postpaid</option>
-                                    <option value="prepaid">Prepaid</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="inline-flex items-center justify-center rounded-xl border border-zinc-300 bg-white px-5 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">
-                                Record Cash Payment
                             </button>
                         </form>
                     </section>

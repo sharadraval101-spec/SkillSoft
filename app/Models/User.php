@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -82,10 +81,6 @@ class User extends Authenticatable
     public function getProfilePhotoUrlAttribute(): ?string
     {
         if (!$this->profile_photo_path) {
-            return null;
-        }
-
-        if (!Storage::disk('public')->exists($this->profile_photo_path)) {
             return null;
         }
 

@@ -40,20 +40,13 @@ class BookingController extends Controller
         /** @var \App\Models\User $customer */
         $customer = $request->user();
 
-        $data = $request->validate([
-            'slot_id' => 'required|uuid|exists:slots,id',
-        ]);
-
-        $booking = Booking::query()
+        Booking::query()
             ->where('customer_id', $customer->id)
             ->findOrFail($id);
 
-        $booking = $this->bookingService->rescheduleBooking($customer, $booking, $data['slot_id']);
-
         return response()->json([
-            'message' => 'Booking rescheduled successfully.',
-            'data' => $this->transformBooking($booking),
-        ]);
+            'message' => 'Only providers can reschedule appointments.',
+        ], 403);
     }
 
     public function cancel(Request $request, string $id): JsonResponse

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Support\SiteFavorites;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,13 +14,24 @@ class CustomerFavoriteController extends Controller
 {
     public function index(Request $request): View
     {
-        $likedServiceIds = collect($request->session()->get('site.favorites', []))
-            ->map(fn ($id): string => (string) $id)
-            ->filter()
-            ->unique()
-            ->values();
+        $likedServiceIds = SiteFavorites::ids($request);
+        $favoriteSortOrder = array_flip($likedServiceIds->all());
 
         $services = Service::query()
+            ->select([
+                'id',
+                'provider_profile_id',
+                'service_category_id',
+                'branch_id',
+                'name',
+                'slug',
+                'description',
+                'image_path',
+                'duration_minutes',
+                'type',
+                'base_price',
+                'created_at',
+            ])
             ->with([
                 'category:id,name,slug',
                 'branch:id,name,city,state',
@@ -34,7 +46,7 @@ class CustomerFavoriteController extends Controller
                 fn ($query) => $query->whereRaw('1 = 0')
             )
             ->get()
-            ->sortBy(fn (Service $service) => array_search((string) $service->id, $likedServiceIds->all(), true))
+            ->sortBy(fn (Service $service) => $favoriteSortOrder[(string) $service->id] ?? PHP_INT_MAX)
             ->values();
 
         $services = $this->decorateServicesForUi($services);
@@ -47,11 +59,7 @@ class CustomerFavoriteController extends Controller
 
     public function toggle(Request $request, Service $service): JsonResponse|RedirectResponse
     {
-        $likedServiceIds = collect($request->session()->get('site.favorites', []))
-            ->map(fn ($id): string => (string) $id)
-            ->filter()
-            ->unique()
-            ->values();
+        $likedServiceIds = SiteFavorites::ids($request);
 
         $serviceId = (string) $service->id;
         $wasLiked = $likedServiceIds->contains($serviceId);

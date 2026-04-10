@@ -35,13 +35,14 @@ class CustomerBookingController extends Controller
                 'serviceVariant:id,name',
                 'slot:id,start_at,end_at',
                 'payments:id,booking_id,status',
+                'review:id,booking_id,rating,is_approved',
             ])
             ->where('customer_id', $customer->id)
             ->latest('scheduled_at')
             ->paginate(12);
 
         $bookings->getCollection()->transform(function (Booking $booking) {
-            $booking->setAttribute('can_reschedule', $this->bookingService->canReschedule($booking));
+            $booking->setAttribute('can_reschedule', false);
             $booking->setAttribute('can_cancel', $this->bookingService->canCancel($booking));
             $booking->setAttribute('has_paid_payment', $booking->payments->contains(function ($payment) {
                 return in_array($payment->status, [
@@ -157,59 +158,15 @@ class CustomerBookingController extends Controller
             ->with('success', 'Booking created successfully.');
     }
 
-    public function rescheduleForm(Request $request, Booking $booking): View
+    public function rescheduleForm(Request $request, Booking $booking): RedirectResponse
     {
         /** @var \App\Models\User $customer */
         $customer = $request->user();
         $this->ensureBookingOwner($booking, $customer);
 
-        $booking->load([
-            'provider:id,name,email',
-            'service:id,name,duration_minutes',
-            'slot:id,start_at,end_at,branch_id',
-            'branch:id,name',
-        ]);
-
-        if (!$this->bookingService->canReschedule($booking)) {
-            return redirect()
-                ->route('customer.bookings.index')
-                ->with('error', 'Reschedule is not allowed for this booking.');
-        }
-
-        $request->validate([
-            'date' => 'nullable|date',
-            'branch_id' => 'nullable|uuid|exists:branches,id',
-        ]);
-
-        $selectedDate = Carbon::parse((string) $request->query('date', $booking->scheduled_at->toDateString()))->startOfDay();
-        $selectedBranchId = $request->filled('branch_id')
-            ? (string) $request->query('branch_id')
-            : $booking->branch_id;
-
-        $availableSlots = $this->availabilityService->generateAvailableSlotsForDate(
-            $booking->provider,
-            $selectedDate,
-            $selectedBranchId,
-            $booking->service
-        );
-
-        $availableSlots = $availableSlots
-            ->reject(fn (array $slot) => $slot['slot_id'] === $booking->slot_id)
-            ->values();
-
-        $branches = Branch::query()
-            ->where('is_active', true)
-            ->whereIn('id', collect([$booking->branch_id, $booking->service?->branch_id])->filter()->unique())
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        return view('customer.bookings.reschedule', [
-            'booking' => $booking,
-            'branches' => $branches,
-            'selectedDate' => $selectedDate,
-            'selectedBranchId' => $selectedBranchId,
-            'availableSlots' => $availableSlots,
-        ]);
+        return redirect()
+            ->route('customer.bookings.index')
+            ->with('error', 'Only providers can reschedule appointments.');
     }
 
     public function reschedule(Request $request, Booking $booking): RedirectResponse
@@ -218,15 +175,9 @@ class CustomerBookingController extends Controller
         $customer = $request->user();
         $this->ensureBookingOwner($booking, $customer);
 
-        $data = $request->validate([
-            'slot_id' => 'required|uuid|exists:slots,id',
-        ]);
-
-        $this->bookingService->rescheduleBooking($customer, $booking, $data['slot_id']);
-
         return redirect()
             ->route('customer.bookings.index')
-            ->with('success', 'Booking rescheduled successfully.');
+            ->with('error', 'Only providers can reschedule appointments.');
     }
 
     public function cancel(Request $request, Booking $booking): RedirectResponse|JsonResponse

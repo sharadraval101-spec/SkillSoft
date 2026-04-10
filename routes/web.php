@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\CustomerBookingController;
 use App\Http\Controllers\CustomerFavoriteController;
 use App\Http\Controllers\CustomerPaymentController;
+use App\Http\Controllers\CustomerReviewController;
 use App\Http\Controllers\CustomerWebsiteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProviderAvailabilityManagementController;
@@ -142,6 +143,24 @@ Route::middleware(['auth'])->group(function () {
             'provider.approved',
         ])
         ->name('provider.bookings.index');
+
+    Route::put('/provider/bookings/{booking}/accept', [ProviderBookingController::class, 'accept'])
+        ->middleware([
+            'role:'.User::ROLE_PROVIDER,
+            'spatie.role:provider',
+            'provider.approved',
+        ])
+        ->whereUuid('booking')
+        ->name('provider.bookings.accept');
+
+    Route::put('/provider/bookings/{booking}/complete', [ProviderBookingController::class, 'complete'])
+        ->middleware([
+            'role:'.User::ROLE_PROVIDER,
+            'spatie.role:provider',
+            'provider.approved',
+        ])
+        ->whereUuid('booking')
+        ->name('provider.bookings.complete');
 
     Route::put('/provider/bookings/{booking}/reschedule', [ProviderBookingController::class, 'reschedule'])
         ->middleware([
@@ -311,6 +330,21 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{booking}/cancel', [CustomerBookingController::class, 'cancel'])->name('customer.bookings.cancel');
         });
 
+    Route::prefix('/customer/feedback')
+        ->middleware([
+            'role:'.User::ROLE_CUSTOMER,
+            'spatie.role:customer',
+        ])
+        ->group(function (): void {
+            Route::get('/', [CustomerReviewController::class, 'index'])->name('customer.feedback.index');
+            Route::get('/{booking}', [CustomerReviewController::class, 'edit'])
+                ->whereUuid('booking')
+                ->name('customer.feedback.edit');
+            Route::put('/{booking}', [CustomerReviewController::class, 'update'])
+                ->whereUuid('booking')
+                ->name('customer.feedback.update');
+        });
+
     Route::prefix('/customer/payments')
         ->middleware([
             'role:'.User::ROLE_CUSTOMER,
@@ -321,7 +355,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/checkout/{booking}', [CustomerPaymentController::class, 'checkout'])->name('customer.payments.checkout');
             Route::post('/online/{booking}', [CustomerPaymentController::class, 'payOnline'])->name('customer.payments.online');
             Route::post('/cash/{booking}', [CustomerPaymentController::class, 'payCash'])->name('customer.payments.cash');
-            Route::post('/refund/{payment}', [CustomerPaymentController::class, 'refund'])->name('customer.payments.refund');
+            Route::post('/refund/{payment\}', [CustomerPaymentController::class, 'refund'])->name('customer.payments.refund');
         });
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
