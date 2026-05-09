@@ -31,7 +31,7 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="#" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-zinc-500 transition hover:border-zinc-950 hover:text-zinc-950" aria-label="Instagram" data-motion-social data-motion-action>
+                <a href="https://www.instagram.com/sharadraval14/" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-zinc-500 transition hover:border-zinc-950 hover:text-zinc-950" aria-label="Instagram" data-motion-social data-motion-action>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                         <rect x="3.5" y="3.5" width="17" height="17" rx="4.5"></rect>
                         <circle cx="12" cy="12" r="3.75"></circle>
