@@ -6,7 +6,7 @@
     $favoritesHref = route('site.favorites.index');
     $categoriesHref = route('site.categories.index');
     $howItWorksHref = request()->routeIs('site.home') ? '#how-it-works' : route('site.home') . '#how-it-works';
-    $becomeProviderHref = route('register.provider');
+    $becomeProviderHref = route('provider.requests.create');
     $isBookingActive = request()->routeIs('site.booking') || request()->routeIs('customer.bookings.*');
     $isServicesActive = request()->routeIs('site.services.*');
     $isCategoriesActive = request()->routeIs('site.categories.*');

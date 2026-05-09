@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Mail\UserNotificationFallbackMail;
+use App\Jobs\ProcessBookingCancellationRefundJob;
 use App\Models\Booking;
 use App\Models\ProviderAvailability;
 use App\Models\ProviderUnavailableDate;
@@ -12,14 +14,17 @@ use App\Models\ServiceVariant;
 use App\Models\Slot;
 use App\Models\User;
 use Carbon\Carbon;
-use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class BookingService
 {
-    public function __construct(private readonly NotificationService $notificationService)
+    public function __construct(
+        private readonly NotificationService $notificationService,
+        private readonly BookingAuditService $bookingAuditService
+    )
     {
     }
 
@@ -270,22 +275,19 @@ class BookingService
                 'slot:id,start_at,end_at',
             ]);
 
-            $this->notificationService->notifyUser(
-                $freshBooking->customer_id,
-                'booking.rescheduled.by_provider',
-                'Booking Rescheduled by Provider',
-                $this->buildProviderRescheduleMessage($freshBooking, $reason),
-                [
-                    'booking_id' => $freshBooking->id,
-                    'booking_number' => $freshBooking->booking_number,
-                    'old_scheduled_at' => $originalScheduledAt?->toIso8601String(),
-                    'new_scheduled_at' => $freshBooking->scheduled_at?->toIso8601String(),
-                    'reason' => $reason,
-                ],
-                sendEmailFallback: true,
-                sendSms: true,
-                sendWhatsapp: true
+            $this->bookingAuditService->recordReschedule(
+                $freshBooking,
+                $oldSlot,
+                $targetSlot,
+                $originalScheduledAt,
+                $targetSlot->start_at,
+                $reason,
+                $provider,
+                'provider',
+                'provider_blocked_date'
             );
+
+            $this->notifyCustomerAboutProviderReschedule($freshBooking, $originalScheduledAt, $reason);
 
             $rescheduledCount++;
         }
@@ -416,25 +418,63 @@ class BookingService
                 'slot:id,start_at,end_at',
             ]);
 
-            $this->notificationService->notifyUser(
-                $freshBooking->customer_id,
-                'booking.rescheduled.by_provider',
-                'Booking Rescheduled by Provider',
-                $this->buildProviderRescheduleMessage($freshBooking, $reason),
-                [
-                    'booking_id' => $freshBooking->id,
-                    'booking_number' => $freshBooking->booking_number,
-                    'old_scheduled_at' => $originalScheduledAt?->toIso8601String(),
-                    'new_scheduled_at' => $freshBooking->scheduled_at?->toIso8601String(),
-                    'reason' => $reason,
-                ],
-                sendEmailFallback: true,
-                sendSms: true,
-                sendWhatsapp: true
+            $this->bookingAuditService->recordReschedule(
+                $freshBooking,
+                $oldSlot,
+                $targetSlot,
+                $originalScheduledAt,
+                $targetSlot->start_at,
+                $reason,
+                $provider,
+                'provider',
+                'provider_manual'
             );
+
+            $this->notifyCustomerAboutProviderReschedule($freshBooking, $originalScheduledAt, $reason);
 
             return $freshBooking;
         });
+    }
+
+    private function notifyCustomerAboutProviderReschedule(
+        Booking $booking,
+        ?Carbon $originalScheduledAt,
+        ?string $reason
+    ): void {
+        $customer = $booking->customer;
+
+        if (!$customer) {
+            return;
+        }
+
+        $message = $this->buildProviderRescheduleMessage($booking, $originalScheduledAt, $reason);
+        $data = [
+            'booking_id' => $booking->id,
+            'booking_number' => $booking->booking_number,
+            'old_scheduled_at' => $originalScheduledAt?->toIso8601String(),
+            'new_scheduled_at' => $booking->scheduled_at?->toIso8601String(),
+            'reason' => $reason,
+        ];
+
+        if ($customer->email) {
+            Mail::to($customer->email)->queue(new UserNotificationFallbackMail(
+                $customer,
+                'Booking Rescheduled by Provider',
+                $message,
+                $data
+            ));
+        }
+
+        $this->notificationService->notifyUser(
+            $booking->customer_id,
+            'booking.rescheduled.by_provider',
+            'Booking Rescheduled by Provider',
+            $message,
+            $data,
+            sendEmailFallback: false,
+            sendSms: true,
+            sendWhatsapp: true
+        );
     }
 
     public function completeBookingByProvider(User $provider, Booking $booking): Booking
@@ -508,10 +548,14 @@ class BookingService
             $this->ensureCanCancel($booking);
 
             $slot = Slot::query()->lockForUpdate()->findOrFail($booking->slot_id);
+            $oldStatus = $booking->status;
+            $oldScheduledAt = $booking->scheduled_at?->toIso8601String();
 
             $booking->update([
                 'status' => Booking::STATUS_CANCELLED,
                 'cancelled_at' => now(),
+                'cancelled_by' => Booking::CANCELLED_BY_CUSTOMER,
+                'cancellation_reason' => $reason,
                 'notes' => $this->appendCancelReason($booking->notes, $reason),
             ]);
 
@@ -523,6 +567,21 @@ class BookingService
                 'serviceVariant:id,name',
                 'slot:id,start_at,end_at',
             ]);
+
+            $this->bookingAuditService->recordCancellation(
+                $freshBooking,
+                [
+                    'status' => $oldStatus,
+                    'scheduled_at' => $oldScheduledAt,
+                ],
+                [
+                    'status' => Booking::STATUS_CANCELLED,
+                    'cancelled_at' => $freshBooking->cancelled_at?->toIso8601String(),
+                    'cancelled_by' => Booking::CANCELLED_BY_CUSTOMER,
+                    'cancellation_reason' => $reason,
+                ],
+                $customer
+            );
 
             $this->notificationService->notifyUser(
                 $customer,
@@ -551,6 +610,88 @@ class BookingService
                 sendSms: true,
                 sendWhatsapp: true
             );
+
+            ProcessBookingCancellationRefundJob::dispatch(
+                $freshBooking->id,
+                $reason
+            )->afterCommit();
+
+            return $freshBooking;
+        });
+    }
+
+    public function cancelBookingByProvider(User $provider, Booking $booking, ?string $reason = null): Booking
+    {
+        return DB::transaction(function () use ($provider, $booking, $reason): Booking {
+            $booking = Booking::query()
+                ->lockForUpdate()
+                ->findOrFail($booking->id);
+
+            if ((int) $booking->provider_id !== (int) $provider->id) {
+                abort(403);
+            }
+
+            if (!$this->canProviderCancel($booking)) {
+                throw ValidationException::withMessages([
+                    'booking' => 'Only future active bookings can be cancelled by the provider.',
+                ]);
+            }
+
+            $slot = Slot::query()->lockForUpdate()->findOrFail($booking->slot_id);
+            $oldStatus = $booking->status;
+            $oldScheduledAt = $booking->scheduled_at?->toIso8601String();
+
+            $booking->update([
+                'status' => Booking::STATUS_CANCELLED,
+                'cancelled_at' => now(),
+                'cancelled_by' => Booking::CANCELLED_BY_PROVIDER,
+                'cancellation_reason' => $reason,
+                'notes' => $this->appendCancelReason($booking->notes, $reason ?: 'Cancelled by provider.'),
+            ]);
+
+            $this->refreshSlotAvailability($slot);
+
+            $freshBooking = $booking->fresh([
+                'customer:id,name,email',
+                'service:id,name',
+                'serviceVariant:id,name',
+                'slot:id,start_at,end_at',
+            ]);
+
+            $this->bookingAuditService->recordCancellation(
+                $freshBooking,
+                [
+                    'status' => $oldStatus,
+                    'scheduled_at' => $oldScheduledAt,
+                ],
+                [
+                    'status' => Booking::STATUS_CANCELLED,
+                    'cancelled_at' => $freshBooking->cancelled_at?->toIso8601String(),
+                    'cancelled_by' => Booking::CANCELLED_BY_PROVIDER,
+                    'cancellation_reason' => $reason,
+                ],
+                $provider
+            );
+
+            $this->notificationService->notifyUser(
+                $freshBooking->customer_id,
+                'booking.cancelled.by_provider',
+                'Appointment Cancelled by Provider',
+                'Your booking '.$freshBooking->booking_number.' was cancelled by the provider. A full refund will be processed if payment was collected.',
+                [
+                    'booking_id' => $freshBooking->id,
+                    'booking_number' => $freshBooking->booking_number,
+                    'reason' => $reason,
+                ],
+                sendEmailFallback: true,
+                sendSms: true,
+                sendWhatsapp: true
+            );
+
+            ProcessBookingCancellationRefundJob::dispatch(
+                $freshBooking->id,
+                $reason
+            )->afterCommit();
 
             return $freshBooking;
         });
@@ -588,6 +729,19 @@ class BookingService
         return $booking->scheduled_at->gt(now());
     }
 
+    public function canProviderCancel(Booking $booking): bool
+    {
+        if (!$booking->scheduled_at) {
+            return false;
+        }
+
+        if (!in_array($booking->status, Booking::slotBlockingStatuses(), true)) {
+            return false;
+        }
+
+        return $booking->scheduled_at->gt(now());
+    }
+
     public function canProviderComplete(Booking $booking): bool
     {
         if (!$booking->scheduled_at) {
@@ -611,8 +765,7 @@ class BookingService
             return false;
         }
 
-        $cutoffHours = max(0, (int) config('booking.rules.cancel_cutoff_hours', 2));
-        return now()->lt($booking->scheduled_at->copy()->subHours($cutoffHours));
+        return $booking->scheduled_at?->gt(now()) ?? false;
     }
 
     private function validateSlotForBooking(Slot $slot, User $provider, Service $service, ?string $ignoreBookingId): void
@@ -713,7 +866,7 @@ class BookingService
 
         if (!$this->canCancel($booking)) {
             throw ValidationException::withMessages([
-                'booking' => 'Cancel window has closed for this booking.',
+                'booking' => 'Only future bookings can be cancelled.',
             ]);
         }
     }
@@ -1156,10 +1309,19 @@ class BookingService
         return $existingNotes ? $existingNotes.PHP_EOL.$note : $note;
     }
 
-    private function buildProviderRescheduleMessage(Booking $booking, ?string $reason): string
+    private function buildProviderRescheduleMessage(
+        Booking $booking,
+        ?Carbon $originalScheduledAt,
+        ?string $reason
+    ): string
     {
-        $message = 'Your booking '.$booking->booking_number.' has been moved to '
-            .($booking->scheduled_at?->format('d M Y, h:i A') ?? 'a new time').'.';
+        $message = 'Your booking '.$booking->booking_number.' has been rescheduled.';
+
+        if ($originalScheduledAt) {
+            $message .= ' Old schedule: '.$originalScheduledAt->format('d M Y, h:i A').'.';
+        }
+
+        $message .= ' New schedule: '.($booking->scheduled_at?->format('d M Y, h:i A') ?? 'a new time').'.';
 
         $reason = is_string($reason) ? trim($reason) : '';
         if ($reason !== '') {

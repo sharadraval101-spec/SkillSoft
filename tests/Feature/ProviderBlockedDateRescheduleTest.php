@@ -60,7 +60,7 @@ class ProviderBlockedDateRescheduleTest extends TestCase
             ]);
 
         $response->assertRedirect(route('provider.availability.index'));
-        $response->assertSessionHas('success', 'Blocked date/time added and 2 appointments were rescheduled successfully.');
+        $response->assertSessionHas('success', 'Blocked date/time added and 2 appointments were moved successfully.');
 
         $this->assertDatabaseHas('provider_unavailable_dates', [
             'provider_id' => $provider->id,

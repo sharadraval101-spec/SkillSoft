@@ -21,6 +21,11 @@ class Booking extends Model
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
 
+    public const CANCELLED_BY_CUSTOMER = 'customer';
+    public const CANCELLED_BY_PROVIDER = 'provider';
+    public const CANCELLED_BY_ADMIN = 'admin';
+    public const CANCELLED_BY_SYSTEM = 'system';
+
     public $incrementing = false;
 
     protected $keyType = 'string';
@@ -37,6 +42,8 @@ class Booking extends Model
         'status',
         'notes',
         'cancelled_at',
+        'cancelled_by',
+        'cancellation_reason',
     ];
 
     protected $casts = [
@@ -115,5 +122,10 @@ class Booking extends Model
     public function providerPayout(): HasOne
     {
         return $this->hasOne(ProviderPayout::class);
+    }
+
+    public function rescheduleLogs(): HasMany
+    {
+        return $this->hasMany(BookingRescheduleLog::class);
     }
 }

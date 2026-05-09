@@ -8,7 +8,7 @@
                 <p class="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-400">Feedback Center</p>
                 <h1 class="mt-3 text-4xl font-semibold tracking-[-0.05em] text-zinc-950 sm:text-[3rem]">Rate completed services and share what customers should know.</h1>
                 <p class="mt-4 text-[15px] leading-8 text-zinc-500">
-                    Every completed booking can carry a rating and short review. Use this space to capture what went well, what could improve, and which services deserve another booking.
+                    Every completed booking can carry one rating and short review. Use this space to capture what went well, what could improve, and which services deserve another booking.
                 </p>
             </div>
 
@@ -38,7 +38,7 @@
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400">Completed Bookings</p>
                 <h2 class="mt-2 text-2xl font-semibold tracking-[-0.04em] text-zinc-950">Bookings ready for feedback</h2>
-                <p class="mt-2 text-sm leading-7 text-zinc-500">Open any completed service below to leave a first rating or refine one you already wrote.</p>
+                <p class="mt-2 text-sm leading-7 text-zinc-500">Open any completed service below to leave a rating. Once submitted, feedback stays locked and cannot be edited.</p>
             </div>
             @if($completedBookings->total() > 0)
                 <p class="text-sm text-zinc-500">
@@ -110,7 +110,7 @@
                                 </p>
 
                                 <p class="mt-3 text-xs text-zinc-500">
-                                    Last updated {{ $review->updated_at?->format('d M Y, h:i A') }}
+                                    Submitted {{ $review->created_at?->format('d M Y, h:i A') }}
                                 </p>
                             @else
                                 <p class="text-sm leading-7 text-zinc-600">
@@ -120,9 +120,15 @@
                         </div>
 
                         <div class="mt-5 flex flex-wrap gap-3">
-                            <a href="{{ route('customer.feedback.edit', $booking) }}" class="inline-flex min-w-[160px] items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold transition {{ $review ? 'bg-zinc-950 text-white hover:bg-zinc-800' : 'bg-amber-400 text-zinc-950 hover:bg-amber-300' }}">
-                                {{ $review ? 'Edit Feedback' : 'Rate This Service' }}
-                            </a>
+                            @if(!$review)
+                                <a href="{{ route('customer.feedback.create', $booking) }}" class="inline-flex min-w-[160px] items-center justify-center rounded-xl bg-amber-400 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-amber-300">
+                                    Rate This Service
+                                </a>
+                            @else
+                                <span class="inline-flex min-w-[160px] items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700">
+                                    Feedback Submitted
+                                </span>
+                            @endif
                             @if($booking->service?->slug)
                                 <a href="{{ route('site.services.show', $booking->service->slug) }}" class="inline-flex min-w-[160px] items-center justify-center rounded-xl border border-zinc-200 bg-white px-5 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">
                                     View Service

@@ -69,8 +69,8 @@
             </form>
 
             <div class="mt-6 border-t border-black/5 pt-6 text-sm text-zinc-500">
-                Want to register as provider?
-                <a href="{{ route('register.provider') }}" class="ml-1 font-semibold text-zinc-950 transition hover:text-zinc-700" data-motion-action>Provider Sign Up</a>
+                Want to become a provider?
+                <a href="{{ route('provider.requests.create') }}" class="ml-1 font-semibold text-zinc-950 transition hover:text-zinc-700" data-motion-action>Apply Here</a>
             </div>
         </div>
     </div>

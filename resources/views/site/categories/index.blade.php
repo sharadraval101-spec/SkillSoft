@@ -6,14 +6,6 @@
         ($filters['service_scope'] ?? 'any') !== 'any' ? $filters['service_scope'] : '',
         ($filters['sort'] ?? 'featured') !== 'featured' ? $filters['sort'] : '',
     ])->filter(fn ($value) => filled($value))->count();
-
-    $categoryFallbackImages = [
-        'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=80',
-    ];
 @endphp
 
 @section('content')
@@ -63,16 +55,24 @@
     </div>
 
     <div class="mt-8 grid gap-6 lg:grid-cols-2" data-motion-group>
-        @forelse($categories as $index => $category)
+        @forelse($categories as $category)
             @php
                 $categoryImage = $category->image_url
-                    ?? $category->preview_services->first()?->ui_image
-                    ?? $categoryFallbackImages[$index % count($categoryFallbackImages)];
+                    ?? $category->preview_services->first()?->ui_image;
+                $categoryInitials = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($category->name ?? 'Category', 0, 2));
             @endphp
 
             <article class="overflow-hidden rounded-[30px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)] ring-1 ring-black/5" data-motion-item data-motion-card>
                 <div class="grid gap-0 md:grid-cols-[15rem_minmax(0,1fr)]">
-                    <img src="{{ $categoryImage }}" alt="{{ $category->name }}" class="h-60 w-full object-cover md:h-full">
+                    @if($categoryImage)
+                        <img src="{{ $categoryImage }}" alt="{{ $category->name }}" class="h-60 w-full object-cover md:h-full">
+                    @else
+                        <div class="flex h-60 w-full items-center justify-center bg-gradient-to-br from-zinc-100 via-white to-zinc-200 md:h-full">
+                            <div class="flex h-20 w-20 items-center justify-center rounded-full bg-white text-2xl font-semibold text-zinc-900 shadow-sm">
+                                {{ $categoryInitials }}
+                            </div>
+                        </div>
+                    @endif
 
                     <div class="space-y-6 px-6 py-6">
                         <div class="flex flex-wrap items-center gap-3">
@@ -86,21 +86,33 @@
 
                         <div>
                             <h3 class="text-[2rem] font-semibold tracking-[-0.04em] text-zinc-950">{{ $category->name }}</h3>
-                            <p class="mt-3 text-[15px] leading-7 text-zinc-500">
-                                {{ \Illuminate\Support\Str::limit($category->description ?: 'Discover trusted services inside this category and compare providers before booking.', 130) }}
-                            </p>
+                            @if(filled($category->description))
+                                <p class="mt-3 text-[15px] leading-7 text-zinc-500">
+                                    {{ \Illuminate\Support\Str::limit($category->description, 130) }}
+                                </p>
+                            @endif
                         </div>
 
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Category Services</p>
                             <div class="mt-4 space-y-3">
                                 @forelse($category->preview_services as $service)
+                                    @php
+                                        $serviceImage = $service->ui_image ?? $service->image_url;
+                                        $serviceInitials = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($service->name ?? 'Service', 0, 2));
+                                    @endphp
                                     <div class="flex items-center gap-3 rounded-[18px] bg-zinc-50 px-4 py-3">
-                                        <img
-                                            src="{{ $service->ui_image ?? 'https://picsum.photos/seed/'.urlencode((string) $service->id).'/200/200' }}"
-                                            alt="{{ $service->name }}"
-                                            class="h-14 w-14 rounded-[14px] object-cover"
-                                        >
+                                        @if($serviceImage)
+                                            <img
+                                                src="{{ $serviceImage }}"
+                                                alt="{{ $service->name }}"
+                                                class="h-14 w-14 rounded-[14px] object-cover"
+                                            >
+                                        @else
+                                            <div class="flex h-14 w-14 items-center justify-center rounded-[14px] bg-gradient-to-br from-zinc-100 via-white to-zinc-200 text-xs font-semibold text-zinc-900">
+                                                {{ $serviceInitials }}
+                                            </div>
+                                        @endif
                                         <div class="min-w-0 flex-1">
                                             <p class="truncate text-sm font-semibold text-zinc-900">{{ $service->name }}</p>
                                             <p class="truncate text-sm text-zinc-500">{{ $service->providerProfile?->user?->name ?? 'Provider' }}</p>

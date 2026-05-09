@@ -75,6 +75,8 @@
                     ? trim(($service->branch->city ?? '').', '.($service->branch->state ?? ''))
                     : 'Multiple locations';
                 $serviceTypeLabel = $service->type === 'group' ? 'Group' : '1-on-1';
+                $serviceImage = $service->ui_image ?? $service->image_url;
+                $serviceInitials = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($service->name ?? 'Service', 0, 2));
                 $bookingQuery = array_filter([
                     'provider_id' => $service->providerProfile?->user_id,
                     'service_id' => $service->id,
@@ -84,11 +86,19 @@
 
             <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)] ring-1 ring-black/5" data-motion-item data-motion-card>
                 <a href="{{ route('site.services.show', $service->slug) }}" class="block">
-                    <img
-                        src="{{ $service->ui_image ?? 'https://picsum.photos/seed/'.urlencode((string) $service->id).'/900/620' }}"
-                        alt="{{ $service->name }}"
-                        class="h-56 w-full object-cover"
-                    >
+                    @if($serviceImage)
+                        <img
+                            src="{{ $serviceImage }}"
+                            alt="{{ $service->name }}"
+                            class="h-56 w-full object-cover"
+                        >
+                    @else
+                        <div class="flex h-56 w-full items-center justify-center bg-gradient-to-br from-zinc-100 via-white to-zinc-200">
+                            <div class="flex h-20 w-20 items-center justify-center rounded-full bg-white text-2xl font-semibold text-zinc-900 shadow-sm">
+                                {{ $serviceInitials }}
+                            </div>
+                        </div>
+                    @endif
                 </a>
 
                 <div class="space-y-5 px-6 py-6">
@@ -105,9 +115,11 @@
                         <h3 class="text-[1.7rem] font-medium tracking-[-0.03em] text-zinc-950">
                             {{ \Illuminate\Support\Str::limit($service->name, 34) }}
                         </h3>
-                        <p class="mt-3 text-[15px] leading-7 text-zinc-500">
-                            {{ \Illuminate\Support\Str::limit($service->description ?? 'Trusted provider with flexible scheduling and premium service quality.', 110) }}
-                        </p>
+                        @if(filled($service->description))
+                            <p class="mt-3 text-[15px] leading-7 text-zinc-500">
+                                {{ \Illuminate\Support\Str::limit($service->description, 110) }}
+                            </p>
+                        @endif
                     </div>
 
                     <div class="flex items-center gap-4 rounded-[20px] bg-zinc-50 px-4 py-4">

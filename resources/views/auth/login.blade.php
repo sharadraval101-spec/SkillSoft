@@ -142,13 +142,13 @@
                 <div class="mt-8 rounded-[1.75rem] border border-zinc-200 bg-zinc-50 px-5 py-5" data-motion-card>
                     <p class="text-sm font-medium text-zinc-700">Need an account?</p>
                     <p class="mt-1 text-sm leading-6 text-zinc-500">
-                        Create a customer or provider account using the same user-side color, font, and spacing system.
+                        Create a customer account or apply for provider onboarding using the same user-side design language.
                     </p>
                     <div class="mt-4 flex flex-col gap-3 sm:flex-row">
                         <a href="{{ route('register') }}" class="inline-flex items-center justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800" data-motion-action>
                             Sign up
                         </a>
-                        <a href="{{ route('register.provider') }}" class="inline-flex items-center justify-center rounded-2xl border border-zinc-200 px-5 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-white" data-motion-action>
+                        <a href="{{ route('provider.requests.create') }}" class="inline-flex items-center justify-center rounded-2xl border border-zinc-200 px-5 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-white" data-motion-action>
                             Become a provider
                         </a>
                     </div>

@@ -1,5 +1,6 @@
 @php
     $dashboardRole = auth()->check() ? (string) auth()->user()->role : 'guest';
+    $isCustomerDashboard = $dashboardRole === (string) \App\Models\User::ROLE_CUSTOMER;
     $usesJquery = request()->routeIs('admin.users.*')
         || request()->routeIs('admin.providers.pending')
         || request()->routeIs('provider.services.*')
@@ -42,7 +43,7 @@
 
         @include('components.topbar')
 
-        <main class="flex-1 relative overflow-y-auto focus:outline-none p-6 lg:p-10" data-user-main data-boneyard-target>
+        <main class="flex-1 relative overflow-y-auto focus:outline-none" data-user-main data-boneyard-target>
             <div class="app-shell-glow absolute top-0 right-0 -z-10 h-96 w-96 rounded-full pointer-events-none blur-[120px]"></div>
 
             <div class="max-w-7xl mx-auto">

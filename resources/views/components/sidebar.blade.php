@@ -57,11 +57,11 @@
                 </svg>
                 <span class="sidebar-label">User Management</span>
             </a>
-            <a href="{{ route('admin.providers.pending') }}" title="Provider Approvals" class="sidebar-link group {{ request()->routeIs('admin.providers.*') ? 'sidebar-link-active' : '' }}">
+            <a href="{{ route('admin.providers.pending') }}" title="Provider Requests" class="sidebar-link group {{ request()->routeIs('admin.providers.*') || request()->routeIs('admin.provider-requests.*') ? 'sidebar-link-active' : '' }}">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <span class="sidebar-label">Provider Approvals</span>
+                <span class="sidebar-label">Provider Requests</span>
             </a>
             <a href="#" title="System Logs" class="sidebar-link group">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

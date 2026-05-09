@@ -5,7 +5,7 @@
     <div class="absolute -top-24 -right-20 h-64 w-64 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none"></div>
     <div class="absolute top-52 -left-20 h-64 w-64 rounded-full bg-emerald-500/15 blur-3xl pointer-events-none"></div>
 
-    <section class="rounded-3xl border border-white/10 bg-gradient-to-r from-zinc-900/80 via-zinc-900/70 to-zinc-900/60 p-6 lg:p-8 shadow-2xl shadow-black/40">
+    <section class="dashboard-hero rounded-3xl border border-white/10 bg-gradient-to-r from-zinc-900/80 via-zinc-900/70 to-zinc-900/60 p-6 lg:p-8 shadow-2xl shadow-black/40">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div>
                 <p class="text-xs font-semibold tracking-[0.2em] uppercase text-cyan-300">Provider Console</p>
@@ -157,15 +157,26 @@
     <script>
         (() => {
             const chartsData = @json($charts);
+            const chartRegistry = [];
 
-            const commonTheme = {
+            const getPalette = () => {
+                const styles = getComputedStyle(document.documentElement);
+
+                return {
+                    text: styles.getPropertyValue('--dashboard-chart-text').trim() || '#a1a1aa',
+                    grid: styles.getPropertyValue('--dashboard-chart-grid').trim() || 'rgba(255, 255, 255, 0.08)',
+                    stroke: styles.getPropertyValue('--dashboard-chart-stroke').trim() || '#0b0b0f',
+                };
+            };
+
+            const createCommonTheme = (palette) => ({
                 chart: {
                     toolbar: { show: false },
-                    foreColor: '#a1a1aa',
+                    foreColor: palette.text,
                     background: 'transparent'
                 },
                 grid: {
-                    borderColor: 'rgba(255,255,255,0.08)'
+                    borderColor: palette.grid
                 },
                 stroke: {
                     curve: 'smooth',
@@ -173,106 +184,125 @@
                 },
                 dataLabels: { enabled: false },
                 xaxis: {
-                    labels: { style: { colors: '#a1a1aa' } }
+                    labels: { style: { colors: palette.text } }
                 },
                 yaxis: {
-                    labels: { style: { colors: '#a1a1aa' } }
+                    labels: { style: { colors: palette.text } }
+                }
+            });
+
+            const destroyCharts = () => {
+                while (chartRegistry.length) {
+                    const chart = chartRegistry.pop();
+                    chart?.destroy();
                 }
             };
 
-            const bookingsChartEl = document.querySelector('#providerBookingsChart');
-            if (bookingsChartEl) {
-                new ApexCharts(bookingsChartEl, {
-                    ...commonTheme,
-                    chart: { ...commonTheme.chart, type: 'line', height: 300 },
-                    series: [{ name: 'Bookings', data: chartsData.bookings_daily_14d.series }],
-                    xaxis: { ...commonTheme.xaxis, categories: chartsData.bookings_daily_14d.labels },
-                    colors: ['#06b6d4']
-                }).render();
-            }
+            const renderCharts = () => {
+                destroyCharts();
 
-            const earningsChartEl = document.querySelector('#providerEarningsChart');
-            if (earningsChartEl) {
-                new ApexCharts(earningsChartEl, {
-                    ...commonTheme,
-                    chart: { ...commonTheme.chart, type: 'area', height: 280 },
-                    series: [{ name: 'Earnings (Rs.)', data: chartsData.earnings_daily_14d.series }],
-                    xaxis: { ...commonTheme.xaxis, categories: chartsData.earnings_daily_14d.labels },
-                    yaxis: {
-                        ...commonTheme.yaxis,
-                        labels: {
-                            style: { colors: '#a1a1aa' },
-                            formatter: function (value) {
-                                return 'Rs. ' + Number(value).toFixed(0);
+                const palette = getPalette();
+                const commonTheme = createCommonTheme(palette);
+
+                const bookingsChartEl = document.querySelector('#providerBookingsChart');
+                if (bookingsChartEl) {
+                    chartRegistry.push(new ApexCharts(bookingsChartEl, {
+                        ...commonTheme,
+                        chart: { ...commonTheme.chart, type: 'line', height: 300 },
+                        series: [{ name: 'Bookings', data: chartsData.bookings_daily_14d.series }],
+                        xaxis: { ...commonTheme.xaxis, categories: chartsData.bookings_daily_14d.labels },
+                        colors: ['#06b6d4']
+                    }));
+                }
+
+                const earningsChartEl = document.querySelector('#providerEarningsChart');
+                if (earningsChartEl) {
+                    chartRegistry.push(new ApexCharts(earningsChartEl, {
+                        ...commonTheme,
+                        chart: { ...commonTheme.chart, type: 'area', height: 280 },
+                        series: [{ name: 'Earnings (Rs.)', data: chartsData.earnings_daily_14d.series }],
+                        xaxis: { ...commonTheme.xaxis, categories: chartsData.earnings_daily_14d.labels },
+                        yaxis: {
+                            ...commonTheme.yaxis,
+                            labels: {
+                                style: { colors: palette.text },
+                                formatter: function (value) {
+                                    return 'Rs. ' + Number(value).toFixed(0);
+                                }
+                            }
+                        },
+                        colors: ['#34d399'],
+                        fill: {
+                            type: 'gradient',
+                            gradient: {
+                                shadeIntensity: 1,
+                                opacityFrom: 0.35,
+                                opacityTo: 0.05,
+                                stops: [0, 100]
                             }
                         }
-                    },
-                    colors: ['#34d399'],
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            shadeIntensity: 1,
-                            opacityFrom: 0.35,
-                            opacityTo: 0.05,
-                            stops: [0, 100]
-                        }
-                    }
-                }).render();
-            }
+                    }));
+                }
 
-            const bookingStatusChartEl = document.querySelector('#providerBookingStatusChart');
-            if (bookingStatusChartEl) {
-                new ApexCharts(bookingStatusChartEl, {
-                    chart: {
-                        type: 'donut',
-                        height: 300,
-                        foreColor: '#a1a1aa',
-                        toolbar: { show: false }
-                    },
-                    labels: chartsData.booking_status_distribution.labels,
-                    series: chartsData.booking_status_distribution.series,
-                    legend: {
-                        position: 'bottom',
-                        labels: { colors: '#a1a1aa' }
-                    },
-                    stroke: {
-                        colors: ['#0b0b0f']
-                    },
-                    colors: ['#f59e0b', '#22d3ee', '#34d399', '#f43f5e', '#a78bfa']
-                }).render();
-            }
+                const bookingStatusChartEl = document.querySelector('#providerBookingStatusChart');
+                if (bookingStatusChartEl) {
+                    chartRegistry.push(new ApexCharts(bookingStatusChartEl, {
+                        chart: {
+                            type: 'donut',
+                            height: 300,
+                            foreColor: palette.text,
+                            toolbar: { show: false }
+                        },
+                        labels: chartsData.booking_status_distribution.labels,
+                        series: chartsData.booking_status_distribution.series,
+                        legend: {
+                            position: 'bottom',
+                            labels: { colors: palette.text }
+                        },
+                        stroke: {
+                            colors: [palette.stroke]
+                        },
+                        colors: ['#f59e0b', '#22d3ee', '#34d399', '#f43f5e', '#a78bfa']
+                    }));
+                }
 
-            const serviceTypeChartEl = document.querySelector('#providerServiceTypeChart');
-            if (serviceTypeChartEl) {
-                new ApexCharts(serviceTypeChartEl, {
-                    chart: {
-                        type: 'bar',
-                        height: 280,
-                        toolbar: { show: false },
-                        foreColor: '#a1a1aa',
-                        background: 'transparent'
-                    },
-                    series: [{ name: 'Services', data: chartsData.service_type_distribution.series }],
-                    xaxis: {
-                        categories: chartsData.service_type_distribution.labels,
-                        labels: { style: { colors: '#a1a1aa' } }
-                    },
-                    yaxis: {
-                        labels: { style: { colors: '#a1a1aa' } }
-                    },
-                    grid: {
-                        borderColor: 'rgba(255,255,255,0.08)'
-                    },
-                    dataLabels: { enabled: false },
-                    plotOptions: {
-                        bar: {
-                            borderRadius: 8,
-                            columnWidth: '45%'
-                        }
-                    },
-                    colors: ['#818cf8']
-                }).render();
-            }
+                const serviceTypeChartEl = document.querySelector('#providerServiceTypeChart');
+                if (serviceTypeChartEl) {
+                    chartRegistry.push(new ApexCharts(serviceTypeChartEl, {
+                        chart: {
+                            type: 'bar',
+                            height: 280,
+                            toolbar: { show: false },
+                            foreColor: palette.text,
+                            background: 'transparent'
+                        },
+                        series: [{ name: 'Services', data: chartsData.service_type_distribution.series }],
+                        xaxis: {
+                            categories: chartsData.service_type_distribution.labels,
+                            labels: { style: { colors: palette.text } }
+                        },
+                        yaxis: {
+                            labels: { style: { colors: palette.text } }
+                        },
+                        grid: {
+                            borderColor: palette.grid
+                        },
+                        dataLabels: { enabled: false },
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 8,
+                                columnWidth: '45%'
+                            }
+                        },
+                        colors: ['#818cf8']
+                    }));
+                }
+
+                chartRegistry.forEach((chart) => chart.render());
+            };
+
+            renderCharts();
+            window.addEventListener('skillslot:dashboard-theme-changed', renderCharts);
         })();
     </script>
 @endpush

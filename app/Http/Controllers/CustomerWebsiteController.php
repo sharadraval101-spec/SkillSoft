@@ -841,7 +841,7 @@ class CustomerWebsiteController extends Controller
             'rating_label' => (float) ($service->avg_rating ?? 0) > 0 ? number_format((float) $service->avg_rating, 1) : 'New',
             'reviews_count' => (int) ($service->reviews_count ?? 0),
             'description' => Str::limit((string) ($service->description ?? ''), 110),
-            'image' => $service->ui_image,
+            'image' => $service->ui_image ?? $service->image_url,
             'details_url' => route('site.services.show', $service->slug),
             'book_url' => route('site.booking', array_filter([
                 'provider_id' => $service->providerProfile?->user_id,
@@ -865,20 +865,7 @@ class CustomerWebsiteController extends Controller
 
     private function generateServiceGallery(Service $service): array
     {
-        $seed = md5($service->id.'|'.$service->name);
-        $fallbackImages = collect(range(0, 3))
-            ->map(function (int $index) use ($seed): string {
-                $segment = substr($seed, $index * 8, 8);
-                return 'https://picsum.photos/seed/'.$segment.'/1200/800';
-            })
-            ->all();
-
-        $images = [];
-        if ($service->image_url) {
-            $images[] = $service->image_url;
-        }
-
-        return array_values(array_unique(array_merge($images, $fallbackImages)));
+        return $service->image_url ? [$service->image_url] : [];
     }
 
     private function buildServicesQuery(array $validated, ?Carbon $availabilityDate): Builder

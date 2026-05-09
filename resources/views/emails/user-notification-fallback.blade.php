@@ -11,7 +11,7 @@
             <td style="padding:24px;">
                 <h2 style="margin:0 0 12px; color:#111827;">{{ $title }}</h2>
                 <p style="margin:0 0 12px; color:#374151;">Hello {{ $user->name }},</p>
-                <p style="margin:0; color:#374151;">{{ $message ?: 'You have a new notification in your account.' }}</p>
+                <p style="margin:0; color:#374151;">{{ $notificationMessage ?: 'You have a new notification in your account.' }}</p>
 
                 @if(!empty($data))
                     <div style="margin-top:16px; padding:12px; background:#f3f4f6; border-radius:8px;">

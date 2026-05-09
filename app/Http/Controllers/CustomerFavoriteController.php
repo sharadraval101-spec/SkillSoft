@@ -110,20 +110,6 @@ class CustomerFavoriteController extends Controller
 
     private function generateServiceGallery(Service $service): array
     {
-        $seed = md5($service->id.'|'.$service->name);
-        $fallbackImages = collect(range(0, 3))
-            ->map(function (int $index) use ($seed): string {
-                $segment = substr($seed, $index * 8, 8);
-
-                return 'https://picsum.photos/seed/'.$segment.'/1200/800';
-            })
-            ->all();
-
-        $images = [];
-        if ($service->image_url) {
-            $images[] = $service->image_url;
-        }
-
-        return array_values(array_unique(array_merge($images, $fallbackImages)));
+        return $service->image_url ? [$service->image_url] : [];
     }
 }

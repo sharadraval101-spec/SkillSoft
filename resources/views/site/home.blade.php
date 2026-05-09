@@ -3,56 +3,48 @@
 @php
     $topCategories = $categories->take(4)->values();
     $highlightedServices = $featuredServices->take(4)->values();
-    $categoryImages = [
-        'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80',
-        'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80',
-    ];
-    $categoryFallbackDescriptions = [
-        'Haircuts, spa treatments, makeup artists, skincare, and professional beauty services near you.',
-        'Find personal trainers, yoga instructors, gym sessions, and wellness coaching to help you stay fit and healthy.',
-        'Connect with doctors, therapists, and healthcare experts for trusted medical advice and wellness support.',
-        'Find trusted pet grooming, veterinary care, boarding, walking, and training services for your pets.',
-    ];
 @endphp
 
 @section('content')
-<section class="mx-auto flex min-h-[calc(100vh-7rem)] max-w-[1280px] items-center px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-24" data-motion-section>
-    <div class="grid w-full items-center gap-12 lg:grid-cols-[minmax(0,36rem)_minmax(0,1fr)]">
-        <div class="max-w-[38rem] pt-6 lg:pt-0">
-            <h1 class="max-w-[12ch] text-[2.45rem] font-semibold leading-[1.18] tracking-[-0.05em] text-zinc-900 sm:text-[3.35rem] lg:text-[4.15rem]" data-motion-title>
-                Find and book trusted services near you anytime anywhere
-            </h1>
+<section class="mx-auto flex min-h-[calc(100vh-7rem)] max-w-[1280px] items-center  pb-16 pt-8 lg:pb-24" data-motion-section>
+   <div class="grid w-full items-center gap-x-6 lg:grid-cols-[minmax(0,36rem)_minmax(0,1fr)]">
 
-            <p class="mt-6 max-w-[35rem] text-[15px] leading-8 text-zinc-500" data-motion-copy>
-                Explore professional services across beauty, fitness, healthcare, legal consultation, pet care, and many more categories. Find verified service providers, check availability in real time, select a convenient time slot, and book your appointment instantly with safe and secure payment options.
-            </p>
+    <!-- LEFT -->
+    <div class="max-w-[38rem] pt-6 lg:pt-0">
+        <h1 class="text-[2.45rem] font-semibold leading-[1.18] tracking-[-0.05em] text-zinc-900 sm:text-[3.35rem] lg:text-[4.15rem]">
+            Find and book trusted rgservices near you anytime anywhere
+        </h1>
 
-            <div class="mt-10 flex flex-wrap items-center gap-4" data-motion-actions>
-                <a href="{{ route('site.services.index') }}" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] bg-zinc-950 px-7 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-action>
-                    Explore Services
-                </a>
-                {{-- <a href="#how-it-works" class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] border border-zinc-300 px-7 py-3.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950" data-motion-action>
-                    How It Works
-                </a> --}}
-            </div>
-        </div>
+        <p class="mt-6 max-w-[35rem] text-[15px] leading-8 text-zinc-500">
+            Explore professional services across beauty, fitness, healthcare, legal consultation, pet care, and many more categories.
+            Find verified service providers, check availability in real time, select a convenient time slot, and book your appointment instantly with safe and secure payment options.
+        </p>
 
-        <div class="relative flex justify-center lg:justify-end" data-motion-media>
-            <div class="relative w-full max-w-[39rem]">
-                <div class="absolute right-[10%] top-[12%] h-56 w-56 rounded-full bg-orange-100/75 blur-3xl"></div>
-                <div class="absolute inset-x-[14%] bottom-4 h-20 rounded-full bg-black/15 blur-3xl"></div>
-                <div class="absolute inset-x-[18%] bottom-0 h-28 bg-gradient-to-t from-white via-white/85 to-transparent"></div>
-
-                <img
-                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1400&q=80"
-                    alt="Happy customer exploring services on a phone"
-                    class="relative z-10 ml-auto h-[24rem] w-auto max-w-none object-contain sm:h-[31rem] lg:h-[39rem] [mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)]"
-                >
-            </div>
+        <div class="mt-10 flex flex-wrap items-center gap-4">
+            <a href="{{ route('site.services.index') }}"
+               class="inline-flex min-w-[150px] items-center justify-center rounded-[10px] bg-zinc-950 px-7 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800">
+                Explore Services
+            </a>
         </div>
     </div>
+
+    <!-- RIGHT -->
+    <div class="relative flex justify-center lg:justify-end">
+        <div class="relative w-full max-w-[39rem]">
+
+            <div class="absolute right-[10%] top-[12%] h-56 w-56 rounded-full bg-orange-100/75 blur-3xl"></div>
+            <div class="absolute inset-x-[14%] bottom-4 h-20 rounded-full bg-black/15 blur-3xl"></div>
+            <div class="absolute inset-x-[18%] bottom-0 h-28 bg-gradient-to-t from-white via-white/85 to-transparent"></div>
+
+            <img
+                src="{{ asset('images/shararad.png') }}"
+                alt="Happy customer exploring services on a phone"
+                class="relative z-10 ml-auto h-[24rem] w-auto max-w-none object-contain sm:h-[31rem] lg:h-[39rem] [mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)]"
+            >
+        </div>
+    </div>
+
+</div>
 </section>
 
 <section id="categories" class="mx-auto max-w-[1280px] scroll-mt-24 px-4 pb-24 pt-10 sm:px-6 lg:px-8" data-motion-section>
@@ -66,21 +58,29 @@
     </div>
 
     <div class="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4" data-motion-group>
-        @forelse($topCategories as $index => $category)
+        @forelse($topCategories as $category)
             @php
-                $categoryImage = $categoryImages[$index % count($categoryImages)];
-                $categoryDescription = $category->description
-                    ? \Illuminate\Support\Str::limit($category->description, 110)
-                    : $categoryFallbackDescriptions[$index % count($categoryFallbackDescriptions)];
+                $categoryImage = $category->image_url;
+                $categoryInitials = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($category->name ?? 'Category', 0, 2));
             @endphp
 
             <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_16px_40px_rgba(0,0,0,0.07)] ring-1 ring-black/5" data-motion-item data-motion-card>
-                <img src="{{ $categoryImage }}" alt="{{ $category->name }}" class="h-52 w-full object-cover">
+                @if($categoryImage)
+                    <img src="{{ $categoryImage }}" alt="{{ $category->name }}" class="h-52 w-full object-cover">
+                @else
+                    <div class="flex h-52 w-full items-center justify-center bg-gradient-to-br from-zinc-100 via-white to-zinc-200">
+                        <div class="flex h-20 w-20 items-center justify-center rounded-full bg-white text-2xl font-semibold text-zinc-900 shadow-sm">
+                            {{ $categoryInitials }}
+                        </div>
+                    </div>
+                @endif
 
                 <div class="space-y-4 px-6 py-5">
                     <div>
                         <h3 class="text-[1.7rem] font-medium tracking-[-0.03em] text-zinc-900">{{ $category->name }}</h3>
-                        <p class="mt-3 text-[15px] leading-7 text-zinc-500">{{ $categoryDescription }}</p>
+                        @if(filled($category->description))
+                            <p class="mt-3 text-[15px] leading-7 text-zinc-500">{{ \Illuminate\Support\Str::limit($category->description, 110) }}</p>
+                        @endif
                     </div>
 
                     <a href="{{ route('site.services.index', ['category' => $category->slug]) }}" class="inline-flex w-full items-center justify-center rounded-[10px] bg-zinc-950 px-4 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-800" data-motion-action>
@@ -114,6 +114,8 @@
                 $providerName = $service->providerProfile?->user?->name ?? 'Service Provider';
                 $serviceRating = round((float) ($service->avg_rating ?? 0), 1);
                 $servicePrice = number_format((float) $service->base_price, 0);
+                $serviceImage = $service->ui_image ?? $service->image_url;
+                $serviceInitials = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($service->name ?? 'Service', 0, 2));
                 $bookingQuery = array_filter([
                     'provider_id' => $service->providerProfile?->user_id,
                     'service_id' => $service->id,
@@ -122,11 +124,19 @@
             @endphp
 
             <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_16px_40px_rgba(0,0,0,0.07)] ring-1 ring-black/5" data-motion-item data-motion-card>
-                <img
-                    src="{{ $service->ui_image ?? 'https://picsum.photos/seed/'.urlencode((string) $service->id).'/900/620' }}"
-                    alt="{{ $service->name }}"
-                    class="h-52 w-full object-cover"
-                >
+                @if($serviceImage)
+                    <img
+                        src="{{ $serviceImage }}"
+                        alt="{{ $service->name }}"
+                        class="h-52 w-full object-cover"
+                    >
+                @else
+                    <div class="flex h-52 w-full items-center justify-center bg-gradient-to-br from-zinc-100 via-white to-zinc-200">
+                        <div class="flex h-20 w-20 items-center justify-center rounded-full bg-white text-2xl font-semibold text-zinc-900 shadow-sm">
+                            {{ $serviceInitials }}
+                        </div>
+                    </div>
+                @endif
 
                 <div class="space-y-5 px-6 py-5">
                     <div>

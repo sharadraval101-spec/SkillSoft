@@ -21,12 +21,17 @@ class AuthController extends Controller
     // Handle Registration
     public function register(Request $request)
     {
+        if ((int) $request->input('role') === User::ROLE_PROVIDER) {
+            return redirect()
+                ->route('provider.requests.create')
+                ->with('status', 'Provider self-registration has been replaced by the approval-based Become a Provider workflow.');
+        }
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
-            'role' => 'required|in:'.implode(',', [User::ROLE_CUSTOMER, User::ROLE_PROVIDER]),
-            'business_name' => 'required_if:role,'.User::ROLE_PROVIDER.'|nullable|string|max:255',
+            'role' => 'required|in:'.implode(',', [User::ROLE_CUSTOMER]),
         ]);
 
         $user = User::create([
@@ -36,23 +41,6 @@ class AuthController extends Controller
             'role' => (int) $data['role'],
         ]);
         $user->syncRoleFromLegacyValue();
-
-        if ((int) $user->role === User::ROLE_PROVIDER) {
-            ProviderProfile::updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'business_name' => $data['business_name'] ?? $user->name.' Services',
-                    'status' => 'pending',
-                ]
-            );
-
-            $this->recordActivity($request, 'auth.register.provider_pending', 'Provider registration submitted', $user, [
-                'role' => (int) $user->role,
-            ]);
-
-            return redirect()->route('login')
-                ->with('status', 'Provider registration submitted. Wait for admin approval.');
-        }
 
         $this->recordActivity($request, 'auth.register.customer', 'Customer registration submitted', $user, [
             'role' => (int) $user->role,

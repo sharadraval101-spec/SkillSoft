@@ -5,14 +5,14 @@
 <div id="provider-bookings-page" class="space-y-6">
     <section class="rounded-3xl border border-white/10 bg-zinc-900/70 p-6 shadow-xl shadow-black/30">
         <h1 class="text-2xl font-black text-white">Bookings</h1>
-        <p class="mt-2 text-sm text-zinc-400">Review customer bookings assigned to your services, reschedule upcoming appointments, and mark completed appointments once the service is finished.</p>
+        <p class="mt-2 text-sm text-zinc-400">Review customer bookings assigned to your services, update upcoming appointment dates, and mark completed appointments once the service is finished.</p>
     </section>
 
     <section class="dashboard-panel">
         @if($bookings->isEmpty())
             <div class="rounded-2xl border border-dashed border-white/15 py-10 text-center">
                 <p class="text-base font-semibold text-zinc-300">No bookings found.</p>
-                <p class="mt-2 text-sm text-zinc-500">Once appointments are listed here, each upcoming row will show its own Reschedule button.</p>
+                <p class="mt-2 text-sm text-zinc-500">Once appointments are listed here, each upcoming row will show its own Update Date button.</p>
             </div>
         @else
             <div class="overflow-x-auto">
@@ -90,11 +90,21 @@
                                                 data-modal-open="provider-booking-reschedule-{{ $booking->id }}"
                                                 class="smooth-action-btn rounded-lg border border-cyan-400/35 px-3 py-1.5 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/10"
                                             >
-                                                Reschedule
+                                                Update Date
                                             </button>
                                         @endif
 
-                                        @if(!$booking->can_provider_accept && !$booking->can_provider_complete && !$booking->can_provider_reschedule)
+                                        @if($booking->can_provider_cancel)
+                                            <button
+                                                type="button"
+                                                data-modal-open="provider-booking-cancel-{{ $booking->id }}"
+                                                class="smooth-action-btn rounded-lg border border-rose-400/35 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/10"
+                                            >
+                                                Cancel
+                                            </button>
+                                        @endif
+
+                                        @if(!$booking->can_provider_accept && !$booking->can_provider_complete && !$booking->can_provider_reschedule && !$booking->can_provider_cancel)
                                             <span class="text-xs text-zinc-500">Unavailable</span>
                                         @endif
                                     </div>
@@ -116,13 +126,14 @@
             @php
                 $defaultRescheduleDate = $booking->scheduled_at?->copy()->addDay()->toDateString();
             @endphp
-            <x-modal id="provider-booking-reschedule-{{ $booking->id }}" title="Reschedule Appointment" max-width="max-w-xl">
+            <x-modal id="provider-booking-reschedule-{{ $booking->id }}" title="Update Booking Date" max-width="max-w-xl">
                 <div class="space-y-4">
                     <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-zinc-300">
                         <p><span class="font-semibold text-zinc-100">Booking:</span> {{ $booking->booking_number }}</p>
                         <p class="mt-1"><span class="font-semibold text-zinc-100">Customer:</span> {{ $booking->customer?->name ?? 'N/A' }}</p>
                         <p class="mt-1"><span class="font-semibold text-zinc-100">Current Schedule:</span> {{ $booking->scheduled_at?->format('d M Y, h:i A') ?? '-' }}</p>
                         <p class="mt-2 text-xs text-zinc-500">The appointment will keep the same time range and move to the new date you choose.</p>
+                        <p class="mt-1 text-xs text-cyan-200/80">The customer will receive an email and in-app notification after you save this change.</p>
                     </div>
 
                     <form method="POST" action="{{ route('provider.bookings.reschedule', $booking) }}" class="space-y-4">
@@ -159,7 +170,45 @@
                                 Cancel
                             </button>
                             <button type="submit" class="smooth-action-btn rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-500">
-                                Save Reschedule
+                                Save Date Update
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </x-modal>
+        @endif
+
+        @if($booking->can_provider_cancel)
+            <x-modal id="provider-booking-cancel-{{ $booking->id }}" title="Cancel Appointment" max-width="max-w-xl">
+                <div class="space-y-4">
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-zinc-300">
+                        <p><span class="font-semibold text-zinc-100">Booking:</span> {{ $booking->booking_number }}</p>
+                        <p class="mt-1"><span class="font-semibold text-zinc-100">Customer:</span> {{ $booking->customer?->name ?? 'N/A' }}</p>
+                        <p class="mt-1"><span class="font-semibold text-zinc-100">Scheduled:</span> {{ $booking->scheduled_at?->format('d M Y, h:i A') ?? '-' }}</p>
+                        <p class="mt-2 text-xs text-zinc-500">Provider cancellations trigger the provider-side cancellation policy and refund handling for paid bookings.</p>
+                    </div>
+
+                    <form method="POST" action="{{ route('provider.bookings.cancel', $booking) }}" class="space-y-4">
+                        @csrf
+
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Reason (Optional)</label>
+                            <input
+                                type="text"
+                                name="reason"
+                                value="{{ old('reason') }}"
+                                maxlength="255"
+                                placeholder="Provider is unavailable for this appointment"
+                                class="w-full rounded-xl border border-white/15 bg-zinc-950/70 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-rose-400/50 focus:outline-none"
+                            >
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" data-modal-hide class="smooth-action-btn rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-white/10">
+                                Back
+                            </button>
+                            <button type="submit" class="smooth-action-btn rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500">
+                                Confirm Cancellation
                             </button>
                         </div>
                     </form>

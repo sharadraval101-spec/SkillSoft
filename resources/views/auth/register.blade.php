@@ -20,7 +20,7 @@
                 Choose the registration path that fits your role
             </h1>
             <p class="mt-5 max-w-xl text-[15px] leading-8 text-zinc-500" data-motion-copy>
-                Create a customer account to save services and book appointments, or register as a provider to offer services on the platform.
+                Create a customer account to save services and book appointments, or apply to become a provider through the approval-based onboarding flow.
             </p>
         </div>
 
@@ -35,13 +35,13 @@
                     <span class="mt-5 inline-flex items-center text-sm font-semibold text-zinc-950">Register as Customer</span>
                 </a>
 
-                <a href="{{ route('register.provider') }}" class="rounded-[24px] border border-zinc-200 bg-zinc-50 p-6 transition hover:border-zinc-950 hover:bg-white hover:shadow-[0_18px_40px_rgba(15,23,42,0.06)]" data-motion-item data-motion-card data-motion-action>
+                <a href="{{ route('provider.requests.create') }}" class="rounded-[24px] border border-zinc-200 bg-zinc-50 p-6 transition hover:border-zinc-950 hover:bg-white hover:shadow-[0_18px_40px_rgba(15,23,42,0.06)]" data-motion-item data-motion-card data-motion-action>
                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">Provider</p>
-                    <h2 class="mt-3 text-2xl font-semibold tracking-[-0.04em] text-zinc-950">List and manage services</h2>
+                    <h2 class="mt-3 text-2xl font-semibold tracking-[-0.04em] text-zinc-950">Apply to join as a provider</h2>
                     <p class="mt-3 text-sm leading-7 text-zinc-500">
-                        Register as a provider to publish services, manage schedules, and access the provider dashboard after approval.
+                        Submit your business details for review. We will create your provider account after approval.
                     </p>
-                    <span class="mt-5 inline-flex items-center text-sm font-semibold text-zinc-950">Register as Provider</span>
+                    <span class="mt-5 inline-flex items-center text-sm font-semibold text-zinc-950">Open Provider Request</span>
                 </a>
             </div>
 

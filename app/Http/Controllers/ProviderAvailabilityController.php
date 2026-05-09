@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Provider\StoreProviderUnavailableDateRequest;
 use App\Http\Requests\Provider\UpdateProviderAvailabilityRequest;
+use App\Http\Requests\Provider\UpdateProviderOperationalStatusRequest;
 use App\Models\Booking;
 use App\Models\ProviderAvailability;
 use App\Models\ProviderUnavailableDate;
 use App\Models\Slot;
 use App\Models\User;
 use App\Services\BookingService;
+use App\Services\ProviderUnavailabilityService;
 use App\Services\ScheduleAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -22,7 +24,8 @@ class ProviderAvailabilityController extends Controller
 {
     public function __construct(
         private readonly ScheduleAvailabilityService $availabilityService,
-        private readonly BookingService $bookingService
+        private readonly BookingService $bookingService,
+        private readonly ProviderUnavailabilityService $providerUnavailabilityService
     ) {
     }
 
@@ -72,6 +75,7 @@ class ProviderAvailabilityController extends Controller
         return view('provider.availability.index', [
             'weeklyRows' => $weeklyRows,
             'blockedDates' => $blockedDates,
+            'providerProfile' => $provider->providerProfile,
         ]);
     }
 
@@ -128,6 +132,20 @@ class ProviderAvailabilityController extends Controller
         })->values();
 
         return response()->json(['data' => $data]);
+    }
+
+    public function updateOperationalStatus(UpdateProviderOperationalStatusRequest $request): RedirectResponse
+    {
+        /** @var User $provider */
+        $provider = $request->user();
+
+        $this->providerUnavailabilityService->updateOperationalStatus(
+            $provider,
+            $request->validated(),
+            $provider
+        );
+
+        return back()->with('success', 'Operational availability updated. Affected appointments are being moved.');
     }
     public function saveWeekly(UpdateProviderAvailabilityRequest $request): RedirectResponse
     {
@@ -196,8 +214,8 @@ class ProviderAvailabilityController extends Controller
 
         if ($shouldReschedule) {
             $message = $rescheduledCount > 0
-                ? 'Blocked date/time added and '.$rescheduledCount.' appointment'.($rescheduledCount === 1 ? ' was' : 's were').' rescheduled successfully.'
-                : 'Blocked date/time added. No active appointments needed rescheduling.';
+                ? 'Blocked date/time added and '.$rescheduledCount.' appointment'.($rescheduledCount === 1 ? ' was' : 's were').' moved successfully.'
+                : 'Blocked date/time added. No active appointments needed to be moved.';
         }
 
         return back()->with('success', $message);

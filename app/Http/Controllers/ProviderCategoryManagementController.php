@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\ServiceCategory;
+use App\Models\ProviderRequest;
+use App\Models\Service;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -10,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ProviderCategoryManagementController extends Controller
@@ -18,12 +22,17 @@ class ProviderCategoryManagementController extends Controller
     {
         return view('provider.categories.index', [
             'categoriesDataUrl' => route('provider.categories.data'),
+            'deleteTargetCategories' => ServiceCategory::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 
     public function data(): JsonResponse
     {
         $categories = ServiceCategory::query()
+            ->withCount('services')
             ->latest('created_at')
             ->get();
 
@@ -107,21 +116,94 @@ class ProviderCategoryManagementController extends Controller
 
     public function destroy(Request $request, ServiceCategory $serviceCategory): JsonResponse|RedirectResponse
     {
-        try {
-            if ($serviceCategory->image_path) {
-                Storage::disk('public')->delete($serviceCategory->image_path);
-            }
+        $validated = $request->validate([
+            'reassign_service_category_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('service_categories', 'id')->where(fn ($query) => $query->where('is_active', true)),
+            ],
+        ]);
 
-            $serviceCategory->delete();
-        } catch (QueryException) {
+        try {
+            $result = DB::transaction(function () use ($serviceCategory, $validated): array {
+                $category = ServiceCategory::query()
+                    ->lockForUpdate()
+                    ->findOrFail($serviceCategory->id);
+
+                $serviceCount = Service::query()
+                    ->where('service_category_id', $category->id)
+                    ->count();
+
+                $targetCategory = null;
+
+                if ($serviceCount > 0) {
+                    $targetCategoryId = $validated['reassign_service_category_id'] ?? null;
+                    if (!$targetCategoryId) {
+                        throw ValidationException::withMessages([
+                            'reassign_service_category_id' => 'Choose another active category to move the linked services before deleting this one.',
+                        ]);
+                    }
+
+                    $targetCategory = ServiceCategory::query()
+                        ->lockForUpdate()
+                        ->whereKey($targetCategoryId)
+                        ->where('is_active', true)
+                        ->first();
+
+                    if (!$targetCategory) {
+                        throw ValidationException::withMessages([
+                            'reassign_service_category_id' => 'The selected reassignment category is invalid or inactive.',
+                        ]);
+                    }
+
+                    if ((string) $targetCategory->id === (string) $category->id) {
+                        throw ValidationException::withMessages([
+                            'reassign_service_category_id' => 'Please choose a different category to receive the linked services.',
+                        ]);
+                    }
+
+                    Service::query()
+                        ->where('service_category_id', $category->id)
+                        ->update(['service_category_id' => $targetCategory->id]);
+                }
+
+                ServiceCategory::query()
+                    ->where('parent_id', $category->id)
+                    ->update(['parent_id' => null]);
+
+                ProviderRequest::query()
+                    ->where('service_category_id', $category->id)
+                    ->update(['service_category_id' => null]);
+
+                if ($category->image_path) {
+                    Storage::disk('public')->delete($category->image_path);
+                }
+
+                $category->delete();
+
+                return [
+                    'service_count' => $serviceCount,
+                    'target_category_name' => $targetCategory?->name,
+                ];
+            });
+        } catch (QueryException $exception) {
             return $this->errorResponse(
                 $request,
-                'This category is linked to existing services and cannot be deleted.',
+                'This category could not be deleted because it is linked to existing records.',
                 422
             );
         }
 
-        return $this->successResponse($request, 'Category deleted successfully.');
+        $message = 'Category deleted successfully.';
+
+        if ($result['service_count'] > 0) {
+            $serviceLabel = $result['service_count'] === 1 ? 'service was' : 'services were';
+            $message = 'Category deleted successfully. '.$result['service_count'].' linked '.$serviceLabel.' moved'
+                .($result['target_category_name'] ? ' to '.$result['target_category_name'] : '')
+                .'.';
+        }
+
+        return $this->successResponse($request, $message);
     }
 
     private function toDataRow(ServiceCategory $category): array
@@ -138,6 +220,7 @@ class ProviderCategoryManagementController extends Controller
             'image_url' => $category->image_url,
             'created_at' => $category->created_at?->format('d M Y, h:i A') ?? '-',
             'created_at_timestamp' => $category->created_at?->timestamp ?? 0,
+            'service_count' => (int) ($category->services_count ?? 0),
             'update_url' => route('provider.categories.update', $category),
             'toggle_status_url' => route('provider.categories.toggle-status', $category),
             'delete_url' => route('provider.categories.destroy', $category),

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Booking;
 use App\Models\Branch;
+use App\Mail\UserNotificationFallbackMail;
 use App\Models\ProviderProfile;
 use App\Models\Schedule;
 use App\Models\Service;
@@ -14,6 +15,7 @@ use Database\Seeders\RoleSeeder;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -111,9 +113,12 @@ class ProviderBookingRescheduleTest extends TestCase
         $targetSlot = $this->createSlot($targetSchedule, $provider, $branch, $targetDate->copy()->setTime(10, 0), $targetDate->copy()->setTime(10, 30));
         $booking = $this->createBooking($customer, $provider, $branch, $service, $sourceSlot, 'BK-LIST-0001');
 
+        Mail::fake();
+
         $page = $this->actingAs($provider)->get(route('provider.bookings.index'));
         $page->assertOk();
-        $page->assertSee('Reschedule');
+        $page->assertSee('Update Date');
+        $page->assertSee('email and in-app notification');
         $page->assertSee($booking->booking_number);
 
         $response = $this->actingAs($provider)
@@ -125,7 +130,7 @@ class ProviderBookingRescheduleTest extends TestCase
             ]);
 
         $response->assertRedirect(route('provider.bookings.index'));
-        $response->assertSessionHas('success', 'Appointment rescheduled successfully.');
+        $response->assertSessionHas('success', 'Appointment date updated successfully.');
 
         $booking->refresh();
         $sourceSlot->refresh();
@@ -137,6 +142,14 @@ class ProviderBookingRescheduleTest extends TestCase
         $this->assertStringContainsString('Provider changed availability', (string) $booking->notes);
         $this->assertTrue($sourceSlot->is_available);
         $this->assertFalse($targetSlot->is_available);
+
+        Mail::assertQueued(UserNotificationFallbackMail::class, function (UserNotificationFallbackMail $mail) use ($customer, $booking, $targetSlot): bool {
+            return (string) $mail->user->id === (string) $customer->id
+                && $mail->title === 'Booking Rescheduled by Provider'
+                && str_contains((string) $mail->message, $booking->booking_number)
+                && str_contains((string) $mail->message, $targetSlot->start_at->format('d M Y, h:i A'))
+                && data_get($mail->data, 'booking_number') === $booking->booking_number;
+        });
     }
 
     public function test_provider_can_complete_an_accepted_booking_from_the_appointments_page(): void

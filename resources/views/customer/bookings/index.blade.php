@@ -72,7 +72,8 @@
                                 <td class="px-6 py-5 sm:px-8">
                                     @php
                                         $hasPayAction = !$booking->has_paid_payment && in_array($booking->status, [\App\Models\Booking::STATUS_PENDING, \App\Models\Booking::STATUS_ACCEPTED], true);
-                                        $hasFeedbackAction = $booking->status === \App\Models\Booking::STATUS_COMPLETED;
+                                        $canLeaveFeedback = $booking->status === \App\Models\Booking::STATUS_COMPLETED && !$booking->review;
+                                        $hasSavedFeedback = $booking->status === \App\Models\Booking::STATUS_COMPLETED && (bool) $booking->review;
                                     @endphp
                                     <div class="flex flex-wrap gap-2">
                                         @if($hasPayAction)
@@ -90,13 +91,17 @@
                                             </form>
                                         @endif
 
-                                        @if($hasFeedbackAction)
-                                            <a href="{{ route('customer.feedback.edit', $booking) }}" class="inline-flex rounded-[10px] border {{ $booking->review ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-50' : 'border-amber-200 text-amber-700 hover:bg-amber-50' }} px-3 py-2 text-xs font-medium transition">
-                                                {{ $booking->review ? 'Edit Feedback' : 'Leave Feedback' }}
+                                        @if($canLeaveFeedback)
+                                            <a href="{{ route('customer.feedback.create', $booking) }}" class="inline-flex rounded-[10px] border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700 transition hover:bg-amber-50">
+                                                Leave Feedback
                                             </a>
+                                        @elseif($hasSavedFeedback)
+                                            <span class="inline-flex rounded-[10px] border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
+                                                Feedback Submitted
+                                            </span>
                                         @endif
 
-                                        @if(!$booking->can_cancel && !$hasPayAction && !$hasFeedbackAction)
+                                        @if(!$booking->can_cancel && !$hasPayAction && !$canLeaveFeedback && !$hasSavedFeedback)
                                             <span class="text-xs text-zinc-400">No actions</span>
                                         @endif
                                     </div>

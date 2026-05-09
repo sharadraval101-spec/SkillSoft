@@ -9,11 +9,12 @@
     $serviceLocation = $service->branch?->city
         ? trim(($service->branch->city ?? '').', '.($service->branch->state ?? ''))
         : 'Multiple locations';
-    $primaryImage = $gallery[0] ?? 'https://picsum.photos/seed/'.urlencode((string) $service->id).'/1200/800';
+    $primaryImage = $gallery[0] ?? null;
     $galleryItems = collect($gallery)->filter()->values();
+    $serviceInitials = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($service->name ?? 'Service', 0, 2));
 
     if ($galleryItems->isEmpty()) {
-        $galleryItems = collect([$primaryImage]);
+        $galleryItems = collect();
     }
 
     $serviceIsUnavailable = (bool) ($serviceIsUnavailable ?? false);
@@ -37,9 +38,11 @@
                 </a>
                 <p class="mt-5 text-sm font-medium uppercase tracking-[0.22em] text-zinc-400" data-motion-kicker>{{ $service->category?->name ?? 'Service Detail' }}</p>
                 <h1 class="mt-4 text-[2.65rem] font-semibold leading-[1.08] tracking-[-0.05em] text-zinc-950 sm:text-[3.6rem]" data-motion-title>{{ $service->name }}</h1>
-                <p class="mt-5 max-w-2xl text-[15px] leading-8 text-zinc-500" data-motion-copy>
-                    {{ \Illuminate\Support\Str::limit($service->description ?: 'Explore the service, compare options, and continue into booking with the same polished marketplace flow used across the rest of the user site.', 240) }}
-                </p>
+                @if(filled($service->description))
+                    <p class="mt-5 max-w-2xl text-[15px] leading-8 text-zinc-500" data-motion-copy>
+                        {{ \Illuminate\Support\Str::limit($service->description, 240) }}
+                    </p>
+                @endif
                 @if($serviceIsUnavailable)
                     <div class="mt-6 inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700" data-motion-card>
                         Service Not Available
@@ -85,9 +88,17 @@
     <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div class="space-y-6">
             <article class="overflow-hidden rounded-[30px] bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.08)] ring-1 ring-black/5 sm:p-5" data-motion-media data-motion-card>
-                <div class="overflow-hidden rounded-[24px]">
-                    <img id="service-main-image" src="{{ $primaryImage }}" alt="{{ $service->name }}" class="h-[18rem] w-full object-cover sm:h-[26rem]">
-                </div>
+                @if($primaryImage)
+                    <div class="overflow-hidden rounded-[24px]">
+                        <img id="service-main-image" src="{{ $primaryImage }}" alt="{{ $service->name }}" class="h-[18rem] w-full object-cover sm:h-[26rem]">
+                    </div>
+                @else
+                    <div class="flex h-[18rem] items-center justify-center rounded-[24px] bg-gradient-to-br from-zinc-100 via-white to-zinc-200 sm:h-[26rem]">
+                        <div class="flex h-24 w-24 items-center justify-center rounded-full bg-white text-3xl font-semibold text-zinc-900 shadow-sm">
+                            {{ $serviceInitials }}
+                        </div>
+                    </div>
+                @endif
                 @if($galleryItems->count() > 1)
                     <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4" data-motion-group>
                         @foreach($galleryItems as $image)
@@ -107,7 +118,9 @@
                     </div>
                     <span class="inline-flex rounded-full border border-zinc-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">{{ $serviceTypeLabel }}</span>
                 </div>
-                <p class="mt-5 whitespace-pre-line text-[15px] leading-8 text-zinc-500">{{ $service->description ?: 'Detailed description will be updated soon.' }}</p>
+                @if(filled($service->description))
+                    <p class="mt-5 whitespace-pre-line text-[15px] leading-8 text-zinc-500">{{ $service->description }}</p>
+                @endif
 
                 @if($service->variants->isNotEmpty())
                     <div class="mt-8 border-t border-black/5 pt-6">

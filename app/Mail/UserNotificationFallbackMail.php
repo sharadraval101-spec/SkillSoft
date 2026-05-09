@@ -4,12 +4,13 @@ namespace App\Mail;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class UserNotificationFallbackMail extends Mailable
+class UserNotificationFallbackMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -35,6 +36,9 @@ class UserNotificationFallbackMail extends Mailable
     {
         return new Content(
             view: 'emails.user-notification-fallback',
+            with: [
+                'notificationMessage' => $this->message,
+            ],
         );
     }
 

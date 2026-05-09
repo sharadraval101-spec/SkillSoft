@@ -5,7 +5,7 @@
     <div class="absolute -top-24 -right-20 h-64 w-64 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none"></div>
     <div class="absolute top-48 -left-24 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none"></div>
 
-    <section class="rounded-3xl border border-white/10 bg-gradient-to-r from-zinc-900/80 via-zinc-900/70 to-zinc-900/60 p-6 lg:p-8 shadow-2xl shadow-black/40">
+    <section class="dashboard-hero rounded-3xl border border-white/10 bg-gradient-to-r from-zinc-900/80 via-zinc-900/70 to-zinc-900/60 p-6 lg:p-8 shadow-2xl shadow-black/40">
         <p class="text-xs font-semibold tracking-[0.2em] uppercase text-cyan-300">System Overview</p>
         <h1 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight text-white">Admin Dashboard</h1>
         <p class="mt-3 text-zinc-400 max-w-3xl">
@@ -127,63 +127,104 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
-        const chartsData = @json($charts);
+        (() => {
+            const chartsData = @json($charts);
+            const chartRegistry = [];
 
-        const commonTheme = {
-            chart: {
-                toolbar: { show: false },
-                foreColor: '#a1a1aa',
-                background: 'transparent'
-            },
-            grid: {
-                borderColor: 'rgba(255,255,255,0.08)'
-            },
-            stroke: {
-                curve: 'smooth',
-                width: 3
-            },
-            dataLabels: { enabled: false },
-            xaxis: {
-                labels: { style: { colors: '#a1a1aa' } }
-            },
-            yaxis: {
-                labels: { style: { colors: '#a1a1aa' } }
-            }
-        };
+            const getPalette = () => {
+                const styles = getComputedStyle(document.documentElement);
 
-        new ApexCharts(document.querySelector('#registrationsChart'), {
-            ...commonTheme,
-            chart: { ...commonTheme.chart, type: 'line', height: 300 },
-            series: [{ name: 'Registrations', data: chartsData.registrations_daily_14d.series }],
-            xaxis: { ...commonTheme.xaxis, categories: chartsData.registrations_daily_14d.labels },
-            colors: ['#06b6d4']
-        }).render();
+                return {
+                    text: styles.getPropertyValue('--dashboard-chart-text').trim() || '#a1a1aa',
+                    grid: styles.getPropertyValue('--dashboard-chart-grid').trim() || 'rgba(255, 255, 255, 0.08)',
+                    stroke: styles.getPropertyValue('--dashboard-chart-stroke').trim() || '#0b0b0f',
+                };
+            };
 
-        new ApexCharts(document.querySelector('#loginsChart'), {
-            ...commonTheme,
-            chart: { ...commonTheme.chart, type: 'line', height: 280 },
-            series: [{ name: 'Logins', data: chartsData.logins_daily_14d.series }],
-            xaxis: { ...commonTheme.xaxis, categories: chartsData.logins_daily_14d.labels },
-            colors: ['#818cf8']
-        }).render();
+            const createCommonTheme = (palette) => ({
+                chart: {
+                    toolbar: { show: false },
+                    foreColor: palette.text,
+                    background: 'transparent'
+                },
+                grid: {
+                    borderColor: palette.grid
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 3
+                },
+                dataLabels: { enabled: false },
+                xaxis: {
+                    labels: { style: { colors: palette.text } }
+                },
+                yaxis: {
+                    labels: { style: { colors: palette.text } }
+                }
+            });
 
-        new ApexCharts(document.querySelector('#rolesChart'), {
-            chart: {
-                type: 'donut',
-                height: 300,
-                foreColor: '#a1a1aa',
-                toolbar: { show: false }
-            },
-            labels: chartsData.role_distribution.labels,
-            series: chartsData.role_distribution.series,
-            legend: {
-                position: 'bottom',
-                labels: { colors: '#a1a1aa' }
-            },
-            stroke: {
-                colors: ['#0b0b0f']
-            },
-            colors: ['#22d3ee', '#818cf8', '#34d399']
-        }).render();
+            const destroyCharts = () => {
+                while (chartRegistry.length) {
+                    const chart = chartRegistry.pop();
+                    chart?.destroy();
+                }
+            };
+
+            const renderCharts = () => {
+                destroyCharts();
+
+                const palette = getPalette();
+                const commonTheme = createCommonTheme(palette);
+
+                const registrationsChart = document.querySelector('#registrationsChart');
+                if (registrationsChart) {
+                    chartRegistry.push(new ApexCharts(registrationsChart, {
+                        ...commonTheme,
+                        chart: { ...commonTheme.chart, type: 'line', height: 300 },
+                        series: [{ name: 'Registrations', data: chartsData.registrations_daily_14d.series }],
+                        xaxis: { ...commonTheme.xaxis, categories: chartsData.registrations_daily_14d.labels },
+                        colors: ['#06b6d4']
+                    }));
+                }
+
+                const loginsChart = document.querySelector('#loginsChart');
+                if (loginsChart) {
+                    chartRegistry.push(new ApexCharts(loginsChart, {
+                        ...commonTheme,
+                        chart: { ...commonTheme.chart, type: 'line', height: 280 },
+                        series: [{ name: 'Logins', data: chartsData.logins_daily_14d.series }],
+                        xaxis: { ...commonTheme.xaxis, categories: chartsData.logins_daily_14d.labels },
+                        colors: ['#818cf8']
+                    }));
+                }
+
+                const rolesChart = document.querySelector('#rolesChart');
+                if (rolesChart) {
+                    chartRegistry.push(new ApexCharts(rolesChart, {
+                        chart: {
+                            type: 'donut',
+                            height: 300,
+                            foreColor: palette.text,
+                            toolbar: { show: false }
+                        },
+                        labels: chartsData.role_distribution.labels,
+                        series: chartsData.role_distribution.series,
+                        legend: {
+                            position: 'bottom',
+                            labels: { colors: palette.text }
+                        },
+                        stroke: {
+                            colors: [palette.stroke]
+                        },
+                        colors: ['#22d3ee', '#818cf8', '#34d399']
+                    }));
+                }
+
+                chartRegistry.forEach((chart) => chart.render());
+            };
+
+            renderCharts();
+            window.addEventListener('skillslot:dashboard-theme-changed', renderCharts);
+        })();
     </script>
 @endpush

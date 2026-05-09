@@ -16,9 +16,9 @@ class PaymentService
 {
     public function __construct(
         private readonly OnlineGatewayService $gatewayService,
-        private readonly NotificationService $notificationService
-    )
-    {
+        private readonly NotificationService $notificationService,
+        private readonly CancellationPolicyService $cancellationPolicyService
+    ) {
     }
 
     public function payOnline(User $customer, Booking $booking, string $gateway, string $paymentMode = Payment::MODE_PREPAID): Payment
@@ -63,6 +63,7 @@ class PaymentService
                 'gateway_reference' => $gatewayResult['reference'] ?? null,
                 'amount' => $amount,
                 'refunded_amount' => 0,
+                'cancellation_fee_amount' => 0,
                 'currency' => strtoupper($currency),
                 'status' => $paymentStatus,
                 'paid_at' => $isPaid ? now() : null,
@@ -115,6 +116,7 @@ class PaymentService
                 'gateway_reference' => null,
                 'amount' => $amount,
                 'refunded_amount' => 0,
+                'cancellation_fee_amount' => 0,
                 'currency' => strtoupper($currency),
                 'status' => $isPaid ? Payment::STATUS_PAID : Payment::STATUS_PENDING,
                 'paid_at' => $isPaid ? now() : null,
@@ -136,17 +138,36 @@ class PaymentService
 
     public function refund(User $customer, Payment $payment, ?string $reason = null): Payment
     {
-        return DB::transaction(function () use ($customer, $payment, $reason): Payment {
+        $payment = Payment::query()->findOrFail($payment->id);
+
+        if ((int) $payment->customer_id !== (int) $customer->id) {
+            abort(403);
+        }
+
+        return $this->applyCancellationPolicyRefund($payment, $reason, true);
+    }
+
+    public function canRefund(Payment $payment): bool
+    {
+        if (!$payment->booking || $payment->booking->status !== Booking::STATUS_CANCELLED) {
+            return false;
+        }
+
+        return $this->eligibleAdditionalRefundAmount($payment) > 0;
+    }
+
+    public function applyCancellationPolicyRefund(
+        Payment $payment,
+        ?string $reason = null,
+        bool $throwIfNoAction = false
+    ): Payment {
+        return DB::transaction(function () use ($payment, $reason, $throwIfNoAction): Payment {
             $payment = Payment::query()
-                ->with(['booking.service', 'booking.serviceVariant'])
+                ->with(['booking.service', 'booking.serviceVariant', 'customer'])
                 ->lockForUpdate()
                 ->findOrFail($payment->id);
 
-            if ((int) $payment->customer_id !== (int) $customer->id) {
-                abort(403);
-            }
-
-            if ($payment->status !== Payment::STATUS_PAID) {
+            if (!in_array($payment->status, [Payment::STATUS_PAID, Payment::STATUS_REFUNDED], true)) {
                 throw ValidationException::withMessages([
                     'payment' => 'Only paid payments can be refunded.',
                 ]);
@@ -159,59 +180,67 @@ class PaymentService
                 ]);
             }
 
-            $refundPercent = $this->refundPercentForBooking($booking);
-            $remaining = max(0, (float) $payment->amount - (float) $payment->refunded_amount);
-            $refundAmount = round($remaining * ($refundPercent / 100), 2);
+            $policy = $this->cancellationPolicyService->evaluate($booking, $payment);
+            $targetRefundAmount = $policy['refundable_amount'];
+            $currentRefundedAmount = round((float) $payment->refunded_amount, 2);
+            $additionalRefundAmount = round(max(0, $targetRefundAmount - $currentRefundedAmount), 2);
 
-            if ($refundAmount <= 0) {
+            if ($additionalRefundAmount <= 0 && $throwIfNoAction) {
                 throw ValidationException::withMessages([
                     'payment' => 'No refundable amount available for this payment.',
                 ]);
             }
 
-            if ($payment->method === Payment::METHOD_ONLINE && $payment->gateway !== Payment::GATEWAY_CASH) {
+            if (
+                $additionalRefundAmount > 0
+                && $payment->method === Payment::METHOD_ONLINE
+                && $payment->gateway !== Payment::GATEWAY_CASH
+            ) {
                 $this->gatewayService->refund(
                     $payment->gateway,
                     (string) $payment->gateway_reference,
-                    $refundAmount,
+                    $additionalRefundAmount,
                     $payment->currency
                 );
             }
 
-            $newRefunded = round((float) $payment->refunded_amount + $refundAmount, 2);
-            $fullyRefunded = $newRefunded >= ((float) $payment->amount - 0.009);
+            $newRefundedAmount = round($currentRefundedAmount + $additionalRefundAmount, 2);
+            $fullyRefunded = $newRefundedAmount >= ((float) $payment->amount - 0.009);
 
             $payment->update([
-                'refunded_amount' => $newRefunded,
+                'refunded_amount' => $newRefundedAmount,
+                'cancellation_fee_amount' => $policy['cancellation_fee_amount'],
                 'status' => $fullyRefunded ? Payment::STATUS_REFUNDED : Payment::STATUS_PAID,
-                'refunded_at' => now(),
-                'refund_reason' => $reason,
+                'refunded_at' => $additionalRefundAmount > 0 ? now() : $payment->refunded_at,
+                'refund_reason' => $reason ?: $payment->refund_reason,
                 'meta' => array_merge($payment->meta ?? [], [
                     'refund' => [
-                        'last_refund_amount' => $refundAmount,
-                        'refund_percent' => $refundPercent,
+                        'last_refund_amount' => $additionalRefundAmount,
+                        'refund_percent' => $policy['refund_percent'],
+                        'cancellation_fee_amount' => $policy['cancellation_fee_amount'],
+                        'hours_before' => $policy['hours_before'],
+                        'cancelled_by' => $policy['cancelled_by'],
                         'updated_at' => now()->toIso8601String(),
                     ],
                 ]),
             ]);
 
-            $netCollected = max(0, (float) $payment->amount - $newRefunded);
-            $this->syncCommissionAndPayout($booking, $payment->fresh(), $netCollected, $newRefunded);
+            $netCollected = max(0, (float) $payment->amount - $newRefundedAmount);
+            $freshPayment = $payment->fresh(['booking.service', 'booking.serviceVariant', 'customer']);
+            $this->syncCommissionAndPayout($booking, $freshPayment, $netCollected, $newRefundedAmount);
 
-            $freshPayment = $payment->fresh(['booking.service', 'booking.serviceVariant']);
-
-            $this->notifyPaymentUpdate($customer, $booking, $freshPayment, 'payment.refunded', 'Payment Refunded');
+            if ($additionalRefundAmount > 0 && $freshPayment->customer) {
+                $this->notifyPaymentUpdate(
+                    $freshPayment->customer,
+                    $booking,
+                    $freshPayment,
+                    'payment.refunded',
+                    'Payment Refunded'
+                );
+            }
 
             return $freshPayment;
         });
-    }
-
-    public function canRefund(Payment $payment): bool
-    {
-        return $payment->status === Payment::STATUS_PAID
-            && (float) $payment->amount > (float) $payment->refunded_amount
-            && $payment->booking
-            && $payment->booking->status === Booking::STATUS_CANCELLED;
     }
 
     private function syncCommissionAndPayout(Booking $booking, Payment $payment, float $netCollected, float $refunded): void
@@ -262,6 +291,12 @@ class PaymentService
 
     private function validatePaymentRules(Booking $booking, string $method, string $paymentMode): void
     {
+        if ($method === Payment::METHOD_CASH && !(bool) config('payment.allow_cash', false)) {
+            throw ValidationException::withMessages([
+                'payment_method' => 'Cash payments are no longer supported.',
+            ]);
+        }
+
         if ($method === Payment::METHOD_ONLINE && $paymentMode !== Payment::MODE_PREPAID) {
             throw ValidationException::withMessages([
                 'payment_mode' => 'Online payments are allowed only as prepaid.',
@@ -324,20 +359,6 @@ class PaymentService
         return $amount;
     }
 
-    private function refundPercentForBooking(Booking $booking): float
-    {
-        $cancelledAt = $booking->cancelled_at ?? now();
-        $hoursBefore = ($booking->scheduled_at->timestamp - $cancelledAt->timestamp) / 3600;
-
-        $fullHours = max(0, (int) config('payment.refund.full_refund_hours_before', 24));
-        if ($hoursBefore >= $fullHours) {
-            return 100.0;
-        }
-
-        $partial = (float) config('payment.refund.partial_refund_percent', 50);
-        return max(0, min(100, $partial));
-    }
-
     private function lockOwnedBooking(Booking $booking, User $customer): Booking
     {
         $locked = Booking::query()
@@ -359,13 +380,15 @@ class PaymentService
         string $type,
         string $title
     ): void {
-        $message = 'Booking '.$booking->booking_number.' • '.strtoupper($payment->gateway).' • '.strtoupper($payment->status);
+        $message = 'Booking '.$booking->booking_number.' | '.strtoupper($payment->gateway).' | '.strtoupper($payment->status);
         $payload = [
             'booking_id' => $booking->id,
             'booking_number' => $booking->booking_number,
             'payment_id' => $payment->id,
             'status' => $payment->status,
             'amount' => $payment->amount,
+            'refunded_amount' => $payment->refunded_amount,
+            'cancellation_fee_amount' => $payment->cancellation_fee_amount,
             'currency' => $payment->currency,
         ];
 
@@ -413,6 +436,8 @@ class PaymentService
         $booking->update([
             'status' => Booking::STATUS_CANCELLED,
             'cancelled_at' => now(),
+            'cancelled_by' => Booking::CANCELLED_BY_SYSTEM,
+            'cancellation_reason' => 'Payment failed before confirmation.',
             'notes' => $this->appendSystemNote(
                 $booking->notes,
                 '[System] Booking auto-cancelled due to failed payment.'
@@ -438,6 +463,19 @@ class PaymentService
     private function appendSystemNote(?string $existing, string $line): string
     {
         $existing = (string) $existing;
+
         return $existing === '' ? $line : $existing.PHP_EOL.$line;
+    }
+
+    private function eligibleAdditionalRefundAmount(Payment $payment): float
+    {
+        $booking = $payment->booking;
+        if (!$booking || $booking->status !== Booking::STATUS_CANCELLED) {
+            return 0;
+        }
+
+        $policy = $this->cancellationPolicyService->evaluate($booking, $payment);
+
+        return round(max(0, $policy['refundable_amount'] - (float) $payment->refunded_amount), 2);
     }
 }

@@ -7,7 +7,9 @@
         </svg>
     </span>
     <h3 class="mt-4 text-base font-bold text-sky-950 group-hover:text-sky-700">{{ $category->name }}</h3>
-    <p class="mt-2 text-sm leading-6 text-sky-700 line-clamp-2">
-        {{ $category->description ?: 'Find top-rated professionals in this category near you.' }}
-    </p>
+    @if(filled($category->description))
+        <p class="mt-2 text-sm leading-6 text-sky-700 line-clamp-2">
+            {{ $category->description }}
+        </p>
+    @endif
 </a>

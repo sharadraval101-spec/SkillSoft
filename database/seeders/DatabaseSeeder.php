@@ -18,7 +18,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RoleSeeder::class);
         $this->call(RolePermissionSeeder::class);
-        $this->call(DemoBookingFlowSeeder::class);
 
         $user = User::query()->updateOrCreate([
             'email' => 'test@example.com',

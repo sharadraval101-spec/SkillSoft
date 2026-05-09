@@ -41,6 +41,8 @@
                     ? trim(($service->branch->city ?? '').', '.($service->branch->state ?? ''))
                     : 'Multiple locations';
                 $serviceRating = round((float) ($service->avg_rating ?? 0), 1);
+                $serviceImage = $service->ui_image ?? $service->image_url;
+                $serviceInitials = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($service->name ?? 'Service', 0, 2));
                 $bookingQuery = array_filter([
                     'provider_id' => $service->providerProfile?->user_id,
                     'service_id' => $service->id,
@@ -50,11 +52,19 @@
 
             <article class="overflow-hidden rounded-[28px] bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)] ring-1 ring-black/5" data-motion-item data-motion-card data-favorite-card data-service-id="{{ $service->id }}">
                 <a href="{{ route('site.services.show', $service->slug) }}" class="block">
-                    <img
-                        src="{{ $service->ui_image ?? 'https://picsum.photos/seed/'.urlencode((string) $service->id).'/900/620' }}"
-                        alt="{{ $service->name }}"
-                        class="h-56 w-full object-cover"
-                    >
+                    @if($serviceImage)
+                        <img
+                            src="{{ $serviceImage }}"
+                            alt="{{ $service->name }}"
+                            class="h-56 w-full object-cover"
+                        >
+                    @else
+                        <div class="flex h-56 w-full items-center justify-center bg-gradient-to-br from-zinc-100 via-white to-zinc-200">
+                            <div class="flex h-20 w-20 items-center justify-center rounded-full bg-white text-2xl font-semibold text-zinc-900 shadow-sm">
+                                {{ $serviceInitials }}
+                            </div>
+                        </div>
+                    @endif
                 </a>
 
                 <div class="space-y-5 px-6 py-6">
@@ -67,9 +77,11 @@
                         <x-favorite-button :service="$service" size="small" />
                     </div>
 
-                    <p class="text-[15px] leading-7 text-zinc-500">
-                        {{ \Illuminate\Support\Str::limit($service->description ?? 'A saved service ready for your next booking.', 110) }}
-                    </p>
+                    @if(filled($service->description))
+                        <p class="text-[15px] leading-7 text-zinc-500">
+                            {{ \Illuminate\Support\Str::limit($service->description, 110) }}
+                        </p>
+                    @endif
 
                     <div class="grid grid-cols-3 gap-3">
                         <div class="rounded-[16px] bg-zinc-50 px-3 py-3 text-center">

@@ -105,6 +105,10 @@
                             label.textContent = theme === 'light' ? 'Light mode' : 'Dark mode';
                         }
                     });
+
+                    window.dispatchEvent(new CustomEvent('skillslot:dashboard-theme-changed', {
+                        detail: { theme }
+                    }));
                 };
 
                 applyTheme(root.dataset.theme === 'light' ? 'light' : 'dark');

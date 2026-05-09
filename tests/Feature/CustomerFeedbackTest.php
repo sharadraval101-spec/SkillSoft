@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Booking;
 use App\Models\Branch;
 use App\Models\ProviderProfile;
+use App\Models\Review;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\User;
@@ -50,12 +51,12 @@ class CustomerFeedbackTest extends TestCase
         $customer = $this->createUser('customer@example.com', User::ROLE_CUSTOMER);
         $booking = $this->createBookingForCustomer($customer, Booking::STATUS_COMPLETED);
 
-        $response = $this->actingAs($customer)->get(route('customer.feedback.edit', $booking));
+        $response = $this->actingAs($customer)->get(route('customer.feedback.create', $booking));
 
         $response->assertOk();
         $response->assertSee('Rate your completed service');
 
-        $saveResponse = $this->actingAs($customer)->put(route('customer.feedback.update', $booking), [
+        $saveResponse = $this->actingAs($customer)->post(route('customer.feedback.store', $booking), [
             'rating' => 5,
             'title' => 'Excellent session',
             'comment' => 'Very smooth and professional from start to finish.',
@@ -81,11 +82,11 @@ class CustomerFeedbackTest extends TestCase
         $customer = $this->createUser('customer@example.com', User::ROLE_CUSTOMER);
         $booking = $this->createBookingForCustomer($customer, Booking::STATUS_PENDING);
 
-        $response = $this->actingAs($customer)->get(route('customer.feedback.edit', $booking));
+        $response = $this->actingAs($customer)->get(route('customer.feedback.create', $booking));
 
         $response->assertRedirect(route('customer.feedback.index'));
 
-        $updateResponse = $this->actingAs($customer)->put(route('customer.feedback.update', $booking), [
+        $updateResponse = $this->actingAs($customer)->post(route('customer.feedback.store', $booking), [
             'rating' => 4,
             'title' => 'Good visit',
             'comment' => 'This should not be saved yet.',
@@ -94,6 +95,46 @@ class CustomerFeedbackTest extends TestCase
         $updateResponse->assertRedirect(route('customer.feedback.index'));
         $this->assertDatabaseMissing('reviews', [
             'booking_id' => $booking->id,
+        ]);
+    }
+
+    public function test_customer_cannot_edit_feedback_after_submitting_it(): void
+    {
+        $this->seed(RoleSeeder::class);
+
+        $customer = $this->createUser('customer@example.com', User::ROLE_CUSTOMER);
+        $booking = $this->createBookingForCustomer($customer, Booking::STATUS_COMPLETED);
+
+        Review::query()->create([
+            'booking_id' => $booking->id,
+            'customer_id' => $customer->id,
+            'provider_id' => $booking->provider_id,
+            'service_id' => $booking->service_id,
+            'rating' => 4,
+            'title' => 'Original feedback',
+            'comment' => 'The original review should remain unchanged.',
+            'is_approved' => true,
+        ]);
+
+        $response = $this->actingAs($customer)->get(route('customer.feedback.create', $booking));
+
+        $response->assertRedirect(route('customer.feedback.index'));
+
+        $saveResponse = $this->actingAs($customer)->post(route('customer.feedback.store', $booking), [
+            'rating' => 2,
+            'title' => 'Updated feedback',
+            'comment' => 'This change should be rejected.',
+        ]);
+
+        $saveResponse
+            ->assertRedirect(route('customer.feedback.index'))
+            ->assertSessionHas('error', 'Feedback has already been submitted for this booking and cannot be edited.');
+
+        $this->assertSame(1, Review::query()->count());
+        $this->assertDatabaseHas('reviews', [
+            'booking_id' => $booking->id,
+            'rating' => 4,
+            'title' => 'Original feedback',
         ]);
     }
 

@@ -4,7 +4,7 @@
     $bookingHref = route('site.booking');
     $categoriesHref = route('site.categories.index');
     $howItWorksHref = request()->routeIs('site.home') ? '#how-it-works' : route('site.home') . '#how-it-works';
-    $becomeProviderHref = route('register.provider');
+    $becomeProviderHref = route('provider.requests.create');
 @endphp
 
 <footer class="mt-16 border-t border-black/5 bg-white" data-motion-footer>
@@ -26,7 +26,7 @@
                 <a href="{{ $servicesHref }}" class="transition hover:text-zinc-950" data-motion-link>Services</a>
                 <a href="{{ $categoriesHref }}" class="transition hover:text-zinc-950" data-motion-link>Categories</a>
                 <a href="{{ $bookingHref }}" class="transition hover:text-zinc-950" data-motion-link>Booking</a>
-                <a href="{{ $howItWorksHref }}" class="transition hover:text-zinc-950" data-motion-link>How It Works</a>
+                {{-- <a href="{{ $howItWorksHref }}" class="transition hover:text-zinc-950" data-motion-link>How It Works</a> --}}
                 <a href="{{ $becomeProviderHref }}" class="transition hover:text-zinc-950" data-motion-link>Become a Provider</a>
             </div>
 

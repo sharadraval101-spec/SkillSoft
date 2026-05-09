@@ -30,6 +30,20 @@ class ScheduleAvailabilityService
         $dayStart = $date->copy()->startOfDay();
         $dayEnd = $date->copy()->endOfDay();
 
+        if ($this->providerIsOperationallyUnavailable($provider, $dayStart, $dayEnd)) {
+            Slot::query()
+                ->where('provider_id', $provider->id)
+                ->where('start_at', '<', $dayEnd)
+                ->where('end_at', '>', $dayStart)
+                ->where('start_at', '>=', now())
+                ->whereDoesntHave('booking', function ($query) {
+                    $query->whereIn('status', Booking::slotBlockingStatuses());
+                })
+                ->update(['is_available' => false]);
+
+            return collect();
+        }
+
         $workingWindows = $this->resolveWorkingWindows($provider, $dayOfWeek, $branchId, $service);
         if ($workingWindows->isEmpty()) {
             return collect();
@@ -296,5 +310,20 @@ class ScheduleAvailabilityService
 
             return $branchMatches && $overlaps;
         });
+    }
+
+    private function providerIsOperationallyUnavailable(User $provider, Carbon $dayStart, Carbon $dayEnd): bool
+    {
+        $provider->loadMissing('providerProfile');
+        $profile = $provider->providerProfile;
+
+        if (!$profile || !$profile->isOperationallyUnavailable()) {
+            return false;
+        }
+
+        $unavailableFrom = $profile->unavailable_from?->copy() ?? now()->startOfDay();
+        $unavailableUntil = $profile->unavailable_until?->copy() ?? $unavailableFrom->copy()->endOfDay();
+
+        return $unavailableFrom->lt($dayEnd) && $unavailableUntil->gt($dayStart);
     }
 }

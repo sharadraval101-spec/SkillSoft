@@ -93,55 +93,55 @@
 
 @push('styles')
     <style>
-        #provider-categories-page { position: relative; }
-        #provider-categories-page::before { content: ''; position: absolute; top: -2rem; right: 4rem; width: 11rem; height: 11rem; border-radius: 9999px; background: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 70%); pointer-events: none; }
-        #provider-categories-page > * { position: relative; z-index: 1; }
-        #provider-categories-page > section:first-child { border: 1px solid rgba(228, 228, 231, 0.9); background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(244, 244, 245, 0.94)), radial-gradient(circle at top right, rgba(34, 211, 238, 0.12), transparent 30%); box-shadow: 0 26px 70px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.85); }
-        #provider-categories-page > section:first-child h1 { font-size: clamp(1.9rem, 2.7vw, 2.7rem); line-height: 1.05; letter-spacing: -0.04em; color: #111827 !important; }
-        #provider-categories-page > section:first-child p { max-width: 40rem; font-size: 0.98rem; line-height: 1.7; color: #5b6474 !important; }
-        #provider-categories-page [data-modal-open='add-category-modal'] { border: 1px solid rgba(14, 165, 233, 0.16); background: linear-gradient(135deg, #0891b2, #0ea5e9) !important; color: #f8fafc !important; box-shadow: 0 14px 30px rgba(8, 145, 178, 0.2); }
-        #provider-categories-page [data-modal-open='add-category-modal']:hover { transform: translateY(-1px); box-shadow: 0 18px 36px rgba(8, 145, 178, 0.24); }
-        #provider-categories-page .dashboard-panel { border: 1px solid rgba(228, 228, 231, 0.9); background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)); box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.92); }
-        #provider-categories-page .dataTables_wrapper .dataTables_length label, #provider-categories-page .dataTables_wrapper .dataTables_filter label, #provider-categories-page .dataTables_wrapper .dataTables_info, #provider-categories-page .dataTables_wrapper .dataTables_paginate { color: #6b7280; font-size: 0.875rem; }
-        #provider-categories-page .dataTables_wrapper .dataTables_length label, #provider-categories-page .dataTables_wrapper .dataTables_filter label { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 500; }
-        #provider-categories-page .dataTables_wrapper .dataTables_filter input, #provider-categories-page .dataTables_wrapper .dataTables_length select { min-height: 2.45rem; border: 1px solid rgba(212, 212, 216, 0.9); border-radius: 0.85rem; background: rgba(255, 255, 255, 0.96); color: #18181b; padding: 0.42rem 0.8rem; box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04); }
-        #provider-categories-page .dataTables_wrapper .dataTables_filter input:focus, #provider-categories-page .dataTables_wrapper .dataTables_length select:focus { outline: none; border-color: rgba(14, 165, 233, 0.4); box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.12); }
-        #provider-categories-page table.dataTable.no-footer { border-bottom: 1px solid rgba(228, 228, 231, 0.95); }
-        #provider-categories-page table.dataTable thead th { padding: 0.95rem 0.75rem; border-bottom: 1px solid rgba(228, 228, 231, 0.95); font-size: 0.77rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #52525b; }
-        #provider-categories-page table.dataTable.stripe tbody tr.odd, #provider-categories-page table.dataTable.display tbody tr.odd { background-color: rgba(248, 250, 252, 0.92); }
-        #provider-categories-page table.dataTable tbody td { padding: 1.2rem 0.75rem; border-top: 1px solid rgba(228, 228, 231, 0.82); color: #27272a; }
-        #provider-categories-page table.dataTable tbody tr:first-child td { border-top: none; }
-        #provider-categories-page table.dataTable tbody tr:hover td { background: rgba(244, 244, 245, 0.82); }
-        #provider-categories-page table.dataTable tbody td:first-child { border-radius: 1rem 0 0 1rem; }
-        #provider-categories-page table.dataTable tbody td:last-child { border-radius: 0 1rem 1rem 0; }
-        #provider-categories-page .dataTables_wrapper .dataTables_paginate .paginate_button { border-radius: 0.8rem; border: 1px solid rgba(212, 212, 216, 0.95) !important; color: #52525b !important; background: rgba(255, 255, 255, 0.95) !important; padding: 0.38rem 0.82rem; margin-left: 0.25rem; transition: all 0.18s ease; }
-        #provider-categories-page .dataTables_wrapper .dataTables_paginate .paginate_button:hover { border-color: rgba(14, 165, 233, 0.32) !important; background: rgba(240, 249, 255, 0.95) !important; color: #0f172a !important; }
-        #provider-categories-page .dataTables_wrapper .dataTables_paginate .paginate_button.current { background: linear-gradient(135deg, rgba(34, 211, 238, 0.16), rgba(14, 165, 233, 0.2)) !important; border-color: rgba(14, 165, 233, 0.35) !important; color: #0f172a !important; box-shadow: 0 10px 18px rgba(34, 211, 238, 0.12); }
-        #provider-categories-page .dataTables_wrapper .dataTables_processing { border-radius: 0.75rem; border: 1px solid rgba(14, 165, 233, 0.24); background: rgba(255, 255, 255, 0.96); color: #0f172a; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12); }
-        #provider-categories-page .category-thumb, #providerCategoriesTable .category-thumb.flex { height: 3.35rem; width: 3.35rem; border-radius: 1rem; }
-        #provider-categories-page .category-thumb { border: 1px solid rgba(228, 228, 231, 0.95); box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08); }
-        #providerCategoriesTable .category-thumb.flex { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fafafa, #f4f4f5) !important; border: 1px dashed rgba(161, 161, 170, 0.9); color: #71717a !important; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
-        #providerCategoriesTable .text-zinc-100 { color: #18181b !important; font-weight: 700; }
-        #providerCategoriesTable .text-zinc-300 { color: #52525b !important; line-height: 1.65; }
-        #providerCategoriesTable .text-zinc-400 { color: #71717a !important; }
-        #providerCategoriesTable tbody td:nth-child(5) span { display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; padding: 0.45rem 0.8rem; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.01em; }
-        #providerCategoriesTable tbody td:nth-child(5) [class*='emerald'] { border-color: rgba(16, 185, 129, 0.2) !important; background: rgba(236, 253, 245, 0.98) !important; color: #047857 !important; }
-        #providerCategoriesTable tbody td:nth-child(5) [class*='rose'] { border-color: rgba(244, 63, 94, 0.18) !important; background: rgba(255, 241, 242, 0.98) !important; color: #be123c !important; }
-        #providerCategoriesTable .js-toggle-status, #providerCategoriesTable .js-edit-category, #providerCategoriesTable .js-delete-category { display: inline-flex; align-items: center; justify-content: center; min-width: 5.8rem; border-radius: 0.9rem; padding: 0.52rem 0.85rem; font-size: 0.78rem; font-weight: 700; transition: all 0.18s ease; }
-        #providerCategoriesTable .js-toggle-status:hover, #providerCategoriesTable .js-edit-category:hover, #providerCategoriesTable .js-delete-category:hover { transform: translateY(-1px); }
-        #providerCategoriesTable .js-toggle-status[class*='emerald'] { border-color: rgba(16, 185, 129, 0.2) !important; background: rgba(236, 253, 245, 0.96) !important; color: #047857 !important; }
-        #providerCategoriesTable .js-toggle-status[class*='zinc'] { border-color: rgba(161, 161, 170, 0.35) !important; background: rgba(250, 250, 250, 0.96) !important; color: #3f3f46 !important; }
-        #providerCategoriesTable .js-edit-category { border-color: rgba(14, 165, 233, 0.2) !important; background: rgba(240, 249, 255, 0.98) !important; color: #0369a1 !important; }
-        #providerCategoriesTable .js-delete-category { border-color: rgba(244, 63, 94, 0.18) !important; background: rgba(255, 241, 242, 0.98) !important; color: #be123c !important; }
-        #provider-categories-page #addCategoryForm input, #provider-categories-page #addCategoryForm select, #provider-categories-page #addCategoryForm textarea, #provider-categories-page #editCategoryForm input, #provider-categories-page #editCategoryForm select, #provider-categories-page #editCategoryForm textarea { border-color: rgba(212, 212, 216, 0.95) !important; background: rgba(255, 255, 255, 0.95) !important; color: #18181b !important; box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04); }
-        #provider-categories-page #addCategoryForm label, #provider-categories-page #editCategoryForm label { color: #71717a !important; }
-        #provider-categories-page #editCategoryCurrentImageWrap { border-color: rgba(212, 212, 216, 0.9) !important; background: rgba(244, 244, 245, 0.82) !important; }
-        #provider-categories-page #confirmCategoryActionTitle { color: #18181b !important; }
-        #provider-categories-page #confirmCategoryActionMessage { color: #52525b !important; }
-        #provider-categories-page #confirmCategoryActionButton { color: #f8fafc !important; }
-        #provider-categories-page #confirmCategoryActionButton[class*='bg-cyan'] { border: 1px solid rgba(14, 165, 233, 0.16) !important; background: linear-gradient(135deg, #0284c7, #0ea5e9) !important; }
-        #provider-categories-page #confirmCategoryActionButton[class*='bg-rose'] { border: 1px solid rgba(244, 63, 94, 0.18) !important; background: linear-gradient(135deg, #e11d48, #f43f5e) !important; }
-        @media (max-width: 768px) { #provider-categories-page > section:first-child h1 { font-size: 1.7rem; } #provider-categories-page > section:first-child p { font-size: 0.92rem; } #provider-categories-page .dataTables_wrapper .dataTables_length, #provider-categories-page .dataTables_wrapper .dataTables_filter, #provider-categories-page .dataTables_wrapper .dataTables_info, #provider-categories-page .dataTables_wrapper .dataTables_paginate { text-align: left; } }
+        html[data-theme='light'] #provider-categories-page { position: relative; }
+        html[data-theme='light'] #provider-categories-page::before { content: ''; position: absolute; top: -2rem; right: 4rem; width: 11rem; height: 11rem; border-radius: 9999px; background: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 70%); pointer-events: none; }
+        html[data-theme='light'] #provider-categories-page > * { position: relative; z-index: 1; }
+        html[data-theme='light'] #provider-categories-page > section:first-child { border: 1px solid rgba(228, 228, 231, 0.9); background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(244, 244, 245, 0.94)), radial-gradient(circle at top right, rgba(34, 211, 238, 0.12), transparent 30%); box-shadow: 0 26px 70px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.85); }
+        html[data-theme='light'] #provider-categories-page > section:first-child h1 { font-size: clamp(1.9rem, 2.7vw, 2.7rem); line-height: 1.05; letter-spacing: -0.04em; color: #111827 !important; }
+        html[data-theme='light'] #provider-categories-page > section:first-child p { max-width: 40rem; font-size: 0.98rem; line-height: 1.7; color: #5b6474 !important; }
+        html[data-theme='light'] #provider-categories-page [data-modal-open='add-category-modal'] { border: 1px solid rgba(14, 165, 233, 0.16); background: linear-gradient(135deg, #0891b2, #0ea5e9) !important; color: #f8fafc !important; box-shadow: 0 14px 30px rgba(8, 145, 178, 0.2); }
+        html[data-theme='light'] #provider-categories-page [data-modal-open='add-category-modal']:hover { transform: translateY(-1px); box-shadow: 0 18px 36px rgba(8, 145, 178, 0.24); }
+        html[data-theme='light'] #provider-categories-page .dashboard-panel { border: 1px solid rgba(228, 228, 231, 0.9); background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)); box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.92); }
+        html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_length label, html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_filter label, html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_info, html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_paginate { color: #6b7280; font-size: 0.875rem; }
+        html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_length label, html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_filter label { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 500; }
+        html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_filter input, html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_length select { min-height: 2.45rem; border: 1px solid rgba(212, 212, 216, 0.9); border-radius: 0.85rem; background: rgba(255, 255, 255, 0.96); color: #18181b; padding: 0.42rem 0.8rem; box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04); }
+        html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_filter input:focus, html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_length select:focus { outline: none; border-color: rgba(14, 165, 233, 0.4); box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.12); }
+        html[data-theme='light'] #provider-categories-page table.dataTable.no-footer { border-bottom: 1px solid rgba(228, 228, 231, 0.95); }
+        html[data-theme='light'] #provider-categories-page table.dataTable thead th { padding: 0.95rem 0.75rem; border-bottom: 1px solid rgba(228, 228, 231, 0.95); font-size: 0.77rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #52525b; }
+        html[data-theme='light'] #provider-categories-page table.dataTable.stripe tbody tr.odd, html[data-theme='light'] #provider-categories-page table.dataTable.display tbody tr.odd { background-color: rgba(248, 250, 252, 0.92); }
+        html[data-theme='light'] #provider-categories-page table.dataTable tbody td { padding: 1.2rem 0.75rem; border-top: 1px solid rgba(228, 228, 231, 0.82); color: #27272a; }
+        html[data-theme='light'] #provider-categories-page table.dataTable tbody tr:first-child td { border-top: none; }
+        html[data-theme='light'] #provider-categories-page table.dataTable tbody tr:hover td { background: rgba(244, 244, 245, 0.82); }
+        html[data-theme='light'] #provider-categories-page table.dataTable tbody td:first-child { border-radius: 1rem 0 0 1rem; }
+        html[data-theme='light'] #provider-categories-page table.dataTable tbody td:last-child { border-radius: 0 1rem 1rem 0; }
+        html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_paginate .paginate_button { border-radius: 0.8rem; border: 1px solid rgba(212, 212, 216, 0.95) !important; color: #52525b !important; background: rgba(255, 255, 255, 0.95) !important; padding: 0.38rem 0.82rem; margin-left: 0.25rem; transition: all 0.18s ease; }
+        html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_paginate .paginate_button:hover { border-color: rgba(14, 165, 233, 0.32) !important; background: rgba(240, 249, 255, 0.95) !important; color: #0f172a !important; }
+        html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_paginate .paginate_button.current { background: linear-gradient(135deg, rgba(34, 211, 238, 0.16), rgba(14, 165, 233, 0.2)) !important; border-color: rgba(14, 165, 233, 0.35) !important; color: #0f172a !important; box-shadow: 0 10px 18px rgba(34, 211, 238, 0.12); }
+        html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_processing { border-radius: 0.75rem; border: 1px solid rgba(14, 165, 233, 0.24); background: rgba(255, 255, 255, 0.96); color: #0f172a; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12); }
+        html[data-theme='light'] #provider-categories-page .category-thumb, html[data-theme='light'] #providerCategoriesTable .category-thumb.flex { height: 3.35rem; width: 3.35rem; border-radius: 1rem; }
+        html[data-theme='light'] #provider-categories-page .category-thumb { border: 1px solid rgba(228, 228, 231, 0.95); box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08); }
+        html[data-theme='light'] #providerCategoriesTable .category-thumb.flex { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fafafa, #f4f4f5) !important; border: 1px dashed rgba(161, 161, 170, 0.9); color: #71717a !important; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+        html[data-theme='light'] #providerCategoriesTable .text-zinc-100 { color: #18181b !important; font-weight: 700; }
+        html[data-theme='light'] #providerCategoriesTable .text-zinc-300 { color: #52525b !important; line-height: 1.65; }
+        html[data-theme='light'] #providerCategoriesTable .text-zinc-400 { color: #71717a !important; }
+        html[data-theme='light'] #providerCategoriesTable tbody td:nth-child(5) span { display: inline-flex; align-items: center; justify-content: center; border-radius: 9999px; padding: 0.45rem 0.8rem; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.01em; }
+        html[data-theme='light'] #providerCategoriesTable tbody td:nth-child(5) [class*='emerald'] { border-color: rgba(16, 185, 129, 0.2) !important; background: rgba(236, 253, 245, 0.98) !important; color: #047857 !important; }
+        html[data-theme='light'] #providerCategoriesTable tbody td:nth-child(5) [class*='rose'] { border-color: rgba(244, 63, 94, 0.18) !important; background: rgba(255, 241, 242, 0.98) !important; color: #be123c !important; }
+        html[data-theme='light'] #providerCategoriesTable .js-toggle-status, html[data-theme='light'] #providerCategoriesTable .js-edit-category, html[data-theme='light'] #providerCategoriesTable .js-delete-category { display: inline-flex; align-items: center; justify-content: center; min-width: 5.8rem; border-radius: 0.9rem; padding: 0.52rem 0.85rem; font-size: 0.78rem; font-weight: 700; transition: all 0.18s ease; }
+        html[data-theme='light'] #providerCategoriesTable .js-toggle-status:hover, html[data-theme='light'] #providerCategoriesTable .js-edit-category:hover, html[data-theme='light'] #providerCategoriesTable .js-delete-category:hover { transform: translateY(-1px); }
+        html[data-theme='light'] #providerCategoriesTable .js-toggle-status[class*='emerald'] { border-color: rgba(16, 185, 129, 0.2) !important; background: rgba(236, 253, 245, 0.96) !important; color: #047857 !important; }
+        html[data-theme='light'] #providerCategoriesTable .js-toggle-status[class*='zinc'] { border-color: rgba(161, 161, 170, 0.35) !important; background: rgba(250, 250, 250, 0.96) !important; color: #3f3f46 !important; }
+        html[data-theme='light'] #providerCategoriesTable .js-edit-category { border-color: rgba(14, 165, 233, 0.2) !important; background: rgba(240, 249, 255, 0.98) !important; color: #0369a1 !important; }
+        html[data-theme='light'] #providerCategoriesTable .js-delete-category { border-color: rgba(244, 63, 94, 0.18) !important; background: rgba(255, 241, 242, 0.98) !important; color: #be123c !important; }
+        html[data-theme='light'] #provider-categories-page #addCategoryForm input, html[data-theme='light'] #provider-categories-page #addCategoryForm select, html[data-theme='light'] #provider-categories-page #addCategoryForm textarea, html[data-theme='light'] #provider-categories-page #editCategoryForm input, html[data-theme='light'] #provider-categories-page #editCategoryForm select, html[data-theme='light'] #provider-categories-page #editCategoryForm textarea { border-color: rgba(212, 212, 216, 0.95) !important; background: rgba(255, 255, 255, 0.95) !important; color: #18181b !important; box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04); }
+        html[data-theme='light'] #provider-categories-page #addCategoryForm label, html[data-theme='light'] #provider-categories-page #editCategoryForm label { color: #71717a !important; }
+        html[data-theme='light'] #provider-categories-page #editCategoryCurrentImageWrap { border-color: rgba(212, 212, 216, 0.9) !important; background: rgba(244, 244, 245, 0.82) !important; }
+        html[data-theme='light'] #provider-categories-page #confirmCategoryActionTitle { color: #18181b !important; }
+        html[data-theme='light'] #provider-categories-page #confirmCategoryActionMessage { color: #52525b !important; }
+        html[data-theme='light'] #provider-categories-page #confirmCategoryActionButton { color: #f8fafc !important; }
+        html[data-theme='light'] #provider-categories-page #confirmCategoryActionButton[class*='bg-cyan'] { border: 1px solid rgba(14, 165, 233, 0.16) !important; background: linear-gradient(135deg, #0284c7, #0ea5e9) !important; }
+        html[data-theme='light'] #provider-categories-page #confirmCategoryActionButton[class*='bg-rose'] { border: 1px solid rgba(244, 63, 94, 0.18) !important; background: linear-gradient(135deg, #e11d48, #f43f5e) !important; }
+        @media (max-width: 768px) { html[data-theme='light'] #provider-categories-page > section:first-child h1 { font-size: 1.7rem; } html[data-theme='light'] #provider-categories-page > section:first-child p { font-size: 0.92rem; } html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_length, html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_filter, html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_info, html[data-theme='light'] #provider-categories-page .dataTables_wrapper .dataTables_paginate { text-align: left; } }
     </style>
 @endpush
 @section('content')
@@ -278,6 +278,14 @@
             <p id="confirmCategoryActionMessage" class="mt-2 text-sm text-zinc-300">Do you want to continue?</p>
         </div>
 
+        <div id="confirmCategoryActionReassignWrap" class="hidden rounded-2xl border border-cyan-400/20 bg-cyan-500/5 p-4">
+            <label for="confirmCategoryActionReassignSelect" class="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/80">Move linked services to</label>
+            <select id="confirmCategoryActionReassignSelect" class="mt-2 w-full rounded-xl border border-white/10 bg-zinc-950/70 px-3 py-2.5 text-sm text-zinc-100 focus:border-cyan-400/50 focus:outline-none">
+                <option value="">Select a category</option>
+            </select>
+            <p id="confirmCategoryActionReassignHint" class="mt-2 text-xs leading-6 text-cyan-100/80">Linked services will be moved before the category is deleted.</p>
+        </div>
+
         <div class="flex justify-end gap-2 pt-1">
             <button type="button" data-modal-hide class="smooth-action-btn rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-300 hover:bg-white/10">
                 Cancel
@@ -292,17 +300,20 @@
 
 @push('styles')
     <style>
-        #add-category-modal .modal-panel, #edit-category-modal .modal-panel, #confirm-category-action-modal .modal-panel { border-color: rgba(228, 228, 231, 0.92) !important; box-shadow: 0 28px 70px rgba(15, 23, 42, 0.12); }
-        #add-category-modal .modal-panel > div:first-child, #edit-category-modal .modal-panel > div:first-child, #confirm-category-action-modal .modal-panel > div:first-child { border-color: rgba(228, 228, 231, 0.92) !important; }
-        #add-category-modal .modal-panel h3, #edit-category-modal .modal-panel h3, #confirm-category-action-modal .modal-panel h3 { color: #18181b !important; }
-        #add-category-modal [data-modal-hide], #edit-category-modal [data-modal-hide], #confirm-category-action-modal [data-modal-hide] { border: 1px solid rgba(212, 212, 216, 0.95) !important; background: rgba(255, 255, 255, 0.94) !important; color: #3f3f46 !important; }
-        #addCategoryForm input, #addCategoryForm select, #addCategoryForm textarea, #editCategoryForm input, #editCategoryForm select, #editCategoryForm textarea { border-color: rgba(212, 212, 216, 0.95) !important; background: rgba(255, 255, 255, 0.95) !important; color: #18181b !important; box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04); }
-        #addCategoryForm label, #editCategoryForm label { color: #71717a !important; }
-        #addCategoryForm button[type='submit'], #editCategoryForm button[type='submit'], #confirmCategoryActionButton { border: 1px solid rgba(14, 165, 233, 0.16) !important; background: linear-gradient(135deg, #0284c7, #0ea5e9) !important; color: #f8fafc !important; box-shadow: 0 14px 30px rgba(14, 165, 233, 0.18); }
-        #confirmCategoryActionButton[class*='bg-rose'] { border-color: rgba(244, 63, 94, 0.18) !important; background: linear-gradient(135deg, #e11d48, #f43f5e) !important; box-shadow: 0 14px 28px rgba(244, 63, 94, 0.16); }
-        #editCategoryCurrentImageWrap { border-color: rgba(212, 212, 216, 0.9) !important; background: rgba(244, 244, 245, 0.82) !important; }
-        #confirmCategoryActionTitle { color: #18181b !important; }
-        #confirmCategoryActionMessage { color: #52525b !important; }
+        html[data-theme='light'] #add-category-modal .modal-panel, html[data-theme='light'] #edit-category-modal .modal-panel, html[data-theme='light'] #confirm-category-action-modal .modal-panel { border-color: rgba(228, 228, 231, 0.92) !important; box-shadow: 0 28px 70px rgba(15, 23, 42, 0.12); }
+        html[data-theme='light'] #add-category-modal .modal-panel > div:first-child, html[data-theme='light'] #edit-category-modal .modal-panel > div:first-child, html[data-theme='light'] #confirm-category-action-modal .modal-panel > div:first-child { border-color: rgba(228, 228, 231, 0.92) !important; }
+        html[data-theme='light'] #add-category-modal .modal-panel h3, html[data-theme='light'] #edit-category-modal .modal-panel h3, html[data-theme='light'] #confirm-category-action-modal .modal-panel h3 { color: #18181b !important; }
+        html[data-theme='light'] #add-category-modal [data-modal-hide], html[data-theme='light'] #edit-category-modal [data-modal-hide], html[data-theme='light'] #confirm-category-action-modal [data-modal-hide] { border: 1px solid rgba(212, 212, 216, 0.95) !important; background: rgba(255, 255, 255, 0.94) !important; color: #3f3f46 !important; }
+        html[data-theme='light'] #addCategoryForm input, html[data-theme='light'] #addCategoryForm select, html[data-theme='light'] #addCategoryForm textarea, html[data-theme='light'] #editCategoryForm input, html[data-theme='light'] #editCategoryForm select, html[data-theme='light'] #editCategoryForm textarea { border-color: rgba(212, 212, 216, 0.95) !important; background: rgba(255, 255, 255, 0.95) !important; color: #18181b !important; box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04); }
+        html[data-theme='light'] #addCategoryForm label, html[data-theme='light'] #editCategoryForm label { color: #71717a !important; }
+        html[data-theme='light'] #addCategoryForm button[type='submit'], html[data-theme='light'] #editCategoryForm button[type='submit'], html[data-theme='light'] #confirmCategoryActionButton { border: 1px solid rgba(14, 165, 233, 0.16) !important; background: linear-gradient(135deg, #0284c7, #0ea5e9) !important; color: #f8fafc !important; box-shadow: 0 14px 30px rgba(14, 165, 233, 0.18); }
+        html[data-theme='light'] #confirmCategoryActionButton[class*='bg-rose'] { border-color: rgba(244, 63, 94, 0.18) !important; background: linear-gradient(135deg, #e11d48, #f43f5e) !important; box-shadow: 0 14px 28px rgba(244, 63, 94, 0.16); }
+        html[data-theme='light'] #confirmCategoryActionReassignWrap { border-color: rgba(34, 211, 238, 0.18) !important; background: rgba(240, 253, 250, 0.9) !important; }
+        html[data-theme='light'] #confirmCategoryActionReassignSelect { border-color: rgba(212, 212, 216, 0.95) !important; background: rgba(255, 255, 255, 0.95) !important; color: #18181b !important; }
+        html[data-theme='light'] #confirmCategoryActionReassignHint { color: #0f766e !important; }
+        html[data-theme='light'] #editCategoryCurrentImageWrap { border-color: rgba(212, 212, 216, 0.9) !important; background: rgba(244, 244, 245, 0.82) !important; }
+        html[data-theme='light'] #confirmCategoryActionTitle { color: #18181b !important; }
+        html[data-theme='light'] #confirmCategoryActionMessage { color: #52525b !important; }
     </style>
 @endpush
 @push('scripts')
@@ -315,6 +326,7 @@
             }
 
             const csrfToken = $('meta[name="csrf-token"]').attr('content') || '';
+            const deleteTargetCategories = @json($deleteTargetCategories->values());
 
             const showNotice = function (message, tone) {
                 const colorClass = tone === 'error'
@@ -401,12 +413,46 @@
                 target.prop('disabled', false);
             };
 
+            const deleteReassignWrap = $('#confirmCategoryActionReassignWrap');
+            const deleteReassignSelect = $('#confirmCategoryActionReassignSelect');
+            const deleteReassignHint = $('#confirmCategoryActionReassignHint');
+
+            const resetDeleteReassignOptions = function () {
+                deleteReassignSelect.empty().append('<option value="">Select a category</option>');
+                deleteReassignSelect.prop('disabled', false);
+                deleteReassignWrap.addClass('hidden');
+                deleteReassignHint.text('Linked services will be moved before the category is deleted.');
+            };
+
+            const populateDeleteReassignOptions = function (currentCategoryId) {
+                resetDeleteReassignOptions();
+
+                const eligibleTargets = deleteTargetCategories.filter(function (category) {
+                    return String(category.id) !== String(currentCategoryId);
+                });
+
+                eligibleTargets.forEach(function (category) {
+                    deleteReassignSelect.append(
+                        $('<option></option>')
+                            .attr('value', category.id)
+                            .text(category.name || 'Category')
+                    );
+                });
+
+                if (eligibleTargets.length > 0) {
+                    deleteReassignSelect.val(String(eligibleTargets[0].id));
+                }
+
+                return eligibleTargets;
+            };
+
             let confirmHandler = null;
             const confirmTitle = $('#confirmCategoryActionTitle');
             const confirmMessage = $('#confirmCategoryActionMessage');
             const confirmButton = $('#confirmCategoryActionButton');
 
             const askConfirmation = function (options) {
+                resetDeleteReassignOptions();
                 confirmTitle.text(options.title || 'Please confirm this action');
                 confirmMessage.text(options.message || 'Do you want to continue?');
                 confirmButton.text(options.confirmText || 'Confirm');
@@ -415,6 +461,31 @@
                     ? 'smooth-action-btn rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500'
                     : 'smooth-action-btn rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-500';
                 confirmButton.attr('class', buttonClass);
+
+                confirmHandler = typeof options.onConfirm === 'function' ? options.onConfirm : null;
+                openModal('confirm-category-action-modal');
+            };
+
+            const askDeleteConfirmation = function (options) {
+                const serviceCount = Number(options.serviceCount || 0);
+                const eligibleTargets = serviceCount > 0
+                    ? populateDeleteReassignOptions(options.categoryId)
+                    : [];
+
+                if (serviceCount > 0 && eligibleTargets.length === 0) {
+                    showNotice('Create or activate another category first so linked services can be moved before deleting this one.', 'error');
+                    return;
+                }
+
+                confirmTitle.text(options.title || 'Delete Category');
+                confirmMessage.text(options.message || 'Do you want to continue?');
+                confirmButton.text(options.confirmText || 'Delete Category');
+                confirmButton.attr('class', 'smooth-action-btn rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500');
+
+                if (serviceCount > 0) {
+                    deleteReassignWrap.removeClass('hidden');
+                    deleteReassignHint.text(options.hint || `This category has ${serviceCount} linked service${serviceCount === 1 ? '' : 's'}. Choose where to move them before deleting.`);
+                }
 
                 confirmHandler = typeof options.onConfirm === 'function' ? options.onConfirm : null;
                 openModal('confirm-category-action-modal');
@@ -432,11 +503,13 @@
 
             $(document).off('click.providerCategoryConfirmCancel').on('click.providerCategoryConfirmCancel', '#confirm-category-action-modal [data-modal-hide]', function () {
                 confirmHandler = null;
+                resetDeleteReassignOptions();
             });
 
             $(document).off('keydown.providerCategoryConfirmEscape').on('keydown.providerCategoryConfirmEscape', function (event) {
                 if (event.key === 'Escape') {
                     confirmHandler = null;
+                    resetDeleteReassignOptions();
                 }
             });
 
@@ -701,12 +774,21 @@
                 }
 
                 const categoryName = rowData && rowData.name ? rowData.name : 'this category';
-                askConfirmation({
-                    title: 'Verify Delete',
+                const serviceCount = rowData && rowData.service_count ? Number(rowData.service_count) : 0;
+
+                askDeleteConfirmation({
+                    categoryId: rowData && rowData.id ? rowData.id : '',
+                    serviceCount: serviceCount,
+                    title: 'Delete Category',
                     message: `Delete ${categoryName}? This action cannot be undone.`,
                     confirmText: 'Delete Category',
-                    tone: 'danger',
                     onConfirm: function () {
+                        const reassignCategoryId = deleteReassignSelect.val();
+                        if (serviceCount > 0 && !reassignCategoryId) {
+                            showNotice('Choose a category to receive linked services before deleting this one.', 'error');
+                            return;
+                        }
+
                         setButtonLoading(button, true, 'Deleting...');
 
                         $.ajax({
@@ -714,7 +796,8 @@
                             method: 'POST',
                             data: {
                                 _token: csrfToken,
-                                _method: 'DELETE'
+                                _method: 'DELETE',
+                                reassign_service_category_id: reassignCategoryId || undefined
                             },
                             headers: {
                                 'Accept': 'application/json',

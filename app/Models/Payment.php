@@ -41,6 +41,7 @@ class Payment extends Model
         'gateway_reference',
         'amount',
         'refunded_amount',
+        'cancellation_fee_amount',
         'currency',
         'status',
         'paid_at',
@@ -52,6 +53,7 @@ class Payment extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'refunded_amount' => 'decimal:2',
+        'cancellation_fee_amount' => 'decimal:2',
         'paid_at' => 'datetime',
         'refunded_at' => 'datetime',
         'meta' => 'array',

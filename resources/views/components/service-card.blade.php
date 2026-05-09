@@ -1,17 +1,26 @@
 @props(['service'])
 
 @php
-    $image = $service->ui_image ?? 'https://picsum.photos/seed/'.urlencode((string) ($service->id ?? $service->name)).'/900/620';
+    $image = $service->ui_image ?? $service->image_url;
     $rating = (float) ($service->avg_rating ?? 0);
     $reviewsCount = (int) ($service->reviews_count ?? 0);
     $serviceUrl = route('site.services.show', $service->slug);
+    $serviceInitials = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($service->name ?? 'Service', 0, 2));
 @endphp
 
 <article class="group customer-surface overflow-hidden transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-sky-200/70">
     <a href="{{ $serviceUrl }}" class="block">
         <div class="relative aspect-[4/3] overflow-hidden">
-            <img src="{{ $image }}" alt="{{ $service->name }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
-            <div class="absolute inset-0 bg-gradient-to-t from-sky-900/20 via-sky-900/5 to-transparent"></div>
+            @if($image)
+                <img src="{{ $image }}" alt="{{ $service->name }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+                <div class="absolute inset-0 bg-gradient-to-t from-sky-900/20 via-sky-900/5 to-transparent"></div>
+            @else
+                <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-50 via-white to-sky-100">
+                    <div class="flex h-20 w-20 items-center justify-center rounded-full bg-white text-2xl font-semibold text-sky-950 shadow-sm">
+                        {{ $serviceInitials }}
+                    </div>
+                </div>
+            @endif
         </div>
     </a>
 
@@ -37,9 +46,11 @@
             </p>
         </div>
 
-        <p class="line-clamp-2 text-sm leading-6 text-sky-700">
-            {{ $service->description ?: 'Professional service delivered with verified quality and flexible booking slots.' }}
-        </p>
+        @if(filled($service->description))
+            <p class="line-clamp-2 text-sm leading-6 text-sky-700">
+                {{ $service->description }}
+            </p>
+        @endif
 
         <div class="flex items-center justify-between gap-3 border-t border-sky-100 pt-4">
             <p class="truncate text-sm text-sky-600">

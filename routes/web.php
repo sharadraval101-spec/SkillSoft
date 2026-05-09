@@ -11,6 +11,7 @@ use App\Http\Controllers\CustomerPaymentController;
 use App\Http\Controllers\CustomerReviewController;
 use App\Http\Controllers\CustomerWebsiteController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProviderRequestController;
 use App\Http\Controllers\ProviderAvailabilityManagementController;
 use App\Http\Controllers\ProviderAvailabilityController;
 use App\Http\Controllers\ProviderBookingController;
@@ -32,6 +33,8 @@ Route::get('/services', [CustomerWebsiteController::class, 'services'])->name('s
 Route::get('/services/data', [CustomerWebsiteController::class, 'servicesData'])->name('site.services.data');
 Route::get('/services/{slug}/availability', [CustomerWebsiteController::class, 'availability'])->name('site.services.availability');
 Route::get('/services/{slug}', [CustomerWebsiteController::class, 'serviceDetail'])->name('site.services.show');
+Route::get('/become-provider', [ProviderRequestController::class, 'create'])->name('provider.requests.create');
+Route::post('/become-provider', [ProviderRequestController::class, 'store'])->name('provider.requests.store');
 
 Route::middleware('guest')->group(function () {
     Route::view('/login', 'auth.login')->name('login');
@@ -42,7 +45,7 @@ Route::middleware('guest')->group(function () {
 
     Route::view('/register', 'auth.register')->name('register');
     Route::view('/register/customer', 'auth.register-customer')->name('register.customer');
-    Route::view('/register/provider', 'auth.register-provider')->name('register.provider');
+    Route::redirect('/register/provider', '/become-provider')->name('register.provider');
     Route::post('/register', [AuthController::class, 'register'])->name('register.store');
 });
 
@@ -69,6 +72,27 @@ Route::middleware(['auth'])->group(function () {
             'spatie.role:admin',
         ])
         ->name('admin.providers.approve');
+
+    Route::patch('/admin/provider-requests/{providerRequest}/approve', [AdminProviderApprovalController::class, 'approveRequest'])
+        ->middleware([
+            'role:'.User::ROLE_ADMIN,
+            'spatie.role:admin',
+        ])
+        ->name('admin.provider-requests.approve');
+
+    Route::patch('/admin/provider-requests/{providerRequest}/reject', [AdminProviderApprovalController::class, 'rejectRequest'])
+        ->middleware([
+            'role:'.User::ROLE_ADMIN,
+            'spatie.role:admin',
+        ])
+        ->name('admin.provider-requests.reject');
+
+    Route::patch('/admin/providers/{provider}/availability', [AdminProviderApprovalController::class, 'updateAvailability'])
+        ->middleware([
+            'role:'.User::ROLE_ADMIN,
+            'spatie.role:admin',
+        ])
+        ->name('admin.providers.availability.update');
 
     Route::get('/admin/users', [AdminUserManagementController::class, 'index'])
         ->middleware([
@@ -130,6 +154,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [ProviderAvailabilityController::class, 'index'])->name('provider.availability.index');
             Route::get('/weekly/data', [ProviderAvailabilityController::class, 'weeklyData'])->name('provider.availability.weekly.data');
             Route::put('/weekly', [ProviderAvailabilityController::class, 'saveWeekly'])->name('provider.availability.weekly.save');
+            Route::patch('/status', [ProviderAvailabilityController::class, 'updateOperationalStatus'])->name('provider.availability.status.update');
             Route::post('/blocks', [ProviderAvailabilityController::class, 'storeBlockedDate'])->name('provider.availability.blocks.store');
             Route::delete('/blocks/{providerUnavailableDate}', [ProviderAvailabilityController::class, 'destroyBlockedDate'])
                 ->whereUuid('providerUnavailableDate')
@@ -170,6 +195,15 @@ Route::middleware(['auth'])->group(function () {
         ])
         ->whereUuid('booking')
         ->name('provider.bookings.reschedule');
+
+    Route::post('/provider/bookings/{booking}/cancel', [ProviderBookingController::class, 'cancel'])
+        ->middleware([
+            'role:'.User::ROLE_PROVIDER,
+            'spatie.role:provider',
+            'provider.approved',
+        ])
+        ->whereUuid('booking')
+        ->name('provider.bookings.cancel');
 
     Route::prefix('/provider/schedule')
         ->middleware([
@@ -337,12 +371,12 @@ Route::middleware(['auth'])->group(function () {
         ])
         ->group(function (): void {
             Route::get('/', [CustomerReviewController::class, 'index'])->name('customer.feedback.index');
-            Route::get('/{booking}', [CustomerReviewController::class, 'edit'])
+            Route::get('/{booking}/create', [CustomerReviewController::class, 'create'])
                 ->whereUuid('booking')
-                ->name('customer.feedback.edit');
-            Route::put('/{booking}', [CustomerReviewController::class, 'update'])
+                ->name('customer.feedback.create');
+            Route::post('/{booking}', [CustomerReviewController::class, 'store'])
                 ->whereUuid('booking')
-                ->name('customer.feedback.update');
+                ->name('customer.feedback.store');
         });
 
     Route::prefix('/customer/payments')
@@ -355,7 +389,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/checkout/{booking}', [CustomerPaymentController::class, 'checkout'])->name('customer.payments.checkout');
             Route::post('/online/{booking}', [CustomerPaymentController::class, 'payOnline'])->name('customer.payments.online');
             Route::post('/cash/{booking}', [CustomerPaymentController::class, 'payCash'])->name('customer.payments.cash');
-            Route::post('/refund/{payment\}', [CustomerPaymentController::class, 'refund'])->name('customer.payments.refund');
+            Route::post('/refund/{payment}', [CustomerPaymentController::class, 'refund'])->name('customer.payments.refund');
         });
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');

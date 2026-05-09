@@ -24,7 +24,7 @@ class NotificationDeliveryService
     ): void {
         if ($sendEmail && (bool) config('notifications.email_fallback', true)) {
             try {
-                Mail::to($user->email)->send(new UserNotificationFallbackMail($user, $title, $message, $data));
+                Mail::to($user->email)->queue(new UserNotificationFallbackMail($user, $title, $message, $data));
             } catch (\Throwable $e) {
                 Log::warning('Email notification fallback failed', [
                     'user_id' => $user->id,

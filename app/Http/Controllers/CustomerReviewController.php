@@ -53,7 +53,7 @@ class CustomerReviewController extends Controller
         ]);
     }
 
-    public function edit(Request $request, Booking $booking): View|RedirectResponse
+    public function create(Request $request, Booking $booking): View|RedirectResponse
     {
         /** @var User $customer */
         $customer = $request->user();
@@ -71,17 +71,19 @@ class CustomerReviewController extends Controller
             'service:id,name,slug,description,base_price,duration_minutes',
             'serviceVariant:id,name,price',
             'branch:id,name,city,state',
-            'review:id,booking_id,rating,title,comment,is_approved,created_at,updated_at',
         ]);
 
-        return view('customer.feedback.edit', [
+        if ($booking->review()->exists()) {
+            return $this->feedbackAlreadySubmittedResponse();
+        }
+
+        return view('customer.feedback.create', [
             'booking' => $booking,
-            'review' => $booking->review,
-            'selectedRating' => (int) old('rating', $booking->review?->rating ?? 0),
+            'selectedRating' => (int) old('rating', 0),
         ]);
     }
 
-    public function update(Request $request, Booking $booking): RedirectResponse
+    public function store(Request $request, Booking $booking): RedirectResponse
     {
         /** @var User $customer */
         $customer = $request->user();
@@ -94,29 +96,30 @@ class CustomerReviewController extends Controller
                 ->with('error', 'Only completed bookings can receive feedback.');
         }
 
+        if ($booking->review()->exists()) {
+            return $this->feedbackAlreadySubmittedResponse();
+        }
+
         $data = $request->validate([
             'rating' => 'required|integer|min:1|max:5',
             'title' => 'nullable|string|max:120',
             'comment' => 'nullable|string|max:1500',
         ]);
 
-        $existingReview = $booking->review()->first();
-        Review::query()->updateOrCreate(
-            ['booking_id' => $booking->id],
-            [
-                'customer_id' => $customer->id,
-                'provider_id' => $booking->provider_id,
-                'service_id' => $booking->service_id,
-                'rating' => (int) $data['rating'],
-                'title' => filled($data['title'] ?? null) ? trim((string) $data['title']) : null,
-                'comment' => filled($data['comment'] ?? null) ? trim((string) $data['comment']) : null,
-                'is_approved' => $existingReview?->is_approved ?? true,
-            ]
-        );
+        Review::query()->create([
+            'booking_id' => $booking->id,
+            'customer_id' => $customer->id,
+            'provider_id' => $booking->provider_id,
+            'service_id' => $booking->service_id,
+            'rating' => (int) $data['rating'],
+            'title' => filled($data['title'] ?? null) ? trim((string) $data['title']) : null,
+            'comment' => filled($data['comment'] ?? null) ? trim((string) $data['comment']) : null,
+            'is_approved' => true,
+        ]);
 
         return redirect()
             ->route('customer.feedback.index')
-            ->with('success', $existingReview ? 'Feedback updated successfully.' : 'Feedback submitted successfully.');
+            ->with('success', 'Feedback submitted successfully.');
     }
 
     private function ensureBookingOwner(Booking $booking, User $customer): void
@@ -129,5 +132,12 @@ class CustomerReviewController extends Controller
     private function bookingCanReceiveFeedback(Booking $booking): bool
     {
         return $booking->status === Booking::STATUS_COMPLETED;
+    }
+
+    private function feedbackAlreadySubmittedResponse(): RedirectResponse
+    {
+        return redirect()
+            ->route('customer.feedback.index')
+            ->with('error', 'Feedback has already been submitted for this booking and cannot be edited.');
     }
 }

@@ -130,6 +130,50 @@
 
     <section class="dashboard-panel">
         <div class="mb-4">
+            <h2 class="text-lg font-bold text-white">Operational Status</h2>
+            <p class="text-sm text-zinc-400 mt-1">Mark yourself available or unavailable. When unavailable, affected appointments are automatically moved to the next available slots.</p>
+        </div>
+
+        <form method="POST" action="{{ route('provider.availability.status.update') }}" class="grid grid-cols-1 gap-4 md:grid-cols-4">
+            @csrf
+            @method('PATCH')
+
+            <div>
+                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Status</label>
+                <select name="availability_status" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
+                    <option value="available" @selected(($providerProfile?->availability_status ?? 'available') === 'available')>Available</option>
+                    <option value="unavailable" @selected(($providerProfile?->availability_status ?? 'available') === 'unavailable')>Unavailable</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Unavailable From</label>
+                <input type="date" name="unavailable_from" value="{{ old('unavailable_from', $providerProfile?->unavailable_from?->toDateString()) }}" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
+            </div>
+            <div>
+                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Unavailable Until</label>
+                <input type="date" name="unavailable_until" value="{{ old('unavailable_until', $providerProfile?->unavailable_until?->toDateString()) }}" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
+            </div>
+            <div>
+                <label class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Reason</label>
+                <input type="text" name="unavailability_reason" value="{{ old('unavailability_reason', $providerProfile?->unavailability_reason) }}" placeholder="Vacation / Medical Leave / Emergency" class="mt-1 w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2 text-sm text-zinc-100">
+            </div>
+            <div class="md:col-span-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <p class="text-xs text-zinc-500">
+                    Current status:
+                    <span class="font-semibold text-zinc-200">{{ \Illuminate\Support\Str::headline($providerProfile?->availability_status ?? 'available') }}</span>
+                    @if($providerProfile?->isOperationallyUnavailable() && $providerProfile?->unavailable_from)
+                        <span class="text-zinc-400">| {{ $providerProfile->unavailable_from->format('d M Y') }} to {{ optional($providerProfile->unavailable_until)->format('d M Y') ?? $providerProfile->unavailable_from->format('d M Y') }}</span>
+                    @endif
+                </p>
+                <button type="submit" class="rounded-xl bg-rose-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-rose-400">
+                    Save Operational Status
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="dashboard-panel">
+        <div class="mb-4">
             <h2 class="text-lg font-bold text-white">Weekly Schedule</h2>
             <p class="text-sm text-zinc-400 mt-1">Add break time if you are unavailable during working hours.</p>
         </div>
